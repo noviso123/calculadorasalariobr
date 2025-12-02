@@ -14,9 +14,17 @@
      crossorigin="anonymous"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // Desabilita o modo dark automático baseado no sistema
+      }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
+      :root {
+        color-scheme: light; /* Força os controles nativos do navegador a usarem tema claro */
+      }
       body {
         font-family: 'Inter', sans-serif;
         background-color: #f8fafc;

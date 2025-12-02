@@ -6,6 +6,19 @@ import PieChartVisual from './components/PieChartVisual';
 import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
 
+// --- AD SENSE SLOTS (PLACEHOLDERS - SUBSTITUA PELOS SEUS IDS REAIS DO GOOGLE) ---
+const AD_SLOTS = {
+  TOP_BANNER: "top-banner-slot",           // Anúncio do Topo (Horizontal)
+  SIDEBAR: "sidebar-ad-slot",              // Anúncio do Menu Lateral (Quadrado/Retângulo)
+  MIDDLE_MOBILE: "mobile-middle-slot",     // Anúncio no meio do resultado (Mobile)
+  MIDDLE_CONTENT: "middle-content-slot",   // Anúncio no meio do conteúdo (Geral)
+  MIDDLE_THIRTEENTH: "middle-thirteenth-slot",
+  MIDDLE_TERMINATION: "middle-termination-slot",
+  BOTTOM: "bottom-slot",                   // Anúncio de Rodapé
+  BOTTOM_VACATION: "bottom-vacation-slot",
+  BOTTOM_TERMINATION: "bottom-termination-slot"
+};
+
 // --- ICONS ---
 const CalculatorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>;
 const CoinsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7 .71-2.82 2.82"/></svg>;
@@ -145,9 +158,9 @@ const App: React.FC = () => {
           <NavItem view="termination" icon={<BriefcaseIcon />} label="Rescisão" />
         </nav>
 
-        {/* SIDEBAR AD UNIT (Visible on Desktop) */}
-        <div className="p-4 hidden md:block">
-           <AdUnit slotId="sidebar-ad-slot" format="rectangle" />
+        {/* SIDEBAR AD UNIT (Visible on Desktop AND Mobile Menu) */}
+        <div className="p-4">
+           <AdUnit slotId={AD_SLOTS.SIDEBAR} format="rectangle" />
         </div>
 
         <div className="p-6 border-t border-blue-800">
@@ -163,7 +176,7 @@ const App: React.FC = () => {
       <main className="flex-1 p-4 md:p-8 lg:p-10 overflow-y-auto h-auto md:h-screen">
         
         {/* TOP AD UNIT */}
-        <AdUnit slotId="top-banner-slot" className="mb-8" />
+        <AdUnit slotId={AD_SLOTS.TOP_BANNER} className="mb-8" />
 
         {/* VIEW: SALARIO LIQUIDO */}
         {currentView === 'salary' && (
@@ -215,7 +228,7 @@ const App: React.FC = () => {
                 <div className="lg:col-span-7 space-y-6 animate-fade-in">
                    {/* MIDDLE AD UNIT (High Engagement) */}
                    <div className="block lg:hidden">
-                      <AdUnit slotId="mobile-middle-slot" />
+                      <AdUnit slotId={AD_SLOTS.MIDDLE_MOBILE} />
                    </div>
 
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -255,7 +268,7 @@ const App: React.FC = () => {
                    <AIAdvisor result={salaryResult} />
                    
                    {/* BOTTOM AD UNIT */}
-                   <AdUnit slotId="bottom-slot" />
+                   <AdUnit slotId={AD_SLOTS.BOTTOM} />
                 </div>
               )}
             </div>
@@ -322,7 +335,7 @@ const App: React.FC = () => {
                 {vacationResult && (
                    <div className="lg:col-span-7 space-y-6 animate-fade-in">
                       {/* MIDDLE AD UNIT */}
-                      <AdUnit slotId="middle-content-slot" />
+                      <AdUnit slotId={AD_SLOTS.MIDDLE_CONTENT} />
 
                       <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-yellow-400 flex flex-col items-center justify-center transform hover:scale-[1.01] transition-transform">
                           <p className="text-blue-200 text-xs font-bold uppercase tracking-widest text-center mb-1">Total Líquido a Receber</p>
@@ -366,7 +379,7 @@ const App: React.FC = () => {
                       </div>
                       
                       {/* BOTTOM AD UNIT */}
-                      <AdUnit slotId="bottom-vacation-slot" />
+                      <AdUnit slotId={AD_SLOTS.BOTTOM_VACATION} />
                    </div>
                 )}
              </div>
@@ -402,7 +415,7 @@ const App: React.FC = () => {
                  {thirteenthResult && (
                     <div className="lg:col-span-7 space-y-6 animate-fade-in">
                        {/* MIDDLE AD UNIT */}
-                       <AdUnit slotId="middle-thirteenth-slot" />
+                       <AdUnit slotId={AD_SLOTS.MIDDLE_THIRTEENTH} />
 
                        <h3 className="font-bold text-slate-700 md:text-lg">Fluxo de Recebimento</h3>
                        
@@ -570,7 +583,7 @@ const App: React.FC = () => {
                  {terminationResult && (
                     <div className="lg:col-span-7 space-y-6 animate-fade-in">
                        {/* MIDDLE AD UNIT */}
-                       <AdUnit slotId="middle-termination-slot" />
+                       <AdUnit slotId={AD_SLOTS.MIDDLE_TERMINATION} />
 
                        <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between gap-4">
                           <div>
@@ -637,7 +650,7 @@ const App: React.FC = () => {
                        </div>
 
                        {/* BOTTOM AD UNIT */}
-                       <AdUnit slotId="bottom-termination-slot" />
+                       <AdUnit slotId={AD_SLOTS.BOTTOM_TERMINATION} />
                     </div>
                  )}
               </div>
