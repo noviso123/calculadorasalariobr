@@ -5,15 +5,10 @@ import { calculateSalary, calculateThirteenth, calculateTermination, calculateVa
 import PieChartVisual from './components/PieChartVisual';
 import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
+import CookieConsent from './components/CookieConsent';
+import PrivacyModal from './components/PrivacyModal';
 
 // --- CONFIGURAÇÃO DE ANÚNCIOS (GOOGLE ADSENSE) ---
-// 1. Crie blocos de anúncios do tipo "Display" no painel do Google AdSense.
-// 2. Copie o número do `data-ad-slot` gerado pelo Google.
-// 3. Cole o número (apenas números, entre aspas) nos campos abaixo.
-//
-// EXEMPLO:
-// TOP_BANNER: "9876543210", 
-//
 const AD_SLOTS = {
   TOP_BANNER: "7977197949",           // Banner principal no topo
   SIDEBAR: "7977197949",              // Barra lateral (Desktop)
@@ -39,6 +34,9 @@ const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" heigh
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('salary');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // States for Privacy
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   // --- INITIAL STATES ---
   const initialExtras: ExtrasInput = {
@@ -122,8 +120,10 @@ const App: React.FC = () => {
     </button>
   );
 
+  // --- LAYOUT FIX: Main container with flex-row for Desktop, flex-col for mobile. 
+  // IMPORTANT: Removed h-screen and overflow-y-auto from main content to use Native Browser Scrollbar only.
   return (
-    <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row overflow-x-hidden">
+    <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row">
       
       {/* MOBILE HEADER */}
       <div className="md:hidden bg-[#1e3a8a] text-white p-4 flex items-center justify-start gap-4 sticky top-0 z-50 shadow-md">
@@ -139,11 +139,11 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* SIDEBAR (RESPONSIVE) */}
+      {/* SIDEBAR (Sticky on Desktop) */}
       <aside 
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#1e3a8a] text-white transform transition-transform duration-300 ease-in-out shadow-2xl 
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:translate-x-0 md:relative md:sticky md:top-0 md:h-screen md:flex md:w-64 md:flex-col md:shadow-none lg:w-72`}
+        md:translate-x-0 md:relative md:sticky md:top-0 md:h-screen md:overflow-y-auto md:flex md:w-64 md:flex-col md:shadow-none lg:w-72 md:shrink-0`}
       >
         <div className="p-6 border-b border-blue-800 flex items-center justify-between md:justify-start gap-3">
           <div className="flex items-center gap-3">
@@ -155,14 +155,14 @@ const App: React.FC = () => {
           <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-blue-200"><CloseIcon /></button>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-2">
           <NavItem view="salary" icon={<CalculatorIcon />} label="Salário Líquido" />
           <NavItem view="vacation" icon={<SunIcon />} label="Férias" />
           <NavItem view="thirteenth" icon={<CoinsIcon />} label="Décimo Terceiro" />
           <NavItem view="termination" icon={<BriefcaseIcon />} label="Rescisão" />
         </nav>
 
-        {/* SIDEBAR AD UNIT (Visible on Desktop AND Mobile Menu) */}
+        {/* SIDEBAR AD UNIT */}
         <div className="p-4">
            <AdUnit slotId={AD_SLOTS.SIDEBAR} format="rectangle" label="Publicidade" />
         </div>
@@ -173,18 +173,19 @@ const App: React.FC = () => {
             <p className="flex justify-between"><span>Salário Mínimo:</span> <span className="text-white">R$ 1.631</span></p>
             <p className="flex justify-between"><span>Isenção IR:</span> <span className="text-white">Até 5k</span></p>
           </div>
-          {/* Link para verificação do ads.txt (Ajuda no debug) */}
+          {/* Link para Política de Privacidade */}
           <div className="mt-4 text-center">
-            <a href="/ads.txt" target="_blank" className="text-[10px] text-blue-400 hover:text-white underline">
-              Verificar status ads.txt
-            </a>
+             <button onClick={() => setIsPrivacyOpen(true)} className="text-[10px] text-blue-400 hover:text-white underline">
+               Política de Privacidade
+             </button>
           </div>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 p-4 md:p-8 lg:p-10 overflow-y-auto h-auto md:h-screen">
+      {/* MAIN CONTENT AREA - Uses Window Scrollbar */}
+      <main className="flex-1 p-4 md:p-8 lg:p-10 w-full max-w-full flex flex-col">
         
+        <div className="flex-1">
         {/* TOP AD UNIT */}
         <AdUnit slotId={AD_SLOTS.TOP_BANNER} className="mb-8" />
 
@@ -648,7 +649,25 @@ const App: React.FC = () => {
            </div>
         )}
 
+        </div>
+        
+        {/* FOOTER */}
+        <footer className="mt-12 py-8 border-t border-slate-200 text-center text-slate-400 text-xs">
+           <div className="flex justify-center gap-6 mb-4">
+              <button onClick={() => setIsPrivacyOpen(true)} className="hover:text-blue-600 transition-colors">Política de Privacidade</button>
+              <span>•</span>
+              <span>&copy; 2026 Calculadora Salário BR</span>
+           </div>
+           <p className="max-w-lg mx-auto leading-relaxed opacity-70">
+             Este site é uma ferramenta de simulação. Os cálculos podem sofrer variações dependendo de convenções coletivas e interpretações legais. Consulte sempre um contador.
+           </p>
+        </footer>
+
       </main>
+
+      {/* PRIVACY MODAL & COOKIE BANNER */}
+      <CookieConsent onOpenPrivacy={() => setIsPrivacyOpen(true)} />
+      <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </div>
   );
 };
@@ -698,57 +717,61 @@ const ExtrasSection = ({ isActive, onToggle, data, onChange, labelOverride }: { 
           <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Interjornada 50% (Horas)</label>
           <input type="number" value={data.hoursInterjornada || ''} onChange={e => onChange({...data, hoursInterjornada: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="0" />
         </div>
+
         <div className="col-span-1">
-          <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Ad. Noturno 20% (Horas)</label>
+          <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Adicional Noturno (Horas)</label>
           <input type="number" value={data.hoursNight || ''} onChange={e => onChange({...data, hoursNight: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="0" />
         </div>
+        
         <div className="col-span-1">
-          <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Sobreaviso 1/3 (Horas)</label>
+          <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Sobreaviso (Horas)</label>
           <input type="number" value={data.hoursStandby || ''} onChange={e => onChange({...data, hoursStandby: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="0" />
         </div>
-        <div className="col-span-1 sm:col-span-2 pt-2">
-           <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={data.includeDsr} onChange={e => onChange({...data, includeDsr: e.target.checked})} className="h-4 w-4 accent-orange-600 rounded" />
-              <span className="text-xs font-semibold text-orange-800">Calcular reflexo DSR (Estimado ~20%)</span>
-           </label>
-        </div>
+
+         <div className="col-span-1 sm:col-span-2 pt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={data.includeDsr} onChange={(e) => onChange({...data, includeDsr: e.target.checked})} className="h-4 w-4 accent-orange-600 rounded" />
+              <span className="text-xs font-bold text-orange-800">Calcular DSR (Reflexo) Automático?</span>
+            </label>
+         </div>
+
       </div>
     )}
   </div>
 );
 
-const ExtrasDetailedRows = ({ breakdown }: { breakdown: ExtrasBreakdown }) => {
-   return (
-     <>
-       {breakdown.value50 > 0 && <Row label="(+) Hora Extra 50%" value={breakdown.value50} isPositive />}
-       {breakdown.value100 > 0 && <Row label="(+) Hora Extra 100%" value={breakdown.value100} isPositive />}
-       {breakdown.valueInterjornada > 0 && <Row label="(+) Interjornada 50%" value={breakdown.valueInterjornada} isPositive />}
-       {breakdown.valueNight > 0 && <Row label="(+) Adicional Noturno 20%" value={breakdown.valueNight} isPositive />}
-       {breakdown.valueStandby > 0 && <Row label="(+) Sobreaviso 1/3" value={breakdown.valueStandby} isPositive />}
-       {breakdown.valueDsr > 0 && <Row label="(+) Reflexo DSR (Est.)" value={breakdown.valueDsr} isPositive />}
-     </>
-   );
-};
-
 const ResultCard = ({ label, value, isMain, isDanger }: any) => (
-   <div className={`p-5 md:p-6 rounded-2xl border ${isMain ? 'bg-blue-600 border-blue-600 text-white shadow-blue-200 shadow-xl' : 'bg-white border-slate-100 shadow-sm'}`}>
-      <p className={`text-xs font-bold uppercase tracking-wide ${isMain ? 'text-blue-100' : 'text-slate-400'}`}>{label}</p>
-      <p className={`text-2xl md:text-3xl font-extrabold mt-1 ${isMain ? 'text-white' : isDanger ? 'text-red-500' : 'text-slate-800'}`}>
-         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
-      </p>
-   </div>
+  <div className={`p-6 rounded-2xl border shadow-sm flex flex-col justify-between ${isMain ? 'bg-blue-600 text-white border-blue-600' : isDanger ? 'bg-white border-red-100' : 'bg-white border-slate-100'}`}>
+    <span className={`text-xs font-bold uppercase tracking-wider mb-2 ${isMain ? 'text-blue-200' : isDanger ? 'text-red-400' : 'text-slate-400'}`}>{label}</span>
+    <span className={`text-2xl md:text-3xl font-extrabold ${isMain ? 'text-white' : isDanger ? 'text-red-600' : 'text-slate-800'}`}>
+      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+    </span>
+  </div>
 );
 
-const Row = ({ label, value, isPositive, highlight, informational }: any) => {
-   const format = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Math.abs(v));
+const Row = ({ label, value, isPositive, highlight, informational }: any) => (
+  <div className={`flex justify-between items-center py-1 ${highlight ? 'font-bold text-blue-600' : ''} ${informational ? 'text-slate-400 text-xs' : ''}`}>
+    <span className={`${informational ? '' : 'text-slate-600'}`}>{label}</span>
+    <span className={`font-semibold ${isPositive ? 'text-emerald-600' : informational ? '' : value < 0 ? 'text-red-500' : 'text-slate-800'}`}>
+      {value === 0 ? '--' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+    </span>
+  </div>
+);
+
+const ExtrasDetailedRows = ({ breakdown }: { breakdown: ExtrasBreakdown }) => {
+   const format = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+   if (!breakdown || breakdown.total === 0) return null;
+
    return (
-     <div className={`flex justify-between items-center p-2.5 rounded-lg transition-colors ${highlight ? 'bg-blue-50 text-blue-800 font-bold' : 'hover:bg-slate-50'}`}>
-       <span className="text-slate-600">{label}</span>
-       <span className={`font-mono font-bold ${informational ? 'text-slate-400' : isPositive ? 'text-emerald-600' : 'text-red-500'}`}>
-         {!informational && (isPositive ? '+' : '-')} {format(value)}
-       </span>
-     </div>
-   )
-}
+      <div className="text-xs space-y-1 text-orange-800">
+         {breakdown.value50 > 0 && <div className="flex justify-between"><span>H.E. 50%</span><span>{format(breakdown.value50)}</span></div>}
+         {breakdown.value100 > 0 && <div className="flex justify-between"><span>H.E. 100%</span><span>{format(breakdown.value100)}</span></div>}
+         {breakdown.valueNight > 0 && <div className="flex justify-between"><span>Ad. Noturno</span><span>{format(breakdown.valueNight)}</span></div>}
+         {breakdown.valueStandby > 0 && <div className="flex justify-between"><span>Sobreaviso</span><span>{format(breakdown.valueStandby)}</span></div>}
+         {breakdown.valueInterjornada > 0 && <div className="flex justify-between"><span>Interjornada</span><span>{format(breakdown.valueInterjornada)}</span></div>}
+         {breakdown.valueDsr > 0 && <div className="flex justify-between border-t border-orange-200 pt-1 mt-1"><span>DSR (Reflexo)</span><span>{format(breakdown.valueDsr)}</span></div>}
+      </div>
+   );
+};
 
 export default App;
