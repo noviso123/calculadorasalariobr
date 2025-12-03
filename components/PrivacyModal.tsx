@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface Props {
@@ -55,7 +56,15 @@ const PrivacyModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <p>Esses servidores de anúncios de terceiros ou redes de anúncios usam tecnologia para os anúncios e links que aparecem no Calculadora Salário 2026 enviados diretamente para o seu navegador. Eles recebem automaticamente o seu endereço IP quando isso ocorre. Outras tecnologias (como cookies, JavaScript ou Web Beacons) também podem ser usadas pelas redes de anúncios de terceiros para medir a eficácia de suas campanhas publicitárias e/ou para personalizar o conteúdo publicitário que você vê.</p>
 
           <h4 className="font-bold text-slate-800 text-base border-b pb-1">5. Consentimento</h4>
-          <p>Ao utilizar nosso site, você concorda com nossa política de privacidade e concorda com seus termos. Se tiver dúvidas, entre em contato.</p>
+          <p>Ao utilizar nosso site, você concorda com nossa política de privacidade e concorda com seus termos.</p>
+
+          <h4 className="font-bold text-slate-800 text-base border-b pb-1">6. Simulações Financeiras e Consignado</h4>
+          <p><strong>Isenção de Responsabilidade:</strong> As ferramentas de cálculo de salário, rescisão e empréstimo consignado são apenas para fins informativos e de simulação.</p>
+          <ul className="list-disc pl-5 space-y-2 marker:text-blue-500">
+            <li>Não armazenamos dados bancários, saldos de FGTS ou informações de crédito.</li>
+            <li>Os valores inseridos para cálculo de Garantia de FGTS e Margem Consignável são processados localmente no seu dispositivo e descartados ao fechar a página.</li>
+            <li>O site não realiza empréstimos e não tem vínculo com instituições financeiras.</li>
+          </ul>
         </div>
         
         {/* Footer */}

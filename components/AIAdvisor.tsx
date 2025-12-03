@@ -1,20 +1,21 @@
+
 import React, { useState, useEffect } from 'react';
-import { CalculationResult } from '../types';
+import { AIContext } from '../types';
 import { getFinancialAdvice } from '../services/geminiService';
 
 interface Props {
-  result: CalculationResult | null;
+  context: AIContext | null;
 }
 
-const AIAdvisor: React.FC<Props> = ({ result }) => {
+const AIAdvisor: React.FC<Props> = ({ context }) => {
   const [advice, setAdvice] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [hasFetched, setHasFetched] = useState<boolean>(false);
 
   const handleGenerateAdvice = async () => {
-    if (!result) return;
+    if (!context) return;
     setLoading(true);
-    const text = await getFinancialAdvice(result);
+    const text = await getFinancialAdvice(context);
     setAdvice(text);
     setLoading(false);
     setHasFetched(true);
@@ -23,9 +24,9 @@ const AIAdvisor: React.FC<Props> = ({ result }) => {
   useEffect(() => {
     setHasFetched(false);
     setAdvice('');
-  }, [result?.grossSalary]);
+  }, [context?.gross]);
 
-  if (!result) return null;
+  if (!context) return null;
 
   return (
     <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
@@ -61,7 +62,7 @@ const AIAdvisor: React.FC<Props> = ({ result }) => {
 
       {!loading && !advice && !hasFetched && (
         <p className="text-blue-400 text-xs text-center">
-          Dica: Use a inteligência artificial para otimizar o uso da sua isenção de IRPF.
+          Dica: Use a inteligência artificial para receber dicas personalizadas sobre este cálculo.
         </p>
       )}
     </div>

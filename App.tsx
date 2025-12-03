@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { CalculationResult, SalaryInput, ViewType, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult } from './types';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { CalculationResult, SalaryInput, ViewType, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, AIContext } from './types';
 import { calculateSalary, calculateThirteenth, calculateTermination, calculateVacation } from './services/taxService';
 import PieChartVisual from './components/PieChartVisual';
 import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
 import CookieConsent from './components/CookieConsent';
 import PrivacyModal from './components/PrivacyModal';
+import ConsignedSection from './components/ConsignedSection';
 
 // --- CONFIGURAÇÃO DE ANÚNCIOS (GOOGLE ADSENSE) ---
 const AD_SLOTS = {
@@ -14,7 +16,7 @@ const AD_SLOTS = {
   MIDDLE_MOBILE: "7977197949",        // Entre resultados (Mobile)
   MIDDLE_CONTENT: "7977197949",       // Meio do conteúdo (Férias)
   MIDDLE_THIRTEENTH: "7977197949",    // Meio (13º Salário)
-  BOTTOM_THIRTEENTH: "7977197949",    // Rodapé (13º Salário) - NOVO
+  BOTTOM_THIRTEENTH: "7977197949",    // Rodapé (13º Salário)
   MIDDLE_TERMINATION: "7977197949",   // Meio (Rescisão)
   BOTTOM: "7977197949",               // Rodapé dos resultados
   BOTTOM_VACATION: "7977197949",      // Rodapé (Férias)
@@ -29,51 +31,114 @@ const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height=
 const MenuIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>;
 const ArrowRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
 const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 12"/></svg>;
+const BankIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="21" width="18" height="2" rx="1"/><rect x="5" y="3" width="14" height="14" rx="2"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M9 11h.01"/><path d="M15 11h.01"/><path d="M12 15h.01"/></svg>;
 
 // --- MAIN APP ---
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('salary');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // States for Privacy
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  
+  // Ref for auto-scrolling to results
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // --- INITIAL STATES ---
   const initialExtras: ExtrasInput = {
     workload: 220, hours50: 0, hours100: 0, hoursNight: 0, hoursStandby: 0, hoursInterjornada: 0, includeDsr: true
   };
+  const initialConsigned: ConsignedInput = {
+    monthlyInstallment: 0, outstandingBalance: 0, hasFgtsWarranty: false, fgtsBalance: 0
+  };
 
+  // --- STATE DEFINITIONS ---
   const [salaryData, setSalaryData] = useState<SalaryInput>({
-    grossSalary: 0, dependents: 0, otherDiscounts: 0, healthInsurance: 0,
+    grossSalary: 0, includeDependents: false, dependents: 0, otherDiscounts: 0, healthInsurance: 0,
     transportVoucherPercent: 6, includeTransportVoucher: false, transportDailyCost: 0, workDays: 22,
-    includeExtras: false, extras: initialExtras
+    includeExtras: false, extras: initialExtras,
+    includeConsigned: false, consigned: initialConsigned
   });
   const [salaryResult, setSalaryResult] = useState<CalculationResult | null>(null);
 
   const [thirteenthData, setThirteenthData] = useState<ThirteenthInput>({
-    grossSalary: 0, monthsWorked: 12, dependents: 0,
-    includeExtras: false, extras: initialExtras
+    grossSalary: 0, monthsWorked: 12, includeDependents: false, dependents: 0,
+    includeExtras: false, extras: initialExtras,
+    includeConsigned: false, consigned: initialConsigned
   });
   const [thirteenthResult, setThirteenthResult] = useState<ThirteenthResult | null>(null);
 
   const [terminationData, setTerminationData] = useState<TerminationInput>({
-    grossSalary: 0, startDate: '', endDate: '', reason: 'dismissal_no_cause', noticeStatus: 'indemnified', hasExpiredVacation: false, thirteenthAdvancePaid: false, dependents: 0,
-    includeExtras: false, extras: initialExtras
+    grossSalary: 0, startDate: '', endDate: '', reason: 'dismissal_no_cause', noticeStatus: 'indemnified', hasExpiredVacation: false, thirteenthAdvancePaid: false, includeDependents: false, dependents: 0,
+    includeExtras: false, extras: initialExtras,
+    includeConsigned: false, consigned: initialConsigned
   });
   const [terminationResult, setTerminationResult] = useState<TerminationResult | null>(null);
 
   const [vacationData, setVacationData] = useState<VacationInput>({
-    grossSalary: 0, dependents: 0, daysTaken: 30, sellDays: false, daysSold: 10, advanceThirteenth: false,
-    includeExtras: false, extras: initialExtras
+    grossSalary: 0, includeDependents: false, dependents: 0, daysTaken: 30, sellDays: false, daysSold: 10, advanceThirteenth: false,
+    includeExtras: false, extras: initialExtras,
+    includeConsigned: false, consigned: initialConsigned
   });
   const [vacationResult, setVacationResult] = useState<VacationResult | null>(null);
 
-  // --- AUTOMATION EFFECT FOR 13th ADVANCE ---
+  const [consignedSimData, setConsignedSimData] = useState({ grossSalary: 0 });
+  const [consignedSimResult, setConsignedSimResult] = useState<{margin: number, maxInstallment: number} | null>(null);
+
+  // --- SCROLL HELPER ---
+  const scrollToResults = () => {
+    // Timeout to allow React to render the result container first
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 150);
+  };
+
+  // --- SHARED STATE LOGIC ---
+  const updateGrossSalary = (value: number) => {
+    setSalaryData(prev => ({ ...prev, grossSalary: value }));
+    setThirteenthData(prev => ({ ...prev, grossSalary: value }));
+    setTerminationData(prev => ({ ...prev, grossSalary: value }));
+    setVacationData(prev => ({ ...prev, grossSalary: value }));
+    setConsignedSimData({ grossSalary: value });
+  };
+
+  const updateDependents = (include: boolean, count: number) => {
+    setSalaryData(prev => ({ ...prev, includeDependents: include, dependents: count }));
+    setThirteenthData(prev => ({ ...prev, includeDependents: include, dependents: count }));
+    setTerminationData(prev => ({ ...prev, includeDependents: include, dependents: count }));
+    setVacationData(prev => ({ ...prev, includeDependents: include, dependents: count }));
+  };
+
+  const updateExtras = (newExtras: ExtrasInput) => {
+    setSalaryData(prev => ({ ...prev, extras: newExtras }));
+    setThirteenthData(prev => ({ ...prev, extras: newExtras }));
+    setTerminationData(prev => ({ ...prev, extras: newExtras }));
+    setVacationData(prev => ({ ...prev, extras: newExtras }));
+  };
+
+  const updateExtrasToggle = (isActive: boolean) => {
+    setSalaryData(prev => ({ ...prev, includeExtras: isActive }));
+    setThirteenthData(prev => ({ ...prev, includeExtras: isActive }));
+    setTerminationData(prev => ({ ...prev, includeExtras: isActive }));
+    setVacationData(prev => ({ ...prev, includeExtras: isActive }));
+  };
+
+  const updateConsigned = (newConsigned: ConsignedInput) => {
+    setSalaryData(prev => ({ ...prev, consigned: newConsigned }));
+    setThirteenthData(prev => ({ ...prev, consigned: newConsigned }));
+    setTerminationData(prev => ({ ...prev, consigned: newConsigned }));
+    setVacationData(prev => ({ ...prev, consigned: newConsigned }));
+  };
+
+  const updateConsignedToggle = (isActive: boolean) => {
+    setSalaryData(prev => ({ ...prev, includeConsigned: isActive }));
+    setThirteenthData(prev => ({ ...prev, includeConsigned: isActive }));
+    setTerminationData(prev => ({ ...prev, includeConsigned: isActive }));
+    setVacationData(prev => ({ ...prev, includeConsigned: isActive }));
+  };
+
   useEffect(() => {
     if (terminationData.endDate) {
       const end = new Date(terminationData.endDate + 'T12:00:00');
-      const month = end.getMonth(); // 0-11
-      
+      const month = end.getMonth(); 
       if (month === 11) {
          setTerminationData(prev => ({ ...prev, thirteenthAdvancePaid: true }));
       }
@@ -83,32 +148,96 @@ const App: React.FC = () => {
     }
   }, [terminationData.endDate]);
 
-
   // --- HANDLERS ---
   const handleSalaryCalc = (e: React.FormEvent) => {
     e.preventDefault();
     setSalaryResult(calculateSalary(salaryData));
+    scrollToResults();
   };
 
   const handleThirteenthCalc = (e: React.FormEvent) => {
     e.preventDefault();
     setThirteenthResult(calculateThirteenth(thirteenthData));
+    scrollToResults();
   };
 
   const handleTerminationCalc = (e: React.FormEvent) => {
     e.preventDefault();
     if(terminationData.startDate && terminationData.endDate) {
       setTerminationResult(calculateTermination(terminationData));
+      scrollToResults();
     }
   };
 
   const handleVacationCalc = (e: React.FormEvent) => {
     e.preventDefault();
     setVacationResult(calculateVacation(vacationData));
+    scrollToResults();
+  };
+
+  const handleConsignedSimCalc = (e: React.FormEvent) => {
+    e.preventDefault();
+    const simResult = calculateSalary({
+      grossSalary: consignedSimData.grossSalary,
+      includeDependents: false, dependents: 0, otherDiscounts: 0, healthInsurance: 0, transportVoucherPercent: 0, includeTransportVoucher: false,
+      includeExtras: false, extras: initialExtras,
+      includeConsigned: true, consigned: { ...initialConsigned, monthlyInstallment: 999999 } 
+    });
+    setConsignedSimResult({
+      margin: simResult.maxConsignableMargin,
+      maxInstallment: simResult.maxConsignableMargin
+    });
+    scrollToResults();
   };
 
   const formatCurrency = (val: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+  // --- AI CONTEXT BUILDERS ---
+  const getSalaryAIContext = (): AIContext | null => {
+    if (!salaryResult) return null;
+    return {
+      type: 'salary',
+      gross: salaryResult.grossSalary,
+      net: salaryResult.finalNetSalary,
+      discounts: salaryResult.totalDiscounts + salaryResult.consignedDiscount,
+      extras: salaryResult.totalExtras
+    };
+  };
+
+  const getVacationAIContext = (): AIContext | null => {
+    if (!vacationResult) return null;
+    return {
+      type: 'vacation',
+      gross: vacationResult.totalGross,
+      net: vacationResult.finalNetVacation,
+      discounts: vacationResult.totalDiscounts + vacationResult.consignedDiscount,
+      extras: vacationResult.extrasBreakdown.total,
+      daysTaken: vacationData.daysTaken
+    };
+  };
+
+  const getThirteenthAIContext = (): AIContext | null => {
+    if (!thirteenthResult) return null;
+    return {
+      type: 'thirteenth',
+      gross: thirteenthResult.totalGross,
+      net: thirteenthResult.finalTotalNet,
+      discounts: thirteenthResult.parcel2.inss + thirteenthResult.parcel2.irpf + thirteenthResult.parcel2.consignedDiscount,
+      monthsWorked: thirteenthData.monthsWorked
+    };
+  };
+
+  const getTerminationAIContext = (): AIContext | null => {
+    if (!terminationResult) return null;
+    return {
+      type: 'termination',
+      gross: terminationResult.totalGross,
+      net: terminationResult.finalNetTermination,
+      discounts: terminationResult.totalDiscounts + terminationResult.consignedDiscount,
+      terminationReason: terminationData.reason
+    };
+  };
 
   const NavItem = ({ view, icon, label }: { view: ViewType, icon: React.ReactNode, label: string }) => (
     <button 
@@ -120,8 +249,6 @@ const App: React.FC = () => {
     </button>
   );
 
-  // --- LAYOUT FIX: Main container with flex-row for Desktop, flex-col for mobile. 
-  // ADDED: pb-24 (Padding Bottom) to ensure "Breathable" space for Footer and Bottom Ads (prevents accidental clicks).
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row">
       
@@ -139,7 +266,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* SIDEBAR (Sticky on Desktop) */}
+      {/* SIDEBAR */}
       <aside 
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#1e3a8a] text-white transform transition-transform duration-300 ease-in-out shadow-2xl 
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
@@ -160,9 +287,9 @@ const App: React.FC = () => {
           <NavItem view="vacation" icon={<SunIcon />} label="Férias" />
           <NavItem view="thirteenth" icon={<CoinsIcon />} label="Décimo Terceiro" />
           <NavItem view="termination" icon={<BriefcaseIcon />} label="Rescisão" />
+          <NavItem view="consigned" icon={<BankIcon />} label="Simular Consignado" />
         </nav>
 
-        {/* SIDEBAR AD UNIT */}
         <div className="p-4">
            <AdUnit slotId={AD_SLOTS.SIDEBAR} format="rectangle" label="Publicidade" />
         </div>
@@ -173,7 +300,6 @@ const App: React.FC = () => {
             <p className="flex justify-between"><span>Salário Mínimo:</span> <span className="text-white">R$ 1.631</span></p>
             <p className="flex justify-between"><span>Isenção IR:</span> <span className="text-white">Até 5k</span></p>
           </div>
-          {/* Link para Política de Privacidade */}
           <div className="mt-4 text-center">
              <button onClick={() => setIsPrivacyOpen(true)} className="text-[10px] text-blue-400 hover:text-white underline">
                Política de Privacidade
@@ -182,11 +308,10 @@ const App: React.FC = () => {
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA - Uses Window Scrollbar */}
+      {/* MAIN CONTENT AREA */}
       <main className="flex-1 p-4 md:p-8 lg:p-10 w-full max-w-full flex flex-col pb-24">
         
         <div className="flex-1">
-        {/* TOP AD UNIT */}
         <AdUnit slotId={AD_SLOTS.TOP_BANNER} className="mb-8" />
 
         {/* VIEW: SALARIO LIQUIDO */}
@@ -194,20 +319,39 @@ const App: React.FC = () => {
           <div className="max-w-7xl mx-auto animate-fade-in space-y-6 md:space-y-8">
             <header>
               <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Salário Líquido</h2>
-              <p className="text-slate-500 text-sm md:text-base mt-1">Simule seus ganhos reais com as novas regras de 2026.</p>
+              <p className="text-slate-500 text-sm md:text-base mt-1">Simule seus ganhos reais e impostos.</p>
             </header>
             
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-              {/* Input Section */}
               <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                  <form onSubmit={handleSalaryCalc} className="space-y-5">
-                    <InputGroup label="Salário Bruto" name="grossSalary" value={salaryData.grossSalary} onChange={(v: string) => setSalaryData({...salaryData, grossSalary: Number(v)})} required />
+                    <InputGroup label="Salário Bruto" name="grossSalary" value={salaryData.grossSalary} onChange={(v: string) => updateGrossSalary(Number(v))} required />
                     
+                    {/* Dependents Section */}
+                    <div className={`p-4 rounded-xl border transition-all ${salaryData.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                      <label className="flex items-center gap-3 cursor-pointer select-none">
+                        <input type="checkbox" checked={salaryData.includeDependents} onChange={(e) => updateDependents(e.target.checked, salaryData.dependents)} className="h-5 w-5 accent-blue-600 rounded" />
+                        <span className="text-sm font-semibold text-slate-700">Incluir Dependentes (IRPF)</span>
+                      </label>
+                      {salaryData.includeDependents && (
+                        <div className="mt-4 animate-fade-in">
+                          <InputGroup label="Número de Dependentes" name="dependents" value={salaryData.dependents} onChange={(v: string) => updateDependents(true, Number(v))} isSmall placeholder="0" />
+                        </div>
+                      )}
+                    </div>
+
                     <ExtrasSection 
                       isActive={salaryData.includeExtras} 
-                      onToggle={(checked) => setSalaryData({...salaryData, includeExtras: checked})}
+                      onToggle={updateExtrasToggle}
                       data={salaryData.extras}
-                      onChange={(newExtras) => setSalaryData({...salaryData, extras: newExtras})}
+                      onChange={updateExtras}
+                    />
+
+                    <ConsignedSection 
+                      isActive={salaryData.includeConsigned}
+                      onToggle={updateConsignedToggle}
+                      data={salaryData.consigned}
+                      onChange={updateConsigned}
                     />
 
                     <div className={`p-4 rounded-xl border transition-all ${salaryData.includeTransportVoucher ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
@@ -232,55 +376,103 @@ const App: React.FC = () => {
                  </form>
               </div>
 
-              {/* Result Section */}
               {salaryResult && (
-                <div className="lg:col-span-7 space-y-6 animate-fade-in">
-                   <div className="block lg:hidden">
-                      <AdUnit slotId={AD_SLOTS.MIDDLE_MOBILE} />
-                   </div>
-
+                <div ref={resultsRef} className="lg:col-span-7 space-y-6 animate-fade-in scroll-mt-6">
+                   
+                   {/* CARDS LAYOUT */}
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <ResultCard label="Salário Líquido" value={salaryResult.netSalary} isMain />
-                      <ResultCard label="Total Descontos" value={salaryResult.totalDiscounts} isDanger />
+                      <ResultCard label="Salário Bruto" value={salaryResult.grossSalary} />
+                      {/* TEXTO ATUALIZADO CONFORME SOLICITADO */}
+                      <ResultCard label="Salário Líquido" value={salaryResult.finalNetSalary} isMain />
+                      
+                      {salaryResult.consignedDiscount > 0 ? (
+                         <ResultCard label="Empréstimo (Desc.)" value={salaryResult.consignedDiscount} isConsigned />
+                      ) : (
+                         <div className="hidden sm:block"></div>
+                      )}
+                      <ResultCard label="Total Descontos" value={salaryResult.totalDiscounts + salaryResult.consignedDiscount} isDanger />
                    </div>
                    
-                   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
-                      <h4 className="font-bold text-slate-800 mb-5 border-b pb-3 flex justify-between items-center">
-                        <span>Detalhamento</span>
-                        <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-1 rounded">Base 2026</span>
-                      </h4>
-                      <div className="space-y-3 text-sm md:text-base">
-                        <Row label="Salário Bruto Base" value={salaryResult.grossSalary} isPositive />
-                        
-                        {salaryResult.totalExtras > 0 && (
-                          <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
-                             <ExtrasDetailedRows breakdown={salaryResult.extrasBreakdown} />
-                          </div>
-                        )}
+                   {/* DETAILED ROW BREAKDOWN */}
+                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                      <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">Detalhamento dos Valores</h4>
+                      
+                      <Row label="Salário Bruto" value={salaryResult.grossSalary} />
+                      
+                      {/* Extras Rows */}
+                      {salaryResult.extrasBreakdown.value50 > 0 && <Row label="Hora Extra 50%" value={salaryResult.extrasBreakdown.value50} isPositive />}
+                      {salaryResult.extrasBreakdown.value100 > 0 && <Row label="Hora Extra 100%" value={salaryResult.extrasBreakdown.value100} isPositive />}
+                      {salaryResult.extrasBreakdown.valueNight > 0 && <Row label="Adicional Noturno" value={salaryResult.extrasBreakdown.valueNight} isPositive />}
+                      {salaryResult.extrasBreakdown.valueStandby > 0 && <Row label="Sobreaviso" value={salaryResult.extrasBreakdown.valueStandby} isPositive />}
+                      {salaryResult.extrasBreakdown.valueInterjornada > 0 && <Row label="Interjornada" value={salaryResult.extrasBreakdown.valueInterjornada} isPositive />}
+                      {salaryResult.extrasBreakdown.valueDsr > 0 && <Row label="DSR (Reflexo)" value={salaryResult.extrasBreakdown.valueDsr} isPositive />}
+                      
+                      {/* Discounts Rows */}
+                      <Row label="INSS" value={-salaryResult.inss} />
+                      <Row label="IRPF" value={-salaryResult.irpf} />
+                      {salaryResult.transportVoucher > 0 && <Row label="Vale Transporte" value={-salaryResult.transportVoucher} />}
+                      {salaryResult.healthInsurance > 0 && <Row label="Plano de Saúde" value={-salaryResult.healthInsurance} />}
+                      {salaryResult.otherDiscounts > 0 && <Row label="Outros Descontos" value={-salaryResult.otherDiscounts} />}
+                      {salaryResult.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-salaryResult.consignedDiscount} highlight />}
 
-                        <Row label="INSS" value={-salaryResult.inss} />
-                        <Row label="IRPF" value={-salaryResult.irpf} highlight={salaryResult.irpf === 0} />
-                        {salaryResult.transportVoucher > 0 && <Row label="Vale Transporte" value={-salaryResult.transportVoucher} />}
-                        {salaryResult.healthInsurance > 0 && <Row label="Plano de Saúde" value={-salaryResult.healthInsurance} />}
-                        {salaryResult.otherDiscounts > 0 && <Row label="Outros" value={-salaryResult.otherDiscounts} />}
-                        
-                        <div className="border-t border-slate-100 mt-4 pt-3">
-                           <Row label="FGTS Mensal (Depósito)" value={salaryResult.fgtsMonthly} informational />
-                        </div>
+                      <div className="border-t border-slate-100 my-3"></div>
+                      <div className="flex justify-between font-bold text-lg text-blue-800">
+                        <span>Líquido a Receber</span>
+                        <span>{formatCurrency(salaryResult.finalNetSalary)}</span>
                       </div>
-                      <div className="mt-8 flex justify-center h-56 md:h-64">
-                         <PieChartVisual data={salaryResult} />
-                      </div>
+                      <div className="text-center mt-2 text-xs text-slate-400">FGTS do mês: {formatCurrency(salaryResult.fgtsMonthly)}</div>
                    </div>
                    
-                   {/* Gemini AI Advisor */}
-                   <AIAdvisor result={salaryResult} />
+                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-center h-56 md:h-64">
+                       <PieChartVisual data={salaryResult} />
+                   </div>
                    
+                   <AIAdvisor context={getSalaryAIContext()} />
                    <AdUnit slotId={AD_SLOTS.BOTTOM} />
                 </div>
               )}
             </div>
           </div>
+        )}
+
+        {/* VIEW: CONSIGNED SIMULATOR */}
+        {currentView === 'consigned' && (
+           <div className="max-w-4xl mx-auto animate-fade-in space-y-6 md:space-y-8">
+             <header>
+               <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Simulador de Margem Consignável</h2>
+               <p className="text-slate-500 text-sm md:text-base mt-1">Descubra quanto você pode comprometer do seu salário.</p>
+             </header>
+
+             <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                <form onSubmit={handleConsignedSimCalc} className="space-y-6">
+                   <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                     <p className="text-indigo-800 text-sm mb-4">
+                       A legislação permite comprometer até <strong>35% da renda líquida</strong> com empréstimo consignado.
+                       Este simulador calcula sua margem baseada nas regras de 2026.
+                     </p>
+                     <InputGroup label="Seu Salário Bruto" name="grossSalary" value={consignedSimData.grossSalary} onChange={(v: string) => updateGrossSalary(Number(v))} required />
+                   </div>
+                   <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-lg">Calcular Margem</button>
+                </form>
+
+                {consignedSimResult && (
+                   <div ref={resultsRef} className="mt-8 space-y-6 animate-fade-in scroll-mt-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <div className="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg">
+                            <p className="text-indigo-200 text-xs font-bold uppercase tracking-wider">Margem Disponível (Mensal)</p>
+                            <p className="text-3xl font-extrabold mt-2">{formatCurrency(consignedSimResult.margin)}</p>
+                            <p className="text-xs text-indigo-200 mt-2">Valor máximo da parcela</p>
+                         </div>
+                         <div className="bg-white border-2 border-slate-100 p-6 rounded-2xl">
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Renda Líquida Base</p>
+                            <p className="text-2xl font-bold text-slate-700 mt-2">{formatCurrency(consignedSimResult.margin / 0.35)}</p>
+                            <p className="text-xs text-slate-400 mt-2">Base de cálculo (Bruto - Impostos)</p>
+                         </div>
+                      </div>
+                   </div>
+                )}
+             </div>
+           </div>
         )}
 
         {/* VIEW: FÉRIAS */}
@@ -294,8 +486,21 @@ const App: React.FC = () => {
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                 <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                   <form onSubmit={handleVacationCalc} className="space-y-5">
-                     <InputGroup label="Salário Bruto" name="grossSalary" value={vacationData.grossSalary} onChange={(v: string) => setVacationData({...vacationData, grossSalary: Number(v)})} required />
+                     <InputGroup label="Salário Bruto" name="grossSalary" value={vacationData.grossSalary} onChange={(v: string) => updateGrossSalary(Number(v))} required />
                      
+                     {/* Dependents Section */}
+                    <div className={`p-4 rounded-xl border transition-all ${vacationData.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                      <label className="flex items-center gap-3 cursor-pointer select-none">
+                        <input type="checkbox" checked={vacationData.includeDependents} onChange={(e) => updateDependents(e.target.checked, vacationData.dependents)} className="h-5 w-5 accent-blue-600 rounded" />
+                        <span className="text-sm font-semibold text-slate-700">Incluir Dependentes (IRPF)</span>
+                      </label>
+                      {vacationData.includeDependents && (
+                        <div className="mt-4 animate-fade-in">
+                          <InputGroup label="Número de Dependentes" name="dependents" value={vacationData.dependents} onChange={(v: string) => updateDependents(true, Number(v))} isSmall placeholder="0" />
+                        </div>
+                      )}
+                    </div>
+
                      <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Dias de Descanso</label>
                         <select 
@@ -330,59 +535,59 @@ const App: React.FC = () => {
 
                      <ExtrasSection 
                        isActive={vacationData.includeExtras} 
-                       onToggle={(checked) => setVacationData({...vacationData, includeExtras: checked})}
+                       onToggle={updateExtrasToggle}
                        data={vacationData.extras}
-                       onChange={(newExtras) => setVacationData({...vacationData, extras: newExtras})}
+                       onChange={updateExtras}
                        labelOverride="Incluir Média de Extras"
                      />
+                     
+                     <ConsignedSection 
+                      isActive={vacationData.includeConsigned}
+                      onToggle={updateConsignedToggle}
+                      data={vacationData.consigned}
+                      onChange={updateConsigned}
+                    />
 
                      <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-2 active:scale-[0.98] text-lg">Calcular Férias</button>
                   </form>
                 </div>
 
                 {vacationResult && (
-                   <div className="lg:col-span-7 space-y-6 animate-fade-in">
+                   <div ref={resultsRef} className="lg:col-span-7 space-y-6 animate-fade-in scroll-mt-6">
                       <AdUnit slotId={AD_SLOTS.MIDDLE_CONTENT} />
 
                       <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-yellow-400 flex flex-col items-center justify-center transform hover:scale-[1.01] transition-transform">
                           <p className="text-blue-200 text-xs font-bold uppercase tracking-widest text-center mb-1">Total Líquido a Receber</p>
                           <p className="text-4xl md:text-5xl font-black text-center tracking-tight drop-shadow-sm">
-                              {formatCurrency(vacationResult.totalNet)}
+                              {formatCurrency(vacationResult.finalNetVacation)}
                           </p>
                       </div>
 
-                      <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-100">
-                          <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">Detalhamento</h4>
-                          <div className="space-y-3 text-sm md:text-base">
-                             <Row label="Férias (Dias de Descanso)" value={vacationResult.vacationGross} isPositive />
-                             <Row label="1/3 Constitucional" value={vacationResult.vacationThird} isPositive />
-                             
-                             {vacationResult.baseSalary > vacationData.grossSalary && (
-                                <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
-                                  <ExtrasDetailedRows breakdown={vacationResult.extrasBreakdown} />
-                                </div>
-                             )}
-
-                             {vacationResult.allowanceGross > 0 && (
-                                <div className="bg-emerald-50 p-3 rounded-lg border border-emerald-100 space-y-1 my-2">
-                                   <Row label="(+) Abono Pecuniário (Venda)" value={vacationResult.allowanceGross} isPositive />
-                                   <Row label="(+) 1/3 sobre Abono" value={vacationResult.allowanceThird} isPositive />
-                                   <p className="text-[10px] text-emerald-600 font-semibold text-right">* Isento de IR e INSS</p>
-                                </div>
-                             )}
-
-                             {vacationResult.advanceThirteenth > 0 && (
-                                <Row label="Adiantamento 13º Salário" value={vacationResult.advanceThirteenth} isPositive />
-                             )}
-
-                             <div className="border-t border-slate-100 pt-3 mt-3 space-y-2">
-                                <h5 className="text-xs font-bold text-slate-400 uppercase">Descontos (Sobre Férias + 1/3)</h5>
-                                <Row label="(-) INSS" value={-vacationResult.discountInss} />
-                                <Row label="(-) IRPF" value={-vacationResult.discountIr} highlight={vacationResult.discountIr === 0} />
-                                <Row label="Total de Descontos" value={-vacationResult.totalDiscounts} informational />
-                             </div>
-                          </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mt-4">
+                         <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">Detalhamento</h4>
+                         
+                         <Row label="Férias (Bruto)" value={vacationResult.vacationGross} />
+                         <Row label="1/3 Constitucional" value={vacationResult.vacationThird} />
+                         {vacationResult.allowanceGross > 0 && <Row label="Abono Pecuniário" value={vacationResult.allowanceGross} />}
+                         {vacationResult.allowanceThird > 0 && <Row label="1/3 Abono" value={vacationResult.allowanceThird} />}
+                         {vacationResult.advanceThirteenth > 0 && <Row label="Adiantamento 13º" value={vacationResult.advanceThirteenth} />}
+                         
+                         <Row label="Média de Extras" value={vacationResult.extrasBreakdown.total} />
+                         
+                         <div className="my-2 border-t border-slate-50"></div>
+                         
+                         <Row label="INSS" value={-vacationResult.discountInss} />
+                         <Row label="IRPF" value={-vacationResult.discountIr} />
+                         {vacationResult.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-vacationResult.consignedDiscount} highlight />}
+                         
+                         <div className="border-t border-slate-100 my-3"></div>
+                         <div className="flex justify-between font-bold text-lg text-slate-700">
+                           <span>Total Descontos</span>
+                           <span className="text-red-600">{formatCurrency(vacationResult.totalDiscounts + vacationResult.consignedDiscount)}</span>
+                         </div>
                       </div>
+
+                      <AIAdvisor context={getVacationAIContext()} />
                       <AdUnit slotId={AD_SLOTS.BOTTOM_VACATION} />
                    </div>
                 )}
@@ -401,32 +606,49 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                  <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                     <form onSubmit={handleThirteenthCalc} className="space-y-5">
-                       <InputGroup label="Salário Bruto" name="grossSalary" value={thirteenthData.grossSalary} onChange={(v: string) => setThirteenthData({...thirteenthData, grossSalary: Number(v)})} required />
+                       <InputGroup label="Salário Bruto" name="grossSalary" value={thirteenthData.grossSalary} onChange={(v: string) => updateGrossSalary(Number(v))} required />
                        <InputGroup label="Meses Trabalhados" name="monthsWorked" value={thirteenthData.monthsWorked} onChange={(v: string) => setThirteenthData({...thirteenthData, monthsWorked: Math.min(12, Number(v))})} isSmall />
                        
+                       {/* Dependents Section */}
+                      <div className={`p-4 rounded-xl border transition-all ${thirteenthData.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                          <input type="checkbox" checked={thirteenthData.includeDependents} onChange={(e) => updateDependents(e.target.checked, thirteenthData.dependents)} className="h-5 w-5 accent-blue-600 rounded" />
+                          <span className="text-sm font-semibold text-slate-700">Incluir Dependentes (IRPF)</span>
+                        </label>
+                        {thirteenthData.includeDependents && (
+                          <div className="mt-4 animate-fade-in">
+                            <InputGroup label="Número de Dependentes" name="dependents" value={thirteenthData.dependents} onChange={(v: string) => updateDependents(true, Number(v))} isSmall placeholder="0" />
+                          </div>
+                        )}
+                      </div>
+
                        <ExtrasSection 
                          isActive={thirteenthData.includeExtras} 
-                         onToggle={(checked) => setThirteenthData({...thirteenthData, includeExtras: checked})}
+                         onToggle={updateExtrasToggle}
                          data={thirteenthData.extras}
-                         onChange={(newExtras) => setThirteenthData({...thirteenthData, extras: newExtras})}
+                         onChange={updateExtras}
                          labelOverride="Incluir Média de Extras"
                        />
+                       
+                       <ConsignedSection 
+                        isActive={thirteenthData.includeConsigned}
+                        onToggle={updateConsignedToggle}
+                        data={thirteenthData.consigned}
+                        onChange={updateConsigned}
+                      />
 
                        <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-2 active:scale-[0.98] text-lg">Simular Parcelas</button>
                     </form>
                  </div>
 
                  {thirteenthResult && (
-                    <div className="lg:col-span-7 space-y-6 animate-fade-in">
+                    <div ref={resultsRef} className="lg:col-span-7 space-y-6 animate-fade-in scroll-mt-6">
                        <AdUnit slotId={AD_SLOTS.MIDDLE_THIRTEENTH} />
 
                        <h3 className="font-bold text-slate-700 md:text-lg">Fluxo de Recebimento</h3>
                        
-                       {/* PARCELA 1 */}
+                       {/* CARD 1a PARCELA */}
                        <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl relative overflow-hidden shadow-sm">
-                          <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-                            <CoinsIcon />
-                          </div>
                           <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-2 mb-2">
                              <div>
                                 <p className="text-emerald-700 text-xs font-bold uppercase tracking-wider">1ª Parcela (Nov)</p>
@@ -434,46 +656,40 @@ const App: React.FC = () => {
                              </div>
                              <span className="bg-emerald-200 text-emerald-800 text-[10px] font-bold px-2 py-1 rounded-full w-fit">SEM DESCONTOS</span>
                           </div>
-                          <p className="text-xs text-emerald-600">50% do valor bruto proporcional</p>
                        </div>
 
-                       <div className="flex justify-center -my-2 opacity-30 text-slate-400 rotate-90 md:rotate-0">
-                          <ArrowRightIcon />
-                       </div>
+                       <div className="flex justify-center -my-2 opacity-30 text-slate-400 rotate-90 md:rotate-0"><ArrowRightIcon /></div>
 
-                       {/* PARCELA 2 */}
+                       {/* CARD 2a PARCELA */}
                        <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-                          <div className="flex justify-between items-end mb-4">
-                             <div>
-                                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">2ª Parcela (Dez)</p>
-                                <p className="text-3xl md:text-4xl font-extrabold text-slate-800 mt-1">{formatCurrency(thirteenthResult.parcel2.value)}</p>
-                             </div>
-                          </div>
-                          
-                          <div className="space-y-2 text-sm border-t border-slate-100 pt-3">
-                             <Row label="Valor Bruto Total" value={thirteenthResult.totalGross} isPositive />
-                             
-                             {thirteenthResult.totalExtrasAverage > 0 && (
-                                <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
-                                  <ExtrasDetailedRows breakdown={thirteenthResult.extrasBreakdown} />
+                           <div className="flex justify-between items-end mb-4">
+                                <div>
+                                    <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">2ª Parcela (Dez) - Líquida</p>
+                                    <p className="text-3xl md:text-4xl font-extrabold text-slate-800 mt-1">{formatCurrency(thirteenthResult.parcel2.finalValue)}</p>
                                 </div>
-                             )}
-
-                             <Row label="(-) Adiantamento" value={-thirteenthResult.parcel2.discountAdvance} />
-                             <Row label="(-) INSS Total" value={-thirteenthResult.parcel2.inss} />
-                             <Row label="(-) IRPF Total" value={-thirteenthResult.parcel2.irpf} highlight={thirteenthResult.parcel2.irpf === 0} />
-                          </div>
+                           </div>
+                           
+                           <div className="mt-4 pt-4 border-t border-slate-100">
+                              <Row label="13º Salário Integral" value={thirteenthResult.totalGross} />
+                              <Row label="Média de Extras" value={thirteenthResult.extrasBreakdown.total} />
+                              
+                              <div className="my-2 border-t border-slate-50"></div>
+                              
+                              <Row label="INSS" value={-thirteenthResult.parcel2.inss} />
+                              <Row label="IRPF" value={-thirteenthResult.parcel2.irpf} />
+                              <Row label="Desc. Adiantamento" value={-thirteenthResult.parcel2.discountAdvance} />
+                              {thirteenthResult.parcel2.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-thirteenthResult.parcel2.consignedDiscount} highlight />}
+                           </div>
                        </div>
                        
                        <div className="mt-6 bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-blue-400 flex flex-col items-center justify-center transform hover:scale-[1.01] transition-transform">
-                          <p className="text-blue-200 text-xs font-bold uppercase tracking-widest text-center mb-1">Valor Total Líquido (Soma)</p>
+                          <p className="text-blue-200 text-xs font-bold uppercase tracking-widest text-center mb-1">Total Líquido (Soma)</p>
                           <p className="text-4xl md:text-5xl font-black text-center tracking-tight drop-shadow-sm">
-                              {formatCurrency(thirteenthResult.totalNet)}
+                              {formatCurrency(thirteenthResult.finalTotalNet)}
                           </p>
-                          <p className="text-center text-xs text-blue-200 mt-2 font-medium bg-blue-900/30 px-3 py-1 rounded-full">1ª Parcela + 2ª Parcela</p>
                        </div>
                        
-                       {/* ANUNCIO INSERIDO PARA DECIMO TERCEIRO */}
+                       <AIAdvisor context={getThirteenthAIContext()} />
                        <AdUnit slotId={AD_SLOTS.BOTTOM_THIRTEENTH} />
                     </div>
                  )}
@@ -492,23 +708,17 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                  <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                     <form onSubmit={handleTerminationCalc} className="space-y-4">
-                       <InputGroup label="Salário Bruto" name="grossSalary" value={terminationData.grossSalary} onChange={(v: string) => setTerminationData({...terminationData, grossSalary: Number(v)})} required />
+                       <InputGroup label="Salário Bruto" name="grossSalary" value={terminationData.grossSalary} onChange={(v: string) => updateGrossSalary(Number(v))} required />
                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Data Início (Admissão)</label>
-                            <input type="date" value={terminationData.startDate} onChange={(e) => setTerminationData({...terminationData, startDate: e.target.value})} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" required />
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Data Admissão</label>
+                            <input type="date" value={terminationData.startDate} onChange={(e) => setTerminationData({...terminationData, startDate: e.target.value})} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 outline-none" required />
                           </div>
                           <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Data Fim (Saída)</label>
-                            <input type="date" value={terminationData.endDate} onChange={(e) => setTerminationData({...terminationData, endDate: e.target.value})} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" required />
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Data Saída</label>
+                            <input type="date" value={terminationData.endDate} onChange={(e) => setTerminationData({...terminationData, endDate: e.target.value})} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 outline-none" required />
                           </div>
                        </div>
-                       
-                       {terminationData.startDate && terminationData.endDate && terminationData.startDate > terminationData.endDate && (
-                          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-xs font-bold animate-pulse border border-red-200">
-                             ⚠️ Erro: Data de Início é maior que a Data de Fim.
-                          </div>
-                       )}
                        
                        <div>
                           <label className="block text-xs font-bold text-slate-500 mb-1">Motivo do Desligamento</label>
@@ -520,35 +730,56 @@ const App: React.FC = () => {
                               if (r === 'dismissal_no_cause') ns = 'indemnified';
                               if (r === 'resignation') ns = 'worked';
                               if (r === 'dismissal_cause') ns = 'worked';
+                              if (r === 'agreement') ns = 'indemnified';
                               setTerminationData({...terminationData, reason: r, noticeStatus: ns});
                             }}
-                            className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer"
+                            className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none"
                           >
                              <option value="dismissal_no_cause">Demissão sem Justa Causa</option>
                              <option value="dismissal_cause">Demissão por Justa Causa</option>
                              <option value="resignation">Pedido de Demissão</option>
+                             <option value="agreement">Acordo (Culpa Recíproca)</option>
                           </select>
                        </div>
 
+                       {/* Dependents Section */}
+                      <div className={`p-4 rounded-xl border transition-all ${terminationData.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                          <input type="checkbox" checked={terminationData.includeDependents} onChange={(e) => updateDependents(e.target.checked, terminationData.dependents)} className="h-5 w-5 accent-blue-600 rounded" />
+                          <span className="text-sm font-semibold text-slate-700">Incluir Dependentes (IRPF)</span>
+                        </label>
+                        {terminationData.includeDependents && (
+                          <div className="mt-4 animate-fade-in">
+                            <InputGroup label="Número de Dependentes" name="dependents" value={terminationData.dependents} onChange={(v: string) => updateDependents(true, Number(v))} isSmall placeholder="0" />
+                          </div>
+                        )}
+                      </div>
+
                        {terminationData.reason !== 'dismissal_cause' && (
                          <div>
-                            <label className="block text-xs font-bold text-slate-500 mb-1">Situação do Aviso Prévio</label>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">Aviso Prévio</label>
                             <select 
                               value={terminationData.noticeStatus} 
                               onChange={(e) => setTerminationData({...terminationData, noticeStatus: e.target.value as any})}
-                              className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer"
+                              className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none"
                             >
                                {terminationData.reason === 'dismissal_no_cause' && (
                                  <>
-                                   <option value="indemnified">Indenizado (Recebe Valor)</option>
-                                   <option value="worked">Trabalhado (Cumpre Dias)</option>
+                                   <option value="indemnified">Indenizado</option>
+                                   <option value="worked">Trabalhado</option>
                                  </>
                                )}
                                {terminationData.reason === 'resignation' && (
                                  <>
-                                   <option value="worked">Trabalhado (Normal)</option>
+                                   <option value="worked">Trabalhado</option>
                                    <option value="not_fulfilled">Não Cumprido (Desconto)</option>
-                                   <option value="waived">Não Cumprido (Dispensado/Sem Desconto)</option>
+                                   <option value="waived">Dispensado</option>
+                                 </>
+                               )}
+                               {terminationData.reason === 'agreement' && (
+                                 <>
+                                   <option value="indemnified">Indenizado</option>
+                                   <option value="worked">Trabalhado</option>
                                  </>
                                )}
                             </select>
@@ -557,94 +788,155 @@ const App: React.FC = () => {
 
                        <ExtrasSection 
                          isActive={terminationData.includeExtras} 
-                         onToggle={(checked) => setTerminationData({...terminationData, includeExtras: checked})}
+                         onToggle={updateExtrasToggle}
                          data={terminationData.extras}
-                         onChange={(newExtras) => setTerminationData({...terminationData, extras: newExtras})}
-                         labelOverride="Incluir Extras do Período / Base"
+                         onChange={updateExtras}
+                         labelOverride="Incluir Extras / Base"
                        />
+                       
+                       <ConsignedSection 
+                        isActive={terminationData.includeConsigned}
+                        onToggle={updateConsignedToggle}
+                        data={terminationData.consigned}
+                        onChange={updateConsigned}
+                        isTermination
+                      />
 
                        <div className="flex flex-col gap-2">
-                        <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
+                        <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer">
                             <input type="checkbox" checked={terminationData.hasExpiredVacation} onChange={(e) => setTerminationData({...terminationData, hasExpiredVacation: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
                             <span className="text-sm font-semibold text-slate-700">Possui Férias Vencidas?</span>
                         </label>
                         
-                        <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${terminationData.thirteenthAdvancePaid ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent hover:bg-slate-100'}`}>
+                        <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${terminationData.thirteenthAdvancePaid ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent'}`}>
                             <input type="checkbox" checked={terminationData.thirteenthAdvancePaid} onChange={(e) => setTerminationData({...terminationData, thirteenthAdvancePaid: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
                             <div className="flex flex-col">
-                              <span className="text-sm font-semibold text-slate-700">1ª Parcela do 13º já foi paga?</span>
-                              <span className="text-[10px] text-slate-400">Ref. ao ano atual ({terminationData.endDate ? new Date(terminationData.endDate).getFullYear() : 'AAAA'})</span>
+                              <span className="text-sm font-semibold text-slate-700">1ª Parcela do 13º já paga?</span>
                             </div>
                         </label>
                        </div>
 
                        <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-2 active:scale-[0.98] text-lg">Simular Rescisão</button>
-                       <p className="text-[10px] text-center text-slate-400 mt-2">*Cálculo estimado. Consulte um contador.</p>
                     </form>
                  </div>
 
                  {terminationResult && (
-                    <div className="lg:col-span-7 space-y-6 animate-fade-in">
+                    <div ref={resultsRef} className="lg:col-span-7 space-y-6 animate-fade-in scroll-mt-6">
                        <AdUnit slotId={AD_SLOTS.MIDDLE_TERMINATION} />
 
-                       <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between gap-4">
-                          <div>
-                             <p className="text-slate-300 text-xs font-bold uppercase">Total Líquido Estimado</p>
-                             <p className="text-3xl font-extrabold mt-1">{formatCurrency(terminationResult.totalNet)}</p>
+                       {/* CARDS DE RESULTADO: RESCISÃO + FGTS */}
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* CARD 1: RESCISÃO LÍQUIDA (DINHEIRO NA MÃO) */}
+                          <div className={`text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between ${terminationResult.finalNetTermination === 0 ? 'bg-red-900' : 'bg-slate-800'}`}>
+                             <p className={`${terminationResult.finalNetTermination === 0 ? 'text-red-200' : 'text-slate-300'} text-xs font-bold uppercase tracking-wider`}>Líquido Rescisório (TRCT)</p>
+                             <p className="text-3xl font-extrabold mt-2">{formatCurrency(terminationResult.finalNetTermination)}</p>
+                             <p className={`${terminationResult.finalNetTermination === 0 ? 'text-red-300' : 'text-slate-400'} text-xs mt-2`}>
+                               {terminationResult.finalNetTermination === 0 ? 'Deduções superiores aos ganhos (Zerado)' : 'Valor depositado em conta'}
+                             </p>
                           </div>
                           
-                          <div className="sm:text-right border-t sm:border-t-0 border-slate-600 pt-4 sm:pt-0 min-w-[140px]">
-                             <div className="mb-2">
-                                <p className="text-slate-400 text-[10px] font-bold uppercase">FGTS Total (Saque)</p>
-                                <p className="text-xl font-bold text-emerald-400">{formatCurrency(terminationResult.totalFgts)}</p>
+                          {/* CARD 2: SAQUE FGTS */}
+                          <div className="bg-emerald-600 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
+                             <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider">Líquido FGTS a Sacar</p>
+                             <p className="text-3xl font-extrabold mt-2">{formatCurrency(terminationResult.finalFgtsToWithdraw)}</p>
+                             <div className="flex justify-between items-center mt-2">
+                                <p className="text-xs text-emerald-200">Saldo Disponível no App FGTS</p>
                              </div>
                           </div>
                        </div>
 
-                       <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-100">
-                          <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">Detalhamento das Verbas</h4>
+                       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mt-4">
+                          <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">Detalhamento TRCT</h4>
                           
-                          <div className="space-y-3 text-sm md:text-base">
-                             <Row label="Saldo de Salário" value={terminationResult.balanceSalary} isPositive />
-                             
-                             {terminationResult.totalExtrasAverage > 0 && (
-                                <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
-                                  <div className="mb-2 text-[10px] font-bold text-orange-400 uppercase tracking-wider">Horas Extras/Adicionais (Valor Integral)</div>
-                                  <ExtrasDetailedRows breakdown={terminationResult.extrasBreakdown} />
-                                </div>
+                          <Row label="Saldo de Salário" value={terminationResult.balanceSalary} />
+                          {terminationResult.noticeWarning > 0 && <Row label="Aviso Prévio Indenizado" value={terminationResult.noticeWarning} />}
+                          <Row label={`Férias Proporcionais (${terminationResult.vacationMonths}/12)`} value={terminationResult.vacationProportional} />
+                          <Row label="1/3 Férias" value={terminationResult.vacationThird} />
+                          <Row label={`13º Proporcional (${terminationResult.thirteenthMonths}/12)`} value={terminationResult.thirteenthProportional} />
+                          {terminationResult.vacationExpired > 0 && <Row label="Férias Vencidas" value={terminationResult.vacationExpired} />}
+                          
+                          <div className="my-2 border-t border-slate-50"></div>
+                          
+                          <Row label="INSS (Total)" value={-terminationResult.discountInss} />
+                          
+                          {/* UPDATED: Unified IR Display */}
+                          <Row label="IRPF (Base Unificada)" value={-terminationResult.discountIr} highlight />
+                          
+                          {terminationResult.noticeDeduction > 0 && <Row label="Desconto Aviso Prévio" value={-terminationResult.noticeDeduction} />}
+                          {terminationResult.thirteenthAdvanceDeduction > 0 && <Row label="Adiantamento 13º" value={-terminationResult.thirteenthAdvanceDeduction} />}
+                          {terminationResult.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-terminationResult.consignedDiscount} highlight />}
+
+                          <div className="border-t border-slate-100 my-3"></div>
+                          <div className="flex justify-between font-bold text-lg text-slate-700">
+                             <span>Total Proventos</span>
+                             <span className="text-emerald-600">{formatCurrency(terminationResult.totalGross)}</span>
+                          </div>
+                          <div className="flex justify-between font-bold text-lg text-slate-700">
+                             <span>Total Descontos</span>
+                             <span className="text-red-600">{formatCurrency(terminationResult.totalDiscounts + terminationResult.consignedDiscount)}</span>
+                          </div>
+                       </div>
+
+                       {/* FLUXO DE QUITAÇÃO DE CONSIGNADO */}
+                       {terminationResult.consignedDiscount > 0 && (
+                          <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 mt-4 space-y-3">
+                            <div className="flex items-center gap-2 mb-2">
+                               <div className="bg-indigo-600 text-white p-1 rounded"><BankIcon /></div>
+                               <h5 className="text-sm font-bold text-indigo-800 uppercase">Fluxo de Quitação do Empréstimo</h5>
+                            </div>
+                            
+                            <div className="space-y-2 text-xs md:text-sm text-indigo-900">
+                               <div className="flex justify-between border-b border-indigo-200 pb-1">
+                                  <span>Dívida Inicial Declarada:</span>
+                                  <strong>{formatCurrency(terminationResult.remainingLoanBalance + terminationResult.consignedDiscount + terminationResult.totalFgtsDeduction)}</strong>
+                               </div>
+
+                               <Row label="1. Abatido na Rescisão (TRCT 35%)" value={-terminationResult.consignedDiscount} />
+                               
+                               {terminationResult.totalFgtsDeduction > 0 && (
+                                  <div className="bg-white/60 p-2 rounded border border-indigo-200 mt-2">
+                                     <p className="text-[10px] font-bold text-indigo-500 uppercase mb-1">Garantia FGTS Executada</p>
+                                     {terminationResult.warrantyUsed > 0 && <Row label="(-) Uso da Garantia (10%)" value={-terminationResult.warrantyUsed} />}
+                                     {terminationResult.fineUsed > 0 && <Row label="(-) Uso da Multa (40%)" value={-terminationResult.fineUsed} />}
+                                  </div>
+                               )}
+
+                               <div className="flex justify-between font-bold text-indigo-700 bg-indigo-100 p-2 rounded mt-2">
+                                  <span>Saldo Devedor Restante:</span>
+                                  <span>{formatCurrency(terminationResult.remainingLoanBalance)}</span>
+                               </div>
+                               {terminationResult.remainingLoanBalance > 0 && (
+                                 <p className="text-[10px] text-red-500 text-right mt-1">*O valor restante deverá ser renegociado com o banco.</p>
+                               )}
+                            </div>
+                          </div>
+                       )}
+
+                       <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 mt-2 space-y-1 text-xs md:text-sm text-emerald-900">
+                          <div className="flex justify-between items-center mb-2">
+                             <h5 className="text-xs font-bold text-emerald-700 uppercase">Detalhamento FGTS</h5>
+                             {terminationData.consigned.fgtsBalance > 0 ? (
+                                <span className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Base: Saldo Informado</span>
+                             ) : (
+                                <span className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Base: Tempo de Casa</span>
                              )}
-
-                             {terminationResult.noticeWarning > 0 && <Row label="Aviso Prévio Indenizado" value={terminationResult.noticeWarning} isPositive />}
-                             <Row label={`Férias Proporcionais (${terminationResult.vacationMonths}/12 avos)`} value={terminationResult.vacationProportional} isPositive />
-                             <div className="text-[10px] text-slate-400 pl-4 -mt-2 mb-2 italic">Ref: {terminationResult.vacationPeriodLabel}</div>
-
-                             <Row label="1/3 Férias" value={terminationResult.vacationThird} isPositive />
-                             <Row label={`13º Proporcional (${terminationResult.thirteenthMonths}/12 avos)`} value={terminationResult.thirteenthProportional} isPositive />
-                             <div className="text-[10px] text-slate-400 pl-4 -mt-2 mb-2 italic">Ref: {terminationResult.thirteenthPeriodLabel}</div>
-
-                             {terminationResult.vacationExpired > 0 && <Row label="Férias Vencidas" value={terminationResult.vacationExpired} isPositive />}
-                             
-                             <div className="border-t border-slate-100 pt-3 mt-3 space-y-2">
-                                <h5 className="text-xs font-bold text-slate-400 uppercase">Deduções</h5>
-                                {terminationResult.noticeDeduction > 0 && <Row label="(-) Desconto Aviso Não Cumprido" value={-terminationResult.noticeDeduction} />}
-                                {terminationResult.thirteenthAdvanceDeduction > 0 && <Row label="(-) Desconto Adiantamento 13º" value={-terminationResult.thirteenthAdvanceDeduction} />}
-                                <Row label="(-) Desconto INSS sobre verbas" value={-terminationResult.discountInss} />
-                                <Row label="(-) Desconto IRPF sobre verbas" value={-terminationResult.discountIr} highlight={terminationResult.discountIr === 0} />
-                                <Row label="Total de Descontos" value={-terminationResult.totalDiscounts} informational />
-                             </div>
-
-                             <div className="border-t border-slate-100 pt-3 mt-3 space-y-2">
-                                <h5 className="text-xs font-bold text-slate-400 uppercase">Fundo de Garantia (Detalhamento)</h5>
-                                <Row label="Saldo FGTS Estimado" value={terminationResult.estimatedFgtsBalance} informational />
-                                {terminationResult.fgtsFine > 0 && (
-                                   <Row label="Multa Rescisória (40%)" value={terminationResult.fgtsFine} isPositive />
-                                )}
-                                <div className="mt-2 bg-slate-50 p-2 rounded border border-slate-200">
-                                   <Row label="Total FGTS (Saldo + Multa)" value={terminationResult.totalFgts} informational />
-                                </div>
-                             </div>
                           </div>
+                          <Row label="Saldo Base (Contrato)" value={terminationResult.estimatedFgtsBalance} />
+                          <Row label="Multa Rescisória (40%)" value={terminationResult.fgtsFine} />
+                          <div className="border-t border-emerald-200 my-1"></div>
+                          <div className="flex justify-between font-bold text-emerald-800">
+                             <span>Total FGTS (Contrato + Multa)</span>
+                             <span>{formatCurrency(terminationResult.totalFgts)}</span>
+                          </div>
+                          {terminationResult.totalFgtsDeduction > 0 && (
+                             <div className="flex justify-between text-red-500 font-medium">
+                                <span>(-) Amortização Empréstimo</span>
+                                <span>{formatCurrency(-terminationResult.totalFgtsDeduction)}</span>
+                             </div>
+                          )}
                        </div>
+                       
+                       <AIAdvisor context={getTerminationAIContext()} />
                        <AdUnit slotId={AD_SLOTS.BOTTOM_TERMINATION} />
                     </div>
                  )}
@@ -668,7 +960,6 @@ const App: React.FC = () => {
 
       </main>
 
-      {/* PRIVACY MODAL & COOKIE BANNER */}
       <CookieConsent onOpenPrivacy={() => setIsPrivacyOpen(true)} />
       <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </div>
@@ -743,10 +1034,10 @@ const ExtrasSection = ({ isActive, onToggle, data, onChange, labelOverride }: { 
   </div>
 );
 
-const ResultCard = ({ label, value, isMain, isDanger }: any) => (
-  <div className={`p-6 rounded-2xl border shadow-sm flex flex-col justify-between ${isMain ? 'bg-blue-600 text-white border-blue-600' : isDanger ? 'bg-white border-red-100' : 'bg-white border-slate-100'}`}>
-    <span className={`text-xs font-bold uppercase tracking-wider mb-2 ${isMain ? 'text-blue-200' : isDanger ? 'text-red-400' : 'text-slate-400'}`}>{label}</span>
-    <span className={`text-2xl md:text-3xl font-extrabold ${isMain ? 'text-white' : isDanger ? 'text-red-600' : 'text-slate-800'}`}>
+const ResultCard = ({ label, value, isMain, isDanger, isConsigned }: any) => (
+  <div className={`p-6 rounded-2xl border shadow-sm flex flex-col justify-between ${isMain ? 'bg-blue-600 text-white border-blue-600' : isDanger ? 'bg-white border-red-100' : isConsigned ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-100'}`}>
+    <span className={`text-xs font-bold uppercase tracking-wider mb-2 ${isMain ? 'text-blue-200' : isDanger ? 'text-red-400' : isConsigned ? 'text-indigo-200' : 'text-slate-400'}`}>{label}</span>
+    <span className={`text-2xl md:text-3xl font-extrabold ${isMain ? 'text-white' : isDanger ? 'text-red-600' : isConsigned ? 'text-white' : 'text-slate-800'}`}>
       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
     </span>
   </div>
@@ -760,21 +1051,5 @@ const Row = ({ label, value, isPositive, highlight, informational }: any) => (
     </span>
   </div>
 );
-
-const ExtrasDetailedRows = ({ breakdown }: { breakdown: ExtrasBreakdown }) => {
-   const format = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-   if (!breakdown || breakdown.total === 0) return null;
-
-   return (
-      <div className="text-xs space-y-1 text-orange-800">
-         {breakdown.value50 > 0 && <div className="flex justify-between"><span>H.E. 50%</span><span>{format(breakdown.value50)}</span></div>}
-         {breakdown.value100 > 0 && <div className="flex justify-between"><span>H.E. 100%</span><span>{format(breakdown.value100)}</span></div>}
-         {breakdown.valueNight > 0 && <div className="flex justify-between"><span>Ad. Noturno</span><span>{format(breakdown.valueNight)}</span></div>}
-         {breakdown.valueStandby > 0 && <div className="flex justify-between"><span>Sobreaviso</span><span>{format(breakdown.valueStandby)}</span></div>}
-         {breakdown.valueInterjornada > 0 && <div className="flex justify-between"><span>Interjornada</span><span>{format(breakdown.valueInterjornada)}</span></div>}
-         {breakdown.valueDsr > 0 && <div className="flex justify-between border-t border-orange-200 pt-1 mt-1"><span>DSR (Reflexo)</span><span>{format(breakdown.valueDsr)}</span></div>}
-      </div>
-   );
-};
 
 export default App;

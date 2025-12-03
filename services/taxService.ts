@@ -1,5 +1,5 @@
 
-import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult } from '../types';
+import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, IrBreakdown } from '../types';
 
 // INSS Progressivo 2026 (Projeção Base Salário Mínimo R$ 1.631,00)
 const INSS_BRACKETS = [
@@ -9,11 +9,28 @@ const INSS_BRACKETS = [
   { limit: 8993.63, rate: 0.14 },
 ];
 
+const DEDUCTION_PER_DEPENDENT = 189.59;
+
 // Função auxiliar para cálculo de IRPF isolado
+// CORREÇÃO: Garante continuidade matemática e impede valores negativos
 const calculateIrpfOnly = (base: number): number => {
   if (base <= 5000.00) return 0;
-  if (base <= 7350.00) return (base * 0.15) - 750.00; // Regra de transição
-  return base * 0.275; // Teto cheio
+  
+  let tax = 0;
+  
+  // Faixa 2: 5.000,01 até 7.500,00 (15%)
+  // Dedução lógica: 5000 * 0.15 = 750.00 (Para zerar no início da faixa)
+  if (base <= 7500.00) {
+    tax = (base * 0.15) - 750.00;
+  } 
+  // Faixa 3: Acima de 7.500,00 (27.5%)
+  // Continuidade: 7500 * 0.15 - 750 = 375.
+  // Novo cálculo: 7500 * 0.275 - D = 375 => 2062.5 - D = 375 => D = 1687.50
+  else {
+    tax = (base * 0.275) - 1687.50;
+  }
+
+  return Math.max(0, Number(tax.toFixed(2)));
 };
 
 // Função auxiliar para cálculo de INSS isolado
@@ -48,19 +65,17 @@ const calculateExtrasValue = (grossSalary: number, extras: ExtrasInput): ExtrasB
     return { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
   }
   
-  // Utiliza a carga horária informada ou 220 como padrão
   const workloadDivisor = extras.workload > 0 ? extras.workload : 220;
   const hourlyRate = grossSalary / workloadDivisor; 
   
   const val50 = hourlyRate * 1.5 * extras.hours50;
   const val100 = hourlyRate * 2.0 * extras.hours100;
-  const valNight = hourlyRate * 0.2 * extras.hoursNight; // Adicional de 20%
-  const valStandby = hourlyRate * (1/3) * extras.hoursStandby; // 1/3 da hora normal
-  const valInterjornada = hourlyRate * 1.5 * (extras.hoursInterjornada || 0); // Interjornada paga como hora extra 50%
+  const valNight = hourlyRate * 0.2 * extras.hoursNight; 
+  const valStandby = hourlyRate * (1/3) * extras.hoursStandby; 
+  const valInterjornada = hourlyRate * 1.5 * (extras.hoursInterjornada || 0); 
 
   const subtotal = val50 + val100 + valNight + valStandby + valInterjornada;
   
-  // DSR Estimado (Reflexo) ~ 20% (ou 1/6)
   let valDsr = 0;
   if (extras.includeDsr) {
     valDsr = subtotal * 0.20;
@@ -79,6 +94,17 @@ const calculateExtrasValue = (grossSalary: number, extras: ExtrasInput): ExtrasB
   };
 };
 
+// Helper para Consignado: Retorna { maxMargin, discount }
+const calculateConsignedValues = (netBase: number, consigned: ConsignedInput, isActive: boolean) => {
+  if (!isActive || !consigned) {
+    return { maxMargin: 0, discount: 0 };
+  }
+  // Margem de 35% sobre a Remuneração Disponível (Líquido Base)
+  const maxMargin = Number((netBase * 0.35).toFixed(2));
+  const discount = Math.min(consigned.monthlyInstallment, maxMargin);
+  return { maxMargin, discount: Number(discount.toFixed(2)) };
+};
+
 export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const { 
     grossSalary, 
@@ -89,23 +115,30 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     transportDailyCost = 0,
     workDays = 22,
     includeExtras,
-    extras
+    extras,
+    includeConsigned,
+    consigned,
+    includeDependents,
+    dependents
   } = data;
 
-  // Calcula valor monetário dos extras
+  // 1. Base Bruta
   let extrasBreakdown: ExtrasBreakdown = { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
-  
   if (includeExtras && extras) {
     extrasBreakdown = calculateExtrasValue(grossSalary, extras);
   }
-
-  // Base de Cálculo Bruta Total
   const totalGrossForTax = grossSalary + extrasBreakdown.total;
 
+  // 2. Descontos Obrigatórios
   const inss = calculateInssOnly(totalGrossForTax);
+  const fgtsMonthly = Number((totalGrossForTax * 0.08).toFixed(2));
   
-  // IRPF sobre Salário Bruto Total (Regra Estrita 2026: Base é o Bruto)
-  const irpf = calculateIrpfOnly(totalGrossForTax);
+  // Base IR (REGRA FUTURA 2026: SEM DEDUÇÃO DO INSS NA BASE)
+  // Base = Bruto - Dependentes (Se incluídos)
+  const dependentVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  const irBase = totalGrossForTax - dependentVal;
+  
+  const irpf = calculateIrpfOnly(Math.max(0, irBase));
 
   let transportVoucher = 0;
   if (includeTransportVoucher) {
@@ -119,10 +152,17 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   }
 
   const totalDiscounts = inss + irpf + otherDiscounts + transportVoucher + healthInsurance;
-  const netSalary = totalGrossForTax - totalDiscounts;
+  
+  // Proteção contra negativo
+  const netSalaryBase = totalGrossForTax - totalDiscounts;
+  const netSalary = Math.max(0, Number(netSalaryBase.toFixed(2))); 
 
-  // FGTS (8% do Bruto Total)
-  const fgtsMonthly = totalGrossForTax * 0.08;
+  // 3. Consignado
+  // Margem 35% sobre o Líquido
+  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(netSalary, consigned, includeConsigned);
+  
+  const finalNetSalaryBase = netSalary - consignedDiscount;
+  const finalNetSalary = Math.max(0, Number(finalNetSalaryBase.toFixed(2)));
 
   return {
     grossSalary,
@@ -130,18 +170,21 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     extrasBreakdown,
     inss,
     irpf: Math.max(0, Number(irpf.toFixed(2))),
-    dependentsDeduction: 0, 
-    transportVoucher,
+    dependentsDeduction: dependentVal, 
+    transportVoucher: Number(transportVoucher.toFixed(2)),
     healthInsurance,
     otherDiscounts,
     netSalary,
-    totalDiscounts,
-    effectiveRate: totalGrossForTax > 0 ? (totalDiscounts / totalGrossForTax) * 100 : 0,
-    fgtsMonthly
+    totalDiscounts: Number(totalDiscounts.toFixed(2)),
+    effectiveRate: totalGrossForTax > 0 ? Number(((totalDiscounts / totalGrossForTax) * 100).toFixed(2)) : 0,
+    fgtsMonthly,
+    // Consigned
+    maxConsignableMargin: maxMargin,
+    consignedDiscount,
+    finalNetSalary
   };
 };
 
-// --- CÁLCULO DÉCIMO TERCEIRO ---
 export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => {
   let extrasBreakdown: ExtrasBreakdown = { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
   
@@ -152,91 +195,90 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
   const baseSalary = data.grossSalary + extrasBreakdown.total;
   const fullValue = (baseSalary / 12) * data.monthsWorked;
   
-  const firstInstallmentValue = fullValue / 2;
+  const firstInstallmentValue = Number((fullValue / 2).toFixed(2));
   
   const inss = calculateInssOnly(fullValue);
-  const irpf = calculateIrpfOnly(fullValue);
   
-  const secondInstallmentNet = fullValue - inss - irpf - firstInstallmentValue;
+  // Base IR 13º
+  const dependentVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  const irBase = fullValue - dependentVal;
+  
+  const irpf = calculateIrpfOnly(Math.max(0, irBase));
+  
+  const secondInstallmentNetBase = fullValue - inss - irpf - firstInstallmentValue;
+  const secondInstallmentNetFixed = Math.max(0, Number(secondInstallmentNetBase.toFixed(2)));
+  
+  // Consignado no 13º
+  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(secondInstallmentNetFixed + firstInstallmentValue, data.consigned, data.includeConsigned);
+  
+  const secondInstallmentFinal = Math.max(0, Number((secondInstallmentNetFixed - consignedDiscount).toFixed(2)));
 
   return {
-    totalGross: fullValue,
-    totalExtrasAverage: extrasBreakdown.total,
+    totalGross: Number(fullValue.toFixed(2)),
+    totalExtrasAverage: Number(extrasBreakdown.total.toFixed(2)),
     extrasBreakdown,
-    totalNet: firstInstallmentValue + secondInstallmentNet,
+    totalNet: Number((firstInstallmentValue + secondInstallmentNetFixed).toFixed(2)),
     parcel1: {
       value: firstInstallmentValue
     },
     parcel2: {
-      grossReference: fullValue,
+      grossReference: Number(fullValue.toFixed(2)),
       inss,
       irpf: Math.max(0, Number(irpf.toFixed(2))),
       discountAdvance: firstInstallmentValue,
-      value: secondInstallmentNet
-    }
+      value: secondInstallmentNetFixed,
+      maxMargin,
+      consignedDiscount,
+      finalValue: secondInstallmentFinal
+    },
+    finalTotalNet: Math.max(0, Number(((firstInstallmentValue + secondInstallmentNetFixed) - consignedDiscount).toFixed(2)))
   };
 };
 
-// HELPERS FOR TERMINATION DATES
+// ... HELPERS FOR TERMINATION ...
 const addDays = (date: Date, days: number): Date => {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
   return result;
 };
 
-// Normalize date to Noon to avoid timezone issues
 const normalizeDate = (date: Date): Date => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
 };
 
-// Conta quantos meses (avos) tem entre start e end, considerando regra dos 15 dias
 const calculateAvos = (start: Date, end: Date): number => {
   let avos = 0;
-  
   const normStart = normalizeDate(start);
   const normEnd = normalizeDate(end);
-
   if (normStart > normEnd) return 0;
-
   const current = new Date(normStart.getFullYear(), normStart.getMonth(), 1, 12, 0, 0);
   const targetEnd = new Date(normEnd.getFullYear(), normEnd.getMonth(), normEnd.getDate(), 12, 0, 0);
-
   while (current <= targetEnd) {
     const year = current.getFullYear();
     const month = current.getMonth();
-    
     const monthStart = new Date(year, month, 1, 12, 0, 0);
     const monthEnd = new Date(year, month + 1, 0, 12, 0, 0);
-
     const effectiveStart = normStart > monthStart ? normStart : monthStart;
     const effectiveEnd = normEnd < monthEnd ? normEnd : monthEnd;
-
     if (effectiveStart <= effectiveEnd) {
       const timeDiff = effectiveEnd.getTime() - effectiveStart.getTime();
       const daysWorkedInMonth = Math.floor(timeDiff / (1000 * 60 * 60 * 24)) + 1;
-      
-      if (daysWorkedInMonth >= 15) {
-        avos++;
-      }
+      if (daysWorkedInMonth >= 15) { avos++; }
     }
     current.setMonth(current.getMonth() + 1);
   }
   return avos;
 };
-
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('pt-BR');
-};
+const formatDate = (date: Date): string => date.toLocaleDateString('pt-BR');
 
 
-// --- CÁLCULO RESCISÃO (SIMULADOR PRÁTICO) ---
 export const calculateTermination = (data: TerminationInput): TerminationResult => {
   const start = new Date(data.startDate + 'T12:00:00');
   const end = new Date(data.endDate + 'T12:00:00');
   
   if (start > end) {
       return {
-          balanceSalary: 0, noticeWarning: 0, noticeDeduction: 0, vacationProportional: 0, vacationMonths: 0, vacationPeriodLabel: 'Datas Invertidas', vacationExpired: 0, vacationThird: 0, thirteenthProportional: 0, thirteenthMonths: 0, thirteenthPeriodLabel: 'Datas Invertidas', thirteenthAdvanceDeduction: 0, fgtsFine: 0, estimatedFgtsBalance: 0, totalFgts: 0, totalGross: 0, totalExtrasAverage: 0, extrasBreakdown: {value50:0, value100:0, valueInterjornada:0, valueNight:0, valueStandby:0, valueDsr:0, total:0}, discountInss: 0, discountIr: 0, totalDiscounts: 0, totalNet: 0
+          balanceSalary: 0, noticeWarning: 0, noticeDeduction: 0, vacationProportional: 0, vacationMonths: 0, vacationPeriodLabel: 'Datas Invertidas', vacationExpired: 0, vacationThird: 0, thirteenthProportional: 0, thirteenthMonths: 0, thirteenthPeriodLabel: 'Datas Invertidas', thirteenthAdvanceDeduction: 0, fgtsFine: 0, estimatedFgtsBalance: 0, totalFgts: 0, totalGross: 0, totalExtrasAverage: 0, extrasBreakdown: {value50:0, value100:0, valueInterjornada:0, valueNight:0, valueStandby:0, valueDsr:0, total:0}, discountInss: 0, discountIr: 0, irBreakdown: {salary:0, thirteenth:0, vacation:0, total:0}, totalDiscounts: 0, totalNet: 0, maxConsignableMargin: 0, consignedDiscount: 0, remainingLoanBalance: 0, warrantyUsed: 0, fineUsed: 0, totalFgtsDeduction: 0, finalFgtsToWithdraw: 0, finalNetTermination: 0
       };
   }
 
@@ -244,12 +286,10 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const diffDaysTotal = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
   const yearsWorked = Math.floor(diffDaysTotal / 365);
   
-  // Saldo de Salário
   const lastMonthStart = new Date(end.getFullYear(), end.getMonth(), 1, 12, 0, 0);
   const daysInLastMonth = Math.floor((end.getTime() - lastMonthStart.getTime()) / (1000 * 3600 * 24)) + 1;
   const saldoSalaryDays = Math.min(daysInLastMonth, 30); 
 
-  // Extras
   let extrasBreakdown: ExtrasBreakdown = { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
   if (data.includeExtras && data.extras) {
     extrasBreakdown = calculateExtrasValue(data.grossSalary, data.extras);
@@ -258,11 +298,9 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const remunerationBase = data.grossSalary + extrasBreakdown.total;
   const balanceSalary = (data.grossSalary / 30) * saldoSalaryDays;
 
-  // Aviso Prévio
   let noticeWarning = 0;   
   let noticeDeduction = 0; 
   let projectedEndDate = new Date(end); 
-
   const noticeDays = Math.min(30 + (yearsWorked * 3), 90);
 
   if (data.reason === 'dismissal_no_cause') {
@@ -276,9 +314,7 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
     }
   }
 
-  // 13º Salário Proporcional (Lógica Robusta de Ano Civil)
-  // Split calculation into Current Year (physical exit) and Next Year (indemnified projection)
-  
+  // 13º Proporcional
   let thirteenthProportional = 0;
   let thirteenthMonths = 0;
   let thirteenthPeriodLabel = '';
@@ -287,52 +323,14 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   if (data.reason !== 'dismissal_cause') {
       const exitYear = end.getFullYear();
       const projectedYear = projectedEndDate.getFullYear();
-      
-      // Part 1: Current Year Avos (Jan 1 of Exit Year -> End Date)
       const startOfYearCurrent = new Date(exitYear, 0, 1, 12, 0, 0);
       const start13Current = start > startOfYearCurrent ? start : startOfYearCurrent;
       
-      const avosCurrent = calculateAvos(start13Current, end); // Up to physical end
-      const valueCurrent = (remunerationBase / 12) * avosCurrent;
-      
-      // Part 2: Next Year/Indemnified Avos (End Date + 1 -> Projected End Date)
-      let avosNext = 0;
-      let valueNext = 0;
-      
-      // If notice is indemnified, we calculate the span covered by the notice
-      if (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified') {
-          // Check if projection crosses year boundary
-          const dayAfterEnd = addDays(end, 1);
-          
-          // Calculate total avos covered by notice
-          // Logic: Calculate avos from dayAfterEnd to projectedEndDate
-          // If years are different, calculateAvos handles the count correctly as strict months
-          // But 13th resets in Jan. So we should treat it per year if needed.
-          // However, for total compensation, sum of avos is usually sufficient unless rates change (not applicable here).
-          // We will sum avos, but keep track of which avos belong to current year for deduction purposes.
-          
-          // Simplification: Calculate total avos from start13Current to ProjectedEndDate
-          // Then subtract avosCurrent to find the "Indemnified" portion?
-          // No, safer to sum segments.
-          
-          const totalAvosFromStart = calculateAvos(start13Current, projectedEndDate);
-          
-          // Case: Transition Dec/Jan
-          // End: Dec 20. Projected: Jan 19.
-          // start13Current (Jan 1) -> End (Dec 20) = 12 avos.
-          // End (Dec 20) -> Projected (Jan 19).
-          // Total span Jan 1 2025 -> Jan 19 2026.
-          // Logic should ideally separate: 12/12 for 2025 + 1/12 for 2026.
-          
-          // Let's implement strict split:
-          if (projectedYear > exitYear) {
-             // Split!
-             // Part A: Current Year (up to Dec 31)
+      if (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified' && projectedYear > exitYear) {
              const endOfYear = new Date(exitYear, 11, 31, 12, 0, 0);
-             const avosCurrentTotal = calculateAvos(start13Current, endOfYear); // Should be 12 max
+             const avosCurrentTotal = calculateAvos(start13Current, endOfYear);
              const valueCurrentTotal = (remunerationBase / 12) * avosCurrentTotal;
              
-             // Part B: Next Year (Jan 1 to Projected)
              const startNextYear = new Date(projectedYear, 0, 1, 12, 0, 0);
              const avosNextYear = calculateAvos(startNextYear, projectedEndDate);
              const valueNextYear = (remunerationBase / 12) * avosNextYear;
@@ -341,27 +339,14 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
              thirteenthProportional = valueCurrentTotal + valueNextYear;
              thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(endOfYear)} + ${formatDate(startNextYear)} a ${formatDate(projectedEndDate)}`;
              
-             // Deduction only applies to Part A (Current Year)
              if (data.thirteenthAdvancePaid) {
                  thirteenthAdvanceDeduction = valueCurrentTotal / 2;
              }
-             
-          } else {
-             // Same Year
-             thirteenthMonths = calculateAvos(start13Current, projectedEndDate);
-             thirteenthProportional = (remunerationBase / 12) * thirteenthMonths;
-             thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(projectedEndDate)}`;
-             
-             if (data.thirteenthAdvancePaid) {
-                 thirteenthAdvanceDeduction = thirteenthProportional / 2;
-             }
-          }
       } else {
-         // Not indemnified or just worked
-         // Just calculate up to End Date (which is same as Projected)
-         thirteenthMonths = avosCurrent;
-         thirteenthProportional = valueCurrent;
-         thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(end)}`;
+         const effectiveEnd13 = (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified') ? projectedEndDate : end;
+         thirteenthMonths = calculateAvos(start13Current, effectiveEnd13);
+         thirteenthProportional = (remunerationBase / 12) * thirteenthMonths;
+         thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(effectiveEnd13)}`;
          
          if (data.thirteenthAdvancePaid) {
              thirteenthAdvanceDeduction = thirteenthProportional / 2;
@@ -369,7 +354,7 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
       }
   }
 
-  // Férias Proporcionais
+  // Férias
   let vestingStart = new Date(start);
   vestingStart.setHours(12, 0, 0, 0);
   vestingStart.setFullYear(projectedEndDate.getFullYear());
@@ -385,52 +370,163 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const vacationProportional = (remunerationBase / 12) * vacationMonths;
   const vacationExpired = data.hasExpiredVacation ? remunerationBase : 0;
   const vacationThird = (vacationProportional + vacationExpired) / 3;
+  const vacationTotal = vacationProportional + vacationExpired + vacationThird;
 
   // FGTS
   const totalMonthsWorked = Math.floor(diffDaysTotal / 30);
-  const estimatedFgtsBalance = (remunerationBase * 0.08) * totalMonthsWorked;
+  const estimatedFgtsBalance = Number(((remunerationBase * 0.08) * totalMonthsWorked).toFixed(2));
 
   let fgtsFine = 0;
   if (data.reason === 'dismissal_no_cause') {
      fgtsFine = estimatedFgtsBalance * 0.40;
   }
-  const totalFgts = estimatedFgtsBalance + fgtsFine;
+  const totalFgtsFromJob = Number((estimatedFgtsBalance + fgtsFine).toFixed(2));
 
-  // TOTAIS
-  const totalGross = balanceSalary + extrasBreakdown.total + noticeWarning + vacationProportional + vacationExpired + vacationThird + thirteenthProportional + fgtsFine;
+  // --- CÁLCULO TRIBUTÁRIO UNIFICADO ---
   
-  // DEDUÇÕES TRIBUTÁRIAS
-  const taxableInssBase = balanceSalary + extrasBreakdown.total + thirteenthProportional;
-  const taxableIrBase = balanceSalary + extrasBreakdown.total + thirteenthProportional;
+  // 1. INSS (Calculado separadamente por exigência legal das faixas, mas somado para dedução)
+  const salaryBaseForInss = balanceSalary + extrasBreakdown.total; 
+  const inssSalary = calculateInssOnly(salaryBaseForInss);
+  const inss13 = calculateInssOnly(thirteenthProportional);
+  const totalInss = inssSalary + inss13;
 
-  const discountInss = calculateInssOnly(taxableInssBase);
-  const discountIr = calculateIrpfOnly(taxableIrBase);
+  // 2. IRPF UNIFICADO
+  // Soma de todos os valores positivos da rescisão (Gross Total)
+  // IMPORTANTE: Inclui saldo, aviso indenizado, 13º e férias.
+  const totalGross = balanceSalary + extrasBreakdown.total + noticeWarning + vacationTotal + thirteenthProportional;
+  
+  // Base de Cálculo = Total Bruto - Total INSS - Dependentes
+  const dependentVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  
+  // IRPF Base Unificada
+  const irUnifiedBase = totalGross - totalInss - dependentVal;
+  
+  // Aplica a tabela progressiva sobre o montante total
+  const unifiedIrpf = calculateIrpfOnly(Math.max(0, irUnifiedBase));
+  
+  const discountIr = unifiedIrpf; // Valor único
 
-  const totalDiscounts = discountInss + discountIr + noticeDeduction + thirteenthAdvanceDeduction;
+  // Outras deduções
+  const totalDiscounts = totalInss + discountIr + noticeDeduction + thirteenthAdvanceDeduction;
+  
+  const totalNetBase = totalGross - totalDiscounts;
+  const totalNet = Math.max(0, Number(totalNetBase.toFixed(2))); // Previne negativo na base
+
+  // --- CONSIGNADO NA RESCISÃO ---
+  let maxConsignableMargin = 0;
+  let consignedDiscount = 0;
+  let remainingLoanBalance = 0;
+  let warrantyUsed = 0;
+  let fineUsed = 0;
+  let totalFgtsDeduction = 0;
+  let finalFgtsToWithdraw = totalFgtsFromJob; 
+  let finalNetTermination = totalNet;
+
+  if (data.includeConsigned && data.consigned && data.consigned.outstandingBalance > 0) {
+      
+      // 1. Desconto no TRCT (Verbas Rescisórias)
+      // Limitado à margem de 35% OU ao saldo da dívida, o que for menor.
+      // E TAMBÉM limitado ao valor total líquido disponível para não negativar.
+      maxConsignableMargin = Number((totalNet * 0.35).toFixed(2));
+      
+      const amountToDeductTRCT = Math.min(
+          data.consigned.outstandingBalance, 
+          maxConsignableMargin,
+          totalNet // Garante que não desconta mais do que tem
+      );
+      
+      consignedDiscount = Number(amountToDeductTRCT.toFixed(2));
+      remainingLoanBalance = Number((data.consigned.outstandingBalance - consignedDiscount).toFixed(2));
+      
+      const finalNetCalc = totalNet - consignedDiscount;
+      finalNetTermination = Math.max(0, Number(finalNetCalc.toFixed(2))); // Previne negativo final
+
+      // 2. Garantia de FGTS (Somente se ativada)
+      if (remainingLoanBalance > 0 && data.consigned.hasFgtsWarranty) {
+          
+          const totalFgtsBalanceForWarranty = (data.consigned.fgtsBalance && data.consigned.fgtsBalance > 0)
+                                              ? data.consigned.fgtsBalance 
+                                              : estimatedFgtsBalance;
+                                              
+          const warrantyValue = Number((totalFgtsBalanceForWarranty * 0.10).toFixed(2));
+          
+          let availableWarranty = 0;
+          let availableFine = 0;
+
+          switch (data.reason) {
+            case 'dismissal_no_cause':
+              availableWarranty = warrantyValue;
+              availableFine = fgtsFine; 
+              break;
+            
+            case 'resignation':
+            case 'agreement':
+              availableWarranty = warrantyValue;
+              availableFine = 0; 
+              break;
+
+            case 'dismissal_cause':
+              availableWarranty = 0;
+              availableFine = 0;
+              break;
+          }
+
+          if (remainingLoanBalance > 0 && availableWarranty > 0) {
+            const usage = Math.min(remainingLoanBalance, availableWarranty);
+            warrantyUsed = Number(usage.toFixed(2));
+            remainingLoanBalance = Number((remainingLoanBalance - warrantyUsed).toFixed(2));
+          }
+
+          if (remainingLoanBalance > 0 && availableFine > 0) {
+            const usage = Math.min(remainingLoanBalance, availableFine);
+            fineUsed = Number(usage.toFixed(2));
+            remainingLoanBalance = Number((remainingLoanBalance - fineUsed).toFixed(2));
+          }
+
+          totalFgtsDeduction = Number((warrantyUsed + fineUsed).toFixed(2));
+
+          const visualDeduction = Math.min(totalFgtsDeduction, finalFgtsToWithdraw);
+          finalFgtsToWithdraw = Number((finalFgtsToWithdraw - visualDeduction).toFixed(2));
+      }
+  }
 
   return {
-    balanceSalary,
-    noticeWarning,
-    noticeDeduction,
-    vacationProportional,
+    balanceSalary: Number(balanceSalary.toFixed(2)),
+    noticeWarning: Number(noticeWarning.toFixed(2)),
+    noticeDeduction: Number(noticeDeduction.toFixed(2)),
+    vacationProportional: Number(vacationProportional.toFixed(2)),
     vacationMonths,
     vacationPeriodLabel,
-    vacationExpired,
-    vacationThird,
-    thirteenthProportional,
+    vacationExpired: Number(vacationExpired.toFixed(2)),
+    vacationThird: Number(vacationThird.toFixed(2)),
+    thirteenthProportional: Number(thirteenthProportional.toFixed(2)),
     thirteenthMonths,
     thirteenthPeriodLabel,
-    thirteenthAdvanceDeduction,
-    fgtsFine,
-    estimatedFgtsBalance,
-    totalFgts,
-    totalGross,
-    totalExtrasAverage: extrasBreakdown.total,
+    thirteenthAdvanceDeduction: Number(thirteenthAdvanceDeduction.toFixed(2)),
+    fgtsFine: Number(fgtsFine.toFixed(2)),
+    estimatedFgtsBalance: Number(estimatedFgtsBalance.toFixed(2)),
+    totalFgts: Number(totalFgtsFromJob.toFixed(2)),
+    totalGross: Number(totalGross.toFixed(2)),
+    totalExtrasAverage: Number(extrasBreakdown.total.toFixed(2)),
     extrasBreakdown,
-    discountInss,
-    discountIr,
-    totalDiscounts,
-    totalNet: totalGross - totalDiscounts
+    discountInss: Number(totalInss.toFixed(2)), // INSS Totalizado
+    discountIr: Number(discountIr.toFixed(2)),    // IR Unificado
+    irBreakdown: {
+        salary: 0,
+        thirteenth: 0,
+        vacation: 0,
+        total: Number(discountIr.toFixed(2)) 
+    },
+    totalDiscounts: Number(totalDiscounts.toFixed(2)),
+    totalNet: Number(totalNet.toFixed(2)),
+    maxConsignableMargin,
+    consignedDiscount,
+    remainingLoanBalance,
+    warrantyUsed,
+    fineUsed,
+    totalFgtsDeduction,
+    finalFgtsToWithdraw,
+    finalNetTermination
   };
 };
 
@@ -448,7 +544,6 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   
   let allowanceGross = 0;
   let allowanceThird = 0;
-  
   if (data.sellDays && data.daysSold > 0) {
     allowanceGross = (remunerationBase / 30) * data.daysSold;
     allowanceThird = allowanceGross / 3;
@@ -460,13 +555,26 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   }
   
   const totalGross = vacationGross + vacationThird + allowanceGross + allowanceThird + advanceThirteenth;
-  
   const taxableBase = vacationGross + vacationThird;
   
   const discountInss = calculateInssOnly(taxableBase);
-  const discountIr = calculateIrpfOnly(taxableBase); 
+  
+  // Base IR Férias
+  const dependentVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  const irBase = taxableBase - dependentVal;
+
+  const discountIr = calculateIrpfOnly(Math.max(0, irBase)); 
   
   const totalDiscounts = discountInss + discountIr;
+  
+  // Prevenir negativo
+  const totalNetBase = totalGross - totalDiscounts;
+  const totalNet = Math.max(0, Number(totalNetBase.toFixed(2)));
+
+  // Consignado nas Férias
+  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(totalNet, data.consigned, data.includeConsigned);
+  
+  const finalNetVacation = Math.max(0, Number((totalNet - consignedDiscount).toFixed(2)));
   
   return {
     baseSalary: remunerationBase,
@@ -480,6 +588,10 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
     discountInss,
     discountIr,
     totalDiscounts,
-    totalNet: totalGross - totalDiscounts
+    totalNet,
+    // Consigned
+    maxConsignableMargin: maxMargin,
+    consignedDiscount,
+    finalNetVacation
   };
 };
