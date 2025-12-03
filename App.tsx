@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, SalaryInput, ViewType, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult } from './types';
 import { calculateSalary, calculateThirteenth, calculateTermination, calculateVacation } from './services/taxService';
@@ -6,18 +7,23 @@ import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
 
 // --- CONFIGURAÇÃO DE ANÚNCIOS (GOOGLE ADSENSE) ---
-// Substitua os valores abaixo ("123...") pelos IDs numéricos reais criados no painel do AdSense.
-// Se o ID estiver incorreto ou vazio, o bloco de anúncio mostrará um espaço reservado ou ficará vazio.
+// 1. Crie blocos de anúncios do tipo "Display" no painel do Google AdSense.
+// 2. Copie o número do `data-ad-slot` gerado pelo Google.
+// 3. Cole o número (apenas números, entre aspas) nos campos abaixo.
+//
+// EXEMPLO:
+// TOP_BANNER: "9876543210", 
+//
 const AD_SLOTS = {
-  TOP_BANNER: "top-banner-slot",           // Banner principal no topo
-  SIDEBAR: "sidebar-ad-slot",              // Barra lateral (Desktop)
-  MIDDLE_MOBILE: "mobile-middle-slot",     // Entre resultados (Mobile)
-  MIDDLE_CONTENT: "middle-content-slot",   // Meio do conteúdo
-  MIDDLE_THIRTEENTH: "middle-thirteenth-slot",
-  MIDDLE_TERMINATION: "middle-termination-slot",
-  BOTTOM: "bottom-slot",                   // Rodapé dos resultados
-  BOTTOM_VACATION: "bottom-vacation-slot",
-  BOTTOM_TERMINATION: "bottom-termination-slot"
+  TOP_BANNER: "7977197949",           // Banner principal no topo
+  SIDEBAR: "7977197949",              // Barra lateral (Desktop)
+  MIDDLE_MOBILE: "7977197949",     // Entre resultados (Mobile)
+  MIDDLE_CONTENT: "7977197949",   // Meio do conteúdo (Férias)
+  MIDDLE_THIRTEENTH: "7977197949", // Meio (13º Salário)
+  MIDDLE_TERMINATION: "7977197949", // Meio (Rescisão)
+  BOTTOM: "7977197949",                   // Rodapé dos resultados
+  BOTTOM_VACATION: "7977197949", // Rodapé (Férias)
+  BOTTOM_TERMINATION: "7977197949" // Rodapé (Rescisão)
 };
 
 // --- ICONS ---
