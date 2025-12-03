@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, SalaryInput, ViewType, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult } from './types';
 import { calculateSalary, calculateThirteenth, calculateTermination, calculateVacation } from './services/taxService';
@@ -6,17 +5,17 @@ import PieChartVisual from './components/PieChartVisual';
 import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
 
-// --- AD SENSE SLOTS (PLACEHOLDERS - SUBSTITUA PELOS SEUS IDS REAIS DO GOOGLE) ---
-// Para que os anúncios apareçam, você deve criar blocos de anúncios no painel do AdSense
-// e colar os códigos (IDs numéricos) abaixo.
+// --- CONFIGURAÇÃO DE ANÚNCIOS (GOOGLE ADSENSE) ---
+// Substitua os valores abaixo ("123...") pelos IDs numéricos reais criados no painel do AdSense.
+// Se o ID estiver incorreto ou vazio, o bloco de anúncio mostrará um espaço reservado ou ficará vazio.
 const AD_SLOTS = {
-  TOP_BANNER: "top-banner-slot",           // Ex: "1234567890"
-  SIDEBAR: "sidebar-ad-slot",              // Ex: "1234567890"
-  MIDDLE_MOBILE: "mobile-middle-slot",     
-  MIDDLE_CONTENT: "middle-content-slot",   
+  TOP_BANNER: "top-banner-slot",           // Banner principal no topo
+  SIDEBAR: "sidebar-ad-slot",              // Barra lateral (Desktop)
+  MIDDLE_MOBILE: "mobile-middle-slot",     // Entre resultados (Mobile)
+  MIDDLE_CONTENT: "middle-content-slot",   // Meio do conteúdo
   MIDDLE_THIRTEENTH: "middle-thirteenth-slot",
   MIDDLE_TERMINATION: "middle-termination-slot",
-  BOTTOM: "bottom-slot",                   
+  BOTTOM: "bottom-slot",                   // Rodapé dos resultados
   BOTTOM_VACATION: "bottom-vacation-slot",
   BOTTOM_TERMINATION: "bottom-termination-slot"
 };
@@ -71,12 +70,9 @@ const App: React.FC = () => {
       const end = new Date(terminationData.endDate + 'T12:00:00');
       const month = end.getMonth(); // 0-11
       
-      // Regra 1: Se estamos em Dezembro (11), legalmente a 1ª parcela já deve ter sido paga.
       if (month === 11) {
          setTerminationData(prev => ({ ...prev, thirteenthAdvancePaid: true }));
       }
-      // Regra 2 (EXCEÇÃO): Se estamos em Janeiro, o 13º proporcional é do NOVO ano. 
-      // Não deve descontar adiantamento do ano anterior.
       else if (month === 0) {
          setTerminationData(prev => ({ ...prev, thirteenthAdvancePaid: false }));
       }
@@ -123,7 +119,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row overflow-x-hidden">
       
-      {/* MOBILE HEADER - BUTTON ON LEFT */}
+      {/* MOBILE HEADER */}
       <div className="md:hidden bg-[#1e3a8a] text-white p-4 flex items-center justify-start gap-4 sticky top-0 z-50 shadow-md">
          <button onClick={() => setIsMobileMenuOpen(true)} className="p-1 hover:bg-white/10 rounded-lg"><MenuIcon /></button>
          <span className="font-bold text-lg flex items-center gap-2"><CalculatorIcon /> Calc 2026</span>
@@ -162,7 +158,7 @@ const App: React.FC = () => {
 
         {/* SIDEBAR AD UNIT (Visible on Desktop AND Mobile Menu) */}
         <div className="p-4">
-           <AdUnit slotId={AD_SLOTS.SIDEBAR} format="rectangle" />
+           <AdUnit slotId={AD_SLOTS.SIDEBAR} format="rectangle" label="Publicidade" />
         </div>
 
         <div className="p-6 border-t border-blue-800">
@@ -170,6 +166,12 @@ const App: React.FC = () => {
             <p className="font-bold text-white mb-2 text-sm">Base Legal 2026</p>
             <p className="flex justify-between"><span>Salário Mínimo:</span> <span className="text-white">R$ 1.631</span></p>
             <p className="flex justify-between"><span>Isenção IR:</span> <span className="text-white">Até 5k</span></p>
+          </div>
+          {/* Link para verificação do ads.txt (Ajuda no debug) */}
+          <div className="mt-4 text-center">
+            <a href="/ads.txt" target="_blank" className="text-[10px] text-blue-400 hover:text-white underline">
+              Verificar status ads.txt
+            </a>
           </div>
         </div>
       </aside>
@@ -192,9 +194,8 @@ const App: React.FC = () => {
               {/* Input Section */}
               <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                  <form onSubmit={handleSalaryCalc} className="space-y-5">
-                    <InputGroup label="Salário Bruto" name="grossSalary" value={salaryData.grossSalary} onChange={(v) => setSalaryData({...salaryData, grossSalary: Number(v)})} required />
+                    <InputGroup label="Salário Bruto" name="grossSalary" value={salaryData.grossSalary} onChange={(v: string) => setSalaryData({...salaryData, grossSalary: Number(v)})} required />
                     
-                    {/* EXTRAS SECTION */}
                     <ExtrasSection 
                       isActive={salaryData.includeExtras} 
                       onToggle={(checked) => setSalaryData({...salaryData, includeExtras: checked})}
@@ -202,7 +203,6 @@ const App: React.FC = () => {
                       onChange={(newExtras) => setSalaryData({...salaryData, extras: newExtras})}
                     />
 
-                    {/* VT Toggle */}
                     <div className={`p-4 rounded-xl border transition-all ${salaryData.includeTransportVoucher ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                       <label className="flex items-center gap-3 cursor-pointer select-none">
                         <input type="checkbox" checked={salaryData.includeTransportVoucher} onChange={(e) => setSalaryData({...salaryData, includeTransportVoucher: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
@@ -210,14 +210,14 @@ const App: React.FC = () => {
                       </label>
                       {salaryData.includeTransportVoucher && (
                         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in">
-                          <InputGroup label="Custo Diário" name="transportDailyCost" value={salaryData.transportDailyCost} onChange={(v) => setSalaryData({...salaryData, transportDailyCost: Number(v)})} isSmall />
-                          <InputGroup label="Dias Úteis" name="workDays" value={salaryData.workDays} onChange={(v) => setSalaryData({...salaryData, workDays: Number(v)})} isSmall />
+                          <InputGroup label="Custo Diário" name="transportDailyCost" value={salaryData.transportDailyCost} onChange={(v: string) => setSalaryData({...salaryData, transportDailyCost: Number(v)})} isSmall />
+                          <InputGroup label="Dias Úteis" name="workDays" value={salaryData.workDays} onChange={(v: string) => setSalaryData({...salaryData, workDays: Number(v)})} isSmall />
                         </div>
                       )}
                     </div>
 
-                    <InputGroup label="Plano de Saúde" name="healthInsurance" value={salaryData.healthInsurance} onChange={(v) => setSalaryData({...salaryData, healthInsurance: Number(v)})} />
-                    <InputGroup label="Outros Descontos" name="otherDiscounts" value={salaryData.otherDiscounts} onChange={(v) => setSalaryData({...salaryData, otherDiscounts: Number(v)})} />
+                    <InputGroup label="Plano de Saúde" name="healthInsurance" value={salaryData.healthInsurance} onChange={(v: string) => setSalaryData({...salaryData, healthInsurance: Number(v)})} />
+                    <InputGroup label="Outros Descontos" name="otherDiscounts" value={salaryData.otherDiscounts} onChange={(v: string) => setSalaryData({...salaryData, otherDiscounts: Number(v)})} />
                     
                     <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98] text-lg">
                       Calcular Líquido
@@ -228,7 +228,6 @@ const App: React.FC = () => {
               {/* Result Section */}
               {salaryResult && (
                 <div className="lg:col-span-7 space-y-6 animate-fade-in">
-                   {/* MIDDLE AD UNIT (High Engagement) */}
                    <div className="block lg:hidden">
                       <AdUnit slotId={AD_SLOTS.MIDDLE_MOBILE} />
                    </div>
@@ -246,7 +245,6 @@ const App: React.FC = () => {
                       <div className="space-y-3 text-sm md:text-base">
                         <Row label="Salário Bruto Base" value={salaryResult.grossSalary} isPositive />
                         
-                        {/* DETALHAMENTO DE EXTRAS */}
                         {salaryResult.totalExtras > 0 && (
                           <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
                              <ExtrasDetailedRows breakdown={salaryResult.extrasBreakdown} />
@@ -267,9 +265,10 @@ const App: React.FC = () => {
                          <PieChartVisual data={salaryResult} />
                       </div>
                    </div>
+                   
+                   {/* Gemini AI Advisor */}
                    <AIAdvisor result={salaryResult} />
                    
-                   {/* BOTTOM AD UNIT */}
                    <AdUnit slotId={AD_SLOTS.BOTTOM} />
                 </div>
               )}
@@ -288,7 +287,7 @@ const App: React.FC = () => {
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                 <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                   <form onSubmit={handleVacationCalc} className="space-y-5">
-                     <InputGroup label="Salário Bruto" name="grossSalary" value={vacationData.grossSalary} onChange={(v) => setVacationData({...vacationData, grossSalary: Number(v)})} required />
+                     <InputGroup label="Salário Bruto" name="grossSalary" value={vacationData.grossSalary} onChange={(v: string) => setVacationData({...vacationData, grossSalary: Number(v)})} required />
                      
                      <div>
                         <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Dias de Descanso</label>
@@ -336,7 +335,6 @@ const App: React.FC = () => {
 
                 {vacationResult && (
                    <div className="lg:col-span-7 space-y-6 animate-fade-in">
-                      {/* MIDDLE AD UNIT */}
                       <AdUnit slotId={AD_SLOTS.MIDDLE_CONTENT} />
 
                       <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-yellow-400 flex flex-col items-center justify-center transform hover:scale-[1.01] transition-transform">
@@ -352,7 +350,6 @@ const App: React.FC = () => {
                              <Row label="Férias (Dias de Descanso)" value={vacationResult.vacationGross} isPositive />
                              <Row label="1/3 Constitucional" value={vacationResult.vacationThird} isPositive />
                              
-                             {/* EXTRAS */}
                              {vacationResult.baseSalary > vacationData.grossSalary && (
                                 <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
                                   <ExtrasDetailedRows breakdown={vacationResult.extrasBreakdown} />
@@ -379,8 +376,6 @@ const App: React.FC = () => {
                              </div>
                           </div>
                       </div>
-                      
-                      {/* BOTTOM AD UNIT */}
                       <AdUnit slotId={AD_SLOTS.BOTTOM_VACATION} />
                    </div>
                 )}
@@ -399,8 +394,8 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                  <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                     <form onSubmit={handleThirteenthCalc} className="space-y-5">
-                       <InputGroup label="Salário Bruto" name="grossSalary" value={thirteenthData.grossSalary} onChange={(v) => setThirteenthData({...thirteenthData, grossSalary: Number(v)})} required />
-                       <InputGroup label="Meses Trabalhados" name="monthsWorked" value={thirteenthData.monthsWorked} onChange={(v) => setThirteenthData({...thirteenthData, monthsWorked: Math.min(12, Number(v))})} isSmall />
+                       <InputGroup label="Salário Bruto" name="grossSalary" value={thirteenthData.grossSalary} onChange={(v: string) => setThirteenthData({...thirteenthData, grossSalary: Number(v)})} required />
+                       <InputGroup label="Meses Trabalhados" name="monthsWorked" value={thirteenthData.monthsWorked} onChange={(v: string) => setThirteenthData({...thirteenthData, monthsWorked: Math.min(12, Number(v))})} isSmall />
                        
                        <ExtrasSection 
                          isActive={thirteenthData.includeExtras} 
@@ -416,7 +411,6 @@ const App: React.FC = () => {
 
                  {thirteenthResult && (
                     <div className="lg:col-span-7 space-y-6 animate-fade-in">
-                       {/* MIDDLE AD UNIT */}
                        <AdUnit slotId={AD_SLOTS.MIDDLE_THIRTEENTH} />
 
                        <h3 className="font-bold text-slate-700 md:text-lg">Fluxo de Recebimento</h3>
@@ -452,7 +446,6 @@ const App: React.FC = () => {
                           <div className="space-y-2 text-sm border-t border-slate-100 pt-3">
                              <Row label="Valor Bruto Total" value={thirteenthResult.totalGross} isPositive />
                              
-                             {/* DETALHAMENTO EXTRAS 13 */}
                              {thirteenthResult.totalExtrasAverage > 0 && (
                                 <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
                                   <ExtrasDetailedRows breakdown={thirteenthResult.extrasBreakdown} />
@@ -465,7 +458,6 @@ const App: React.FC = () => {
                           </div>
                        </div>
                        
-                       {/* TOTAL LÍQUIDO DESTACADO */}
                        <div className="mt-6 bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-blue-400 flex flex-col items-center justify-center transform hover:scale-[1.01] transition-transform">
                           <p className="text-blue-200 text-xs font-bold uppercase tracking-widest text-center mb-1">Valor Total Líquido (Soma)</p>
                           <p className="text-4xl md:text-5xl font-black text-center tracking-tight drop-shadow-sm">
@@ -490,7 +482,7 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
                  <div className="lg:col-span-5 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 h-fit">
                     <form onSubmit={handleTerminationCalc} className="space-y-4">
-                       <InputGroup label="Salário Bruto" name="grossSalary" value={terminationData.grossSalary} onChange={(v) => setTerminationData({...terminationData, grossSalary: Number(v)})} required />
+                       <InputGroup label="Salário Bruto" name="grossSalary" value={terminationData.grossSalary} onChange={(v: string) => setTerminationData({...terminationData, grossSalary: Number(v)})} required />
                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-bold text-slate-500 mb-1">Data Início (Admissão)</label>
@@ -504,7 +496,7 @@ const App: React.FC = () => {
                        
                        {terminationData.startDate && terminationData.endDate && terminationData.startDate > terminationData.endDate && (
                           <div className="bg-red-50 text-red-600 p-3 rounded-lg text-xs font-bold animate-pulse border border-red-200">
-                             ⚠️ Erro: Data de Início é maior que a Data de Fim. Verifique as datas.
+                             ⚠️ Erro: Data de Início é maior que a Data de Fim.
                           </div>
                        )}
                        
@@ -514,11 +506,10 @@ const App: React.FC = () => {
                             value={terminationData.reason} 
                             onChange={(e) => {
                               const r = e.target.value as any;
-                              // Auto set Notice Status based on Reason default
                               let ns = terminationData.noticeStatus;
                               if (r === 'dismissal_no_cause') ns = 'indemnified';
                               if (r === 'resignation') ns = 'worked';
-                              if (r === 'dismissal_cause') ns = 'worked'; // Irrelevant
+                              if (r === 'dismissal_cause') ns = 'worked';
                               setTerminationData({...terminationData, reason: r, noticeStatus: ns});
                             }}
                             className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer"
@@ -572,7 +563,7 @@ const App: React.FC = () => {
                             <input type="checkbox" checked={terminationData.thirteenthAdvancePaid} onChange={(e) => setTerminationData({...terminationData, thirteenthAdvancePaid: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
                             <div className="flex flex-col">
                               <span className="text-sm font-semibold text-slate-700">1ª Parcela do 13º já foi paga?</span>
-                              <span className="text-[10px] text-slate-400">Referente ao ano atual ({terminationData.endDate ? new Date(terminationData.endDate).getFullYear() : 'AAAA'})</span>
+                              <span className="text-[10px] text-slate-400">Ref. ao ano atual ({terminationData.endDate ? new Date(terminationData.endDate).getFullYear() : 'AAAA'})</span>
                             </div>
                         </label>
                        </div>
@@ -584,7 +575,6 @@ const App: React.FC = () => {
 
                  {terminationResult && (
                     <div className="lg:col-span-7 space-y-6 animate-fade-in">
-                       {/* MIDDLE AD UNIT */}
                        <AdUnit slotId={AD_SLOTS.MIDDLE_TERMINATION} />
 
                        <div className="bg-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col sm:flex-row justify-between gap-4">
@@ -604,12 +594,9 @@ const App: React.FC = () => {
                        <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-100">
                           <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b">Detalhamento das Verbas</h4>
                           
-                          {/* -- REMOVIDO BLOCO DE REMUNERAÇÃO BASE PARA CÁLCULOS -- */}
-
                           <div className="space-y-3 text-sm md:text-base">
-                             <Row label="Saldo de Salário (Dias Fixos)" value={terminationResult.balanceSalary} isPositive />
+                             <Row label="Saldo de Salário" value={terminationResult.balanceSalary} isPositive />
                              
-                             {/* DETALHAMENTO EXTRAS RESCISAO */}
                              {terminationResult.totalExtrasAverage > 0 && (
                                 <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100/50 space-y-1 my-2">
                                   <div className="mb-2 text-[10px] font-bold text-orange-400 uppercase tracking-wider">Horas Extras/Adicionais (Valor Integral)</div>
@@ -619,12 +606,10 @@ const App: React.FC = () => {
 
                              {terminationResult.noticeWarning > 0 && <Row label="Aviso Prévio Indenizado" value={terminationResult.noticeWarning} isPositive />}
                              <Row label={`Férias Proporcionais (${terminationResult.vacationMonths}/12 avos)`} value={terminationResult.vacationProportional} isPositive />
-                             {/* VACATION PERIOD REF */}
                              <div className="text-[10px] text-slate-400 pl-4 -mt-2 mb-2 italic">Ref: {terminationResult.vacationPeriodLabel}</div>
 
                              <Row label="1/3 Férias" value={terminationResult.vacationThird} isPositive />
                              <Row label={`13º Proporcional (${terminationResult.thirteenthMonths}/12 avos)`} value={terminationResult.thirteenthProportional} isPositive />
-                             {/* 13th PERIOD REF */}
                              <div className="text-[10px] text-slate-400 pl-4 -mt-2 mb-2 italic">Ref: {terminationResult.thirteenthPeriodLabel}</div>
 
                              {terminationResult.vacationExpired > 0 && <Row label="Férias Vencidas" value={terminationResult.vacationExpired} isPositive />}
@@ -650,8 +635,6 @@ const App: React.FC = () => {
                              </div>
                           </div>
                        </div>
-
-                       {/* BOTTOM AD UNIT */}
                        <AdUnit slotId={AD_SLOTS.BOTTOM_TERMINATION} />
                     </div>
                  )}
@@ -692,7 +675,6 @@ const ExtrasSection = ({ isActive, onToggle, data, onChange, labelOverride }: { 
     {isActive && (
       <div className="p-4 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in border-t border-orange-100/50 mt-2 pt-4">
         
-        {/* NEW WORKLOAD FIELD */}
         <div className="col-span-1 sm:col-span-2 mb-2 bg-white/50 p-2 rounded-lg border border-orange-100">
            <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Carga Horária Mensal (Padrão 220)</label>
            <input type="number" value={data.workload || ''} onChange={e => onChange({...data, workload: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="220" />
@@ -729,7 +711,6 @@ const ExtrasSection = ({ isActive, onToggle, data, onChange, labelOverride }: { 
   </div>
 );
 
-// HELPER FOR DETAILED EXTRAS
 const ExtrasDetailedRows = ({ breakdown }: { breakdown: ExtrasBreakdown }) => {
    return (
      <>
