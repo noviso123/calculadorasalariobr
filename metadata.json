@@ -1,5 +1,5 @@
 {
-  "name": "Calculadora Salário 2026 (Blue) - Completa",
-  "description": "Calculadora de Valores a receber Líquido trabalhista profissional na CLT em 2026 com tema Azul. Otimizada para Tabela Progressiva IRPF 2026 com lógica de melhor desconto (Simplificado vs Legal).",
+  "name": "Calculadora Salário Líquido 2026 | Rescisão e Férias CLT",
+  "description": "Ferramenta completa para cálculo de Salário Líquido, Rescisão de Contrato, Férias e Décimo Terceiro (CLT 2026). Simule descontos de INSS, IRPF e FGTS com as tabelas oficiais atualizadas. Inclui consultor financeiro com IA.",
   "requestFramePermissions": []
 }

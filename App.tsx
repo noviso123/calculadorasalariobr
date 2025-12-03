@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CalculationResult, SalaryInput, ViewType, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult } from './types';
 import { calculateSalary, calculateThirteenth, calculateTermination, calculateVacation } from './services/taxService';
@@ -12,13 +11,14 @@ import PrivacyModal from './components/PrivacyModal';
 const AD_SLOTS = {
   TOP_BANNER: "7977197949",           // Banner principal no topo
   SIDEBAR: "7977197949",              // Barra lateral (Desktop)
-  MIDDLE_MOBILE: "7977197949",     // Entre resultados (Mobile)
-  MIDDLE_CONTENT: "7977197949",   // Meio do conteúdo (Férias)
-  MIDDLE_THIRTEENTH: "7977197949", // Meio (13º Salário)
-  MIDDLE_TERMINATION: "7977197949", // Meio (Rescisão)
-  BOTTOM: "7977197949",                   // Rodapé dos resultados
-  BOTTOM_VACATION: "7977197949", // Rodapé (Férias)
-  BOTTOM_TERMINATION: "7977197949" // Rodapé (Rescisão)
+  MIDDLE_MOBILE: "7977197949",        // Entre resultados (Mobile)
+  MIDDLE_CONTENT: "7977197949",       // Meio do conteúdo (Férias)
+  MIDDLE_THIRTEENTH: "7977197949",    // Meio (13º Salário)
+  BOTTOM_THIRTEENTH: "7977197949",    // Rodapé (13º Salário) - NOVO
+  MIDDLE_TERMINATION: "7977197949",   // Meio (Rescisão)
+  BOTTOM: "7977197949",               // Rodapé dos resultados
+  BOTTOM_VACATION: "7977197949",      // Rodapé (Férias)
+  BOTTOM_TERMINATION: "7977197949"    // Rodapé (Rescisão)
 };
 
 // --- ICONS ---
@@ -121,7 +121,7 @@ const App: React.FC = () => {
   );
 
   // --- LAYOUT FIX: Main container with flex-row for Desktop, flex-col for mobile. 
-  // IMPORTANT: Removed h-screen and overflow-y-auto from main content to use Native Browser Scrollbar only.
+  // ADDED: pb-24 (Padding Bottom) to ensure "Breathable" space for Footer and Bottom Ads (prevents accidental clicks).
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row">
       
@@ -183,7 +183,7 @@ const App: React.FC = () => {
       </aside>
 
       {/* MAIN CONTENT AREA - Uses Window Scrollbar */}
-      <main className="flex-1 p-4 md:p-8 lg:p-10 w-full max-w-full flex flex-col">
+      <main className="flex-1 p-4 md:p-8 lg:p-10 w-full max-w-full flex flex-col pb-24">
         
         <div className="flex-1">
         {/* TOP AD UNIT */}
@@ -472,6 +472,9 @@ const App: React.FC = () => {
                           </p>
                           <p className="text-center text-xs text-blue-200 mt-2 font-medium bg-blue-900/30 px-3 py-1 rounded-full">1ª Parcela + 2ª Parcela</p>
                        </div>
+                       
+                       {/* ANUNCIO INSERIDO PARA DECIMO TERCEIRO */}
+                       <AdUnit slotId={AD_SLOTS.BOTTOM_THIRTEENTH} />
                     </div>
                  )}
               </div>
