@@ -7,14 +7,16 @@ import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
 
 // --- AD SENSE SLOTS (PLACEHOLDERS - SUBSTITUA PELOS SEUS IDS REAIS DO GOOGLE) ---
+// Para que os anúncios apareçam, você deve criar blocos de anúncios no painel do AdSense
+// e colar os códigos (IDs numéricos) abaixo.
 const AD_SLOTS = {
-  TOP_BANNER: "top-banner-slot",           // Anúncio do Topo (Horizontal)
-  SIDEBAR: "sidebar-ad-slot",              // Anúncio do Menu Lateral (Quadrado/Retângulo)
-  MIDDLE_MOBILE: "mobile-middle-slot",     // Anúncio no meio do resultado (Mobile)
-  MIDDLE_CONTENT: "middle-content-slot",   // Anúncio no meio do conteúdo (Geral)
+  TOP_BANNER: "top-banner-slot",           // Ex: "1234567890"
+  SIDEBAR: "sidebar-ad-slot",              // Ex: "1234567890"
+  MIDDLE_MOBILE: "mobile-middle-slot",     
+  MIDDLE_CONTENT: "middle-content-slot",   
   MIDDLE_THIRTEENTH: "middle-thirteenth-slot",
   MIDDLE_TERMINATION: "middle-termination-slot",
-  BOTTOM: "bottom-slot",                   // Anúncio de Rodapé
+  BOTTOM: "bottom-slot",                   
   BOTTOM_VACATION: "bottom-vacation-slot",
   BOTTOM_TERMINATION: "bottom-termination-slot"
 };
