@@ -1,4 +1,3 @@
-
 import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, IrBreakdown } from '../types';
 
 // INSS Progressivo 2026 (Projeção Base Salário Mínimo R$ 1.631,00)
@@ -12,25 +11,38 @@ const INSS_BRACKETS = [
 const DEDUCTION_PER_DEPENDENT = 189.59;
 
 // Função auxiliar para cálculo de IRPF isolado
-// CORREÇÃO: Garante continuidade matemática e impede valores negativos
-const calculateIrpfOnly = (base: number): number => {
-  if (base <= 5000.00) return 0;
+// Recebe flag hasDependents para aplicar regra de corte específica
+const calculateIrpfOnly = (base: number, hasDependents: boolean): number => {
+  // 1. Proteção inicial: Base não pode ser negativa
+  const safeBase = Math.max(0, base); 
+  
+  // 2. Regra de Isenção Estrita (Até 5000.00)
+  if (safeBase <= 5000.00) return 0;
   
   let tax = 0;
   
   // Faixa 2: 5.000,01 até 7.500,00 (15%)
-  // Dedução lógica: 5000 * 0.15 = 750.00 (Para zerar no início da faixa)
-  if (base <= 7500.00) {
-    tax = (base * 0.15) - 750.00;
+  if (safeBase <= 7500.00) {
+    tax = (safeBase * 0.15) - 750.00;
   } 
   // Faixa 3: Acima de 7.500,00 (27.5%)
-  // Continuidade: 7500 * 0.15 - 750 = 375.
-  // Novo cálculo: 7500 * 0.275 - D = 375 => 2062.5 - D = 375 => D = 1687.50
   else {
-    tax = (base * 0.275) - 1687.50;
+    tax = (safeBase * 0.275) - 1687.50;
   }
 
-  return Math.max(0, Number(tax.toFixed(2)));
+  let finalTax = Math.max(0, tax);
+
+  // 4. Regra de Corte Mínimo (Específica para Dependentes)
+  // "TODA PESSOA COM DEPENDENTE O RESULTADO DO IRPF COMEÇA EM +R$ 0,1... EM DIANTE"
+  // Se tem dependente e o valor for irrisório (abaixo de 0.10), zera.
+  // Se NÃO tem dependente, mantém o valor exato calculado.
+  if (hasDependents) {
+      if (finalTax < 0.10) {
+        finalTax = 0;
+      }
+  }
+
+  return Number(finalTax.toFixed(2));
 };
 
 // Função auxiliar para cálculo de INSS isolado
@@ -133,12 +145,11 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const inss = calculateInssOnly(totalGrossForTax);
   const fgtsMonthly = Number((totalGrossForTax * 0.08).toFixed(2));
   
-  // Base IR (REGRA FUTURA 2026: SEM DEDUÇÃO DO INSS NA BASE)
-  // Base = Bruto - Dependentes (Se incluídos)
-  const dependentVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = totalGrossForTax - dependentVal;
+  // Base IR: Bruto - Dependentes (INSS não deduzido aqui para manter limite de 5000 no bruto)
+  const deductionVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  const irBase = totalGrossForTax - deductionVal;
   
-  const irpf = calculateIrpfOnly(Math.max(0, irBase));
+  const irpf = calculateIrpfOnly(irBase, includeDependents);
 
   let transportVoucher = 0;
   if (includeTransportVoucher) {
@@ -170,7 +181,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     extrasBreakdown,
     inss,
     irpf: Math.max(0, Number(irpf.toFixed(2))),
-    dependentsDeduction: dependentVal, 
+    dependentsDeduction: deductionVal, 
     transportVoucher: Number(transportVoucher.toFixed(2)),
     healthInsurance,
     otherDiscounts,
@@ -178,7 +189,6 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
     effectiveRate: totalGrossForTax > 0 ? Number(((totalDiscounts / totalGrossForTax) * 100).toFixed(2)) : 0,
     fgtsMonthly,
-    // Consigned
     maxConsignableMargin: maxMargin,
     consignedDiscount,
     finalNetSalary
@@ -199,16 +209,15 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
   
   const inss = calculateInssOnly(fullValue);
   
-  // Base IR 13º
-  const dependentVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = fullValue - dependentVal;
+  // Base IR 13º: Bruto - Dependentes
+  const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  const irBase = fullValue - deductionVal;
   
-  const irpf = calculateIrpfOnly(Math.max(0, irBase));
+  const irpf = calculateIrpfOnly(irBase, data.includeDependents);
   
   const secondInstallmentNetBase = fullValue - inss - irpf - firstInstallmentValue;
   const secondInstallmentNetFixed = Math.max(0, Number(secondInstallmentNetBase.toFixed(2)));
   
-  // Consignado no 13º
   const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(secondInstallmentNetFixed + firstInstallmentValue, data.consigned, data.includeConsigned);
   
   const secondInstallmentFinal = Math.max(0, Number((secondInstallmentNetFixed - consignedDiscount).toFixed(2)));
@@ -384,27 +393,25 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
 
   // --- CÁLCULO TRIBUTÁRIO UNIFICADO ---
   
-  // 1. INSS (Calculado separadamente por exigência legal das faixas, mas somado para dedução)
+  // 1. INSS (Calculado separadamente mas somado para exibição)
   const salaryBaseForInss = balanceSalary + extrasBreakdown.total; 
   const inssSalary = calculateInssOnly(salaryBaseForInss);
   const inss13 = calculateInssOnly(thirteenthProportional);
   const totalInss = inssSalary + inss13;
 
   // 2. IRPF UNIFICADO
-  // Soma de todos os valores positivos da rescisão (Gross Total)
-  // IMPORTANTE: Inclui saldo, aviso indenizado, 13º e férias.
+  // SOMA DE TODOS OS POSITIVOS:
   const totalGross = balanceSalary + extrasBreakdown.total + noticeWarning + vacationTotal + thirteenthProportional;
   
-  // Base de Cálculo = Total Bruto - Total INSS - Dependentes
-  const dependentVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  // Base de Cálculo = Total Bruto - Dependentes (INSS removido)
+  const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
   
-  // IRPF Base Unificada
-  const irUnifiedBase = totalGross - totalInss - dependentVal;
+  // IRPF Base Unificada 
+  const irUnifiedBase = totalGross - deductionVal;
   
   // Aplica a tabela progressiva sobre o montante total
-  const unifiedIrpf = calculateIrpfOnly(Math.max(0, irUnifiedBase));
-  
-  const discountIr = unifiedIrpf; // Valor único
+  const unifiedIrpf = calculateIrpfOnly(irUnifiedBase, data.includeDependents);
+  const discountIr = unifiedIrpf; 
 
   // Outras deduções
   const totalDiscounts = totalInss + discountIr + noticeDeduction + thirteenthAdvanceDeduction;
@@ -425,23 +432,21 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   if (data.includeConsigned && data.consigned && data.consigned.outstandingBalance > 0) {
       
       // 1. Desconto no TRCT (Verbas Rescisórias)
-      // Limitado à margem de 35% OU ao saldo da dívida, o que for menor.
-      // E TAMBÉM limitado ao valor total líquido disponível para não negativar.
       maxConsignableMargin = Number((totalNet * 0.35).toFixed(2));
       
       const amountToDeductTRCT = Math.min(
           data.consigned.outstandingBalance, 
           maxConsignableMargin,
-          totalNet // Garante que não desconta mais do que tem
+          totalNet
       );
       
       consignedDiscount = Number(amountToDeductTRCT.toFixed(2));
       remainingLoanBalance = Number((data.consigned.outstandingBalance - consignedDiscount).toFixed(2));
       
       const finalNetCalc = totalNet - consignedDiscount;
-      finalNetTermination = Math.max(0, Number(finalNetCalc.toFixed(2))); // Previne negativo final
+      finalNetTermination = Math.max(0, Number(finalNetCalc.toFixed(2)));
 
-      // 2. Garantia de FGTS (Somente se ativada)
+      // 2. Garantia de FGTS
       if (remainingLoanBalance > 0 && data.consigned.hasFgtsWarranty) {
           
           const totalFgtsBalanceForWarranty = (data.consigned.fgtsBalance && data.consigned.fgtsBalance > 0)
@@ -559,11 +564,11 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   
   const discountInss = calculateInssOnly(taxableBase);
   
-  // Base IR Férias
-  const dependentVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = taxableBase - dependentVal;
+  // Base IR Férias: Bruto - Dependentes
+  const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
+  const irBase = taxableBase - deductionVal;
 
-  const discountIr = calculateIrpfOnly(Math.max(0, irBase)); 
+  const discountIr = calculateIrpfOnly(irBase, data.includeDependents); 
   
   const totalDiscounts = discountInss + discountIr;
   

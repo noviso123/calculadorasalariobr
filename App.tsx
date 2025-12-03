@@ -85,7 +85,6 @@ const App: React.FC = () => {
 
   // --- SCROLL HELPER ---
   const scrollToResults = () => {
-    // Timeout to allow React to render the result container first
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 150);
@@ -382,7 +381,6 @@ const App: React.FC = () => {
                    {/* CARDS LAYOUT */}
                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <ResultCard label="Salário Bruto" value={salaryResult.grossSalary} />
-                      {/* TEXTO ATUALIZADO CONFORME SOLICITADO */}
                       <ResultCard label="Salário Líquido" value={salaryResult.finalNetSalary} isMain />
                       
                       {salaryResult.consignedDiscount > 0 ? (
@@ -420,7 +418,11 @@ const App: React.FC = () => {
                         <span>Líquido a Receber</span>
                         <span>{formatCurrency(salaryResult.finalNetSalary)}</span>
                       </div>
-                      <div className="text-center mt-2 text-xs text-slate-400">FGTS do mês: {formatCurrency(salaryResult.fgtsMonthly)}</div>
+                      
+                      <div className="mt-3 bg-[#ecfdf5] p-3 rounded-lg border border-emerald-100 flex justify-between items-center shadow-sm">
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">FGTS do Mês</span>
+                        <span className="font-bold text-emerald-800">{formatCurrency(salaryResult.fgtsMonthly)}</span>
+                      </div>
                    </div>
                    
                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-center h-56 md:h-64">
@@ -912,28 +914,49 @@ const App: React.FC = () => {
                           </div>
                        )}
 
-                       <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 mt-2 space-y-1 text-xs md:text-sm text-emerald-900">
-                          <div className="flex justify-between items-center mb-2">
-                             <h5 className="text-xs font-bold text-emerald-700 uppercase">Detalhamento FGTS</h5>
-                             {terminationData.consigned.fgtsBalance > 0 ? (
-                                <span className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Base: Saldo Informado</span>
-                             ) : (
-                                <span className="text-[9px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">Base: Tempo de Casa</span>
-                             )}
+                       {/* NOVO DETALHAMENTO FGTS (MELHORADO) */}
+                       <div className="bg-[#ecfdf5] p-6 rounded-2xl border border-emerald-200 mt-6 shadow-sm relative overflow-hidden">
+                          {/* Decorative Background Icon */}
+                          <div className="absolute -right-6 -top-6 text-emerald-100 opacity-50 pointer-events-none">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 24 24" fill="currentColor"><path d="M2 9h20v13H2V9zm2 2v9h16v-9H4zm14-5v2H6V6h12zM8 3v2h8V3H8z"/></svg>
                           </div>
-                          <Row label="Saldo Base (Contrato)" value={terminationResult.estimatedFgtsBalance} />
-                          <Row label="Multa Rescisória (40%)" value={terminationResult.fgtsFine} />
-                          <div className="border-t border-emerald-200 my-1"></div>
-                          <div className="flex justify-between font-bold text-emerald-800">
-                             <span>Total FGTS (Contrato + Multa)</span>
-                             <span>{formatCurrency(terminationResult.totalFgts)}</span>
+
+                          <div className="relative z-10">
+                            <div className="flex justify-between items-center mb-4 border-b border-emerald-200/60 pb-3">
+                               <div className="flex items-center gap-2">
+                                  <div className="bg-emerald-100 p-1.5 rounded-lg text-emerald-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                  </div>
+                                  <h5 className="font-bold text-emerald-800 text-sm md:text-base">Detalhamento FGTS</h5>
+                               </div>
+                               {terminationData.consigned.fgtsBalance > 0 ? (
+                                  <span className="text-[10px] bg-white text-emerald-700 px-3 py-1 rounded-full font-bold border border-emerald-100 shadow-sm">Base: Informado</span>
+                               ) : (
+                                  <span className="text-[10px] bg-white text-emerald-700 px-3 py-1 rounded-full font-bold border border-emerald-100 shadow-sm">Base: Estimado</span>
+                               )}
+                            </div>
+
+                            <div className="space-y-2 text-sm text-emerald-900">
+                               <Row label="Saldo de Depósitos" value={terminationResult.estimatedFgtsBalance} />
+                               <Row label="Multa Rescisória (40%)" value={terminationResult.fgtsFine} />
+                               
+                               <div className="border-t border-emerald-200/60 my-2"></div>
+                               
+                               <div className="flex justify-between items-center">
+                                  <span className="text-emerald-700 font-medium">Total Bruto</span>
+                                  <span className="font-bold text-emerald-900 text-lg">{formatCurrency(terminationResult.totalFgts)}</span>
+                               </div>
+
+                               {terminationResult.totalFgtsDeduction > 0 && (
+                                  <div className="bg-red-50/80 p-3 rounded-lg border border-red-100 mt-2 backdrop-blur-sm">
+                                     <div className="flex justify-between text-red-600 font-medium text-xs md:text-sm">
+                                        <span>(-) Amortização Empréstimo</span>
+                                        <span>{formatCurrency(-terminationResult.totalFgtsDeduction)}</span>
+                                     </div>
+                                  </div>
+                               )}
+                            </div>
                           </div>
-                          {terminationResult.totalFgtsDeduction > 0 && (
-                             <div className="flex justify-between text-red-500 font-medium">
-                                <span>(-) Amortização Empréstimo</span>
-                                <span>{formatCurrency(-terminationResult.totalFgtsDeduction)}</span>
-                             </div>
-                          )}
                        </div>
                        
                        <AIAdvisor context={getTerminationAIContext()} />
@@ -1047,7 +1070,7 @@ const Row = ({ label, value, isPositive, highlight, informational }: any) => (
   <div className={`flex justify-between items-center py-1 ${highlight ? 'font-bold text-blue-600' : ''} ${informational ? 'text-slate-400 text-xs' : ''}`}>
     <span className={`${informational ? '' : 'text-slate-600'}`}>{label}</span>
     <span className={`font-semibold ${isPositive ? 'text-emerald-600' : informational ? '' : value < 0 ? 'text-red-500' : 'text-slate-800'}`}>
-      {value === 0 ? '--' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+      {value === 0 ? 'R$ 0,00' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
     </span>
   </div>
 );
