@@ -7,6 +7,8 @@ import AIAdvisor from './components/AIAdvisor';
 import AdUnit from './components/AdUnit';
 import CookieConsent from './components/CookieConsent';
 import PrivacyModal from './components/PrivacyModal';
+import TermsModal from './components/TermsModal';
+import AboutModal from './components/AboutModal';
 import ConsignedSection from './components/ConsignedSection';
 import PayslipTable from './components/PayslipTable';
 import SEOContent from './components/SEOContent';
@@ -40,6 +42,8 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('salary');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   
   // Ref for auto-scrolling to results
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -301,9 +305,12 @@ const App: React.FC = () => {
             <p className="flex justify-between"><span>Salário Mínimo:</span> <span className="text-white">R$ 1.631</span></p>
             <p className="flex justify-between"><span>Isenção IR:</span> <span className="text-white">Até 5k</span></p>
           </div>
-          <div className="mt-4 text-center">
+          <div className="mt-4 text-center flex justify-center gap-3">
+             <button onClick={() => setIsAboutOpen(true)} className="text-[10px] text-blue-400 hover:text-white underline">
+               Sobre Nós
+             </button>
              <button onClick={() => setIsPrivacyOpen(true)} className="text-[10px] text-blue-400 hover:text-white underline">
-               Política de Privacidade
+               Privacidade
              </button>
           </div>
         </div>
@@ -971,17 +978,26 @@ const App: React.FC = () => {
         </div>
         
         {/* SEO CONTENT FOOTER INJECTION */}
-        <SEOContent view={currentView} />
+        <SEOContent view={currentView} onNavigate={(view) => {
+            setCurrentView(view);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }} />
 
         {/* FOOTER */}
         <footer className="mt-12 py-8 border-t border-slate-200 text-center text-slate-400 text-xs">
-           <div className="flex justify-center gap-6 mb-4">
+           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-4">
+              <button onClick={() => setIsAboutOpen(true)} className="hover:text-blue-600 transition-colors">Sobre Nós</button>
+              <span className="hidden sm:inline">•</span>
               <button onClick={() => setIsPrivacyOpen(true)} className="hover:text-blue-600 transition-colors">Política de Privacidade</button>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
+              <button onClick={() => setIsTermsOpen(true)} className="hover:text-blue-600 transition-colors">Termos de Uso</button>
+              <span className="hidden sm:inline">•</span>
+              <a href="mailto:contato@calculadorasalariobr.com.br" className="hover:text-blue-600 transition-colors">Contato</a>
+              <span className="hidden sm:inline">•</span>
               <span>&copy; 2026 Calculadora Salário BR</span>
            </div>
            <p className="max-w-lg mx-auto leading-relaxed opacity-70">
-             Este site é uma ferramenta de simulação. Os cálculos podem sofrer variações dependendo de convenções coletivas e interpretações legais. Consulte sempre um contador.
+             Este site é uma ferramenta de simulação (Base: CLT/2026). Os cálculos podem sofrer variações dependendo de convenções coletivas. Consulte sempre um contador.
            </p>
         </footer>
 
@@ -989,6 +1005,8 @@ const App: React.FC = () => {
 
       <CookieConsent onOpenPrivacy={() => setIsPrivacyOpen(true)} />
       <PrivacyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
+      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
     </div>
   );
 };
@@ -1023,7 +1041,7 @@ const ExtrasSection = ({ isActive, onToggle, data, onChange, labelOverride }: { 
         
         <div className="col-span-1 sm:col-span-2 mb-2 bg-white/50 p-2 rounded-lg border border-orange-100">
            <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Carga Horária Mensal (Padrão 220)</label>
-           <input type="number" value={data.workload || ''} onChange={e => onChange({...data, workload: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="220" />
+           <input type="number" value={data.workload || ''} onChange={e => onChange({...data,workload: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="220" />
         </div>
 
         <div className="col-span-1">
