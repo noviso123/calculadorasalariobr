@@ -8,6 +8,8 @@ import AdUnit from './components/AdUnit';
 import CookieConsent from './components/CookieConsent';
 import PrivacyModal from './components/PrivacyModal';
 import ConsignedSection from './components/ConsignedSection';
+import PayslipTable from './components/PayslipTable';
+import SEOContent from './components/SEOContent';
 
 // --- CONFIGURAÇÃO DE ANÚNCIOS (GOOGLE ADSENSE) ---
 const AD_SLOTS = {
@@ -276,7 +278,7 @@ const App: React.FC = () => {
             <div className="bg-white/10 p-2 rounded-lg hidden md:block">
               <CalculatorIcon />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">Cálculo <span className="text-blue-300 font-light">2026</span></h1>
+            <h1 className="text-xl font-bold tracking-tight">Calculadora <span className="text-blue-300 font-light">Salário 2026</span></h1>
           </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-blue-200"><CloseIcon /></button>
         </div>
@@ -391,38 +393,37 @@ const App: React.FC = () => {
                       <ResultCard label="Total Descontos" value={salaryResult.totalDiscounts + salaryResult.consignedDiscount} isDanger />
                    </div>
                    
-                   {/* DETAILED ROW BREAKDOWN */}
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                      <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">Detalhamento dos Valores</h4>
-                      
-                      <Row label="Salário Bruto" value={salaryResult.grossSalary} />
-                      
-                      {/* Extras Rows */}
-                      {salaryResult.extrasBreakdown.value50 > 0 && <Row label="Hora Extra 50%" value={salaryResult.extrasBreakdown.value50} isPositive />}
-                      {salaryResult.extrasBreakdown.value100 > 0 && <Row label="Hora Extra 100%" value={salaryResult.extrasBreakdown.value100} isPositive />}
-                      {salaryResult.extrasBreakdown.valueNight > 0 && <Row label="Adicional Noturno" value={salaryResult.extrasBreakdown.valueNight} isPositive />}
-                      {salaryResult.extrasBreakdown.valueStandby > 0 && <Row label="Sobreaviso" value={salaryResult.extrasBreakdown.valueStandby} isPositive />}
-                      {salaryResult.extrasBreakdown.valueInterjornada > 0 && <Row label="Interjornada" value={salaryResult.extrasBreakdown.valueInterjornada} isPositive />}
-                      {salaryResult.extrasBreakdown.valueDsr > 0 && <Row label="DSR (Reflexo)" value={salaryResult.extrasBreakdown.valueDsr} isPositive />}
-                      
-                      {/* Discounts Rows */}
-                      <Row label="INSS" value={-salaryResult.inss} />
-                      <Row label="IRPF" value={-salaryResult.irpf} />
-                      {salaryResult.transportVoucher > 0 && <Row label="Vale Transporte" value={-salaryResult.transportVoucher} />}
-                      {salaryResult.healthInsurance > 0 && <Row label="Plano de Saúde" value={-salaryResult.healthInsurance} />}
-                      {salaryResult.otherDiscounts > 0 && <Row label="Outros Descontos" value={-salaryResult.otherDiscounts} />}
-                      {salaryResult.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-salaryResult.consignedDiscount} highlight />}
-
-                      <div className="border-t border-slate-100 my-3"></div>
-                      <div className="flex justify-between font-bold text-lg text-blue-800">
-                        <span>Líquido a Receber</span>
-                        <span>{formatCurrency(salaryResult.finalNetSalary)}</span>
-                      </div>
-                      
-                      <div className="mt-3 bg-[#ecfdf5] p-3 rounded-lg border border-emerald-100 flex justify-between items-center shadow-sm">
-                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wide">FGTS do Mês</span>
-                        <span className="font-bold text-emerald-800">{formatCurrency(salaryResult.fgtsMonthly)}</span>
-                      </div>
+                   {/* PAYSLIP TABLE INTEGRATION (Professional Look) */}
+                   <div className="mt-4">
+                      <PayslipTable 
+                        earnings={[
+                          { label: 'Salário Base', value: salaryResult.grossSalary, type: 'earning' },
+                          ...(salaryResult.extrasBreakdown.value50 > 0 ? [{ label: 'Hora Extra 50%', value: salaryResult.extrasBreakdown.value50, type: 'earning' } as any] : []),
+                          ...(salaryResult.extrasBreakdown.value100 > 0 ? [{ label: 'Hora Extra 100%', value: salaryResult.extrasBreakdown.value100, type: 'earning' } as any] : []),
+                          ...(salaryResult.extrasBreakdown.valueNight > 0 ? [{ label: 'Adicional Noturno', value: salaryResult.extrasBreakdown.valueNight, type: 'earning' } as any] : []),
+                          ...(salaryResult.extrasBreakdown.valueStandby > 0 ? [{ label: 'Sobreaviso', value: salaryResult.extrasBreakdown.valueStandby, type: 'earning' } as any] : []),
+                          ...(salaryResult.extrasBreakdown.valueInterjornada > 0 ? [{ label: 'Interjornada', value: salaryResult.extrasBreakdown.valueInterjornada, type: 'earning' } as any] : []),
+                          ...(salaryResult.extrasBreakdown.valueDsr > 0 ? [{ label: 'DSR', value: salaryResult.extrasBreakdown.valueDsr, type: 'earning' } as any] : []),
+                        ]}
+                        discounts={[
+                          { label: 'INSS', value: salaryResult.inss, type: 'discount' },
+                          { label: 'Imposto de Renda (IRPF)', value: salaryResult.irpf, type: 'discount' },
+                          ...(salaryResult.transportVoucher > 0 ? [{ label: 'Vale Transporte', value: salaryResult.transportVoucher, type: 'discount' } as any] : []),
+                          ...(salaryResult.healthInsurance > 0 ? [{ label: 'Plano de Saúde', value: salaryResult.healthInsurance, type: 'discount' } as any] : []),
+                          ...(salaryResult.otherDiscounts > 0 ? [{ label: 'Outros Descontos', value: salaryResult.otherDiscounts, type: 'discount' } as any] : []),
+                          ...(salaryResult.consignedDiscount > 0 ? [{ label: 'Empréstimo Consignado', value: salaryResult.consignedDiscount, type: 'discount' } as any] : []),
+                        ]}
+                        totalGross={salaryResult.grossSalary + salaryResult.totalExtras}
+                        totalDiscounts={salaryResult.totalDiscounts + salaryResult.consignedDiscount}
+                        netValue={salaryResult.finalNetSalary}
+                        footerNote={
+                          <div className="flex items-center justify-center gap-2">
+                             <span className="text-emerald-600 font-bold">FGTS do Mês: {formatCurrency(salaryResult.fgtsMonthly)}</span>
+                             <span className="text-slate-300">|</span>
+                             <span>Margem Disp: {formatCurrency(salaryResult.maxConsignableMargin)}</span>
+                          </div>
+                        }
+                      />
                    </div>
                    
                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-center h-56 md:h-64">
@@ -969,6 +970,9 @@ const App: React.FC = () => {
 
         </div>
         
+        {/* SEO CONTENT FOOTER INJECTION */}
+        <SEOContent view={currentView} />
+
         {/* FOOTER */}
         <footer className="mt-12 py-8 border-t border-slate-200 text-center text-slate-400 text-xs">
            <div className="flex justify-center gap-6 mb-4">

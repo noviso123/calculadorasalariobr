@@ -30,19 +30,25 @@ const calculateIrpfOnly = (base: number, hasDependents: boolean): number => {
     tax = (safeBase * 0.275) - 1687.50;
   }
 
+  // 3. Garante que o valor não seja negativo antes de qualquer arredondamento
+  // Isso protege contra casos de borda matemática
   let finalTax = Math.max(0, tax);
 
-  // 4. Regra de Corte Mínimo (Específica para Dependentes)
+  // 4. Arredonda para 2 casas decimais ANTES de verificar o corte mínimo.
+  // Exemplo: 0.096 -> vira 0.10. Se não arredondar antes, 0.096 < 0.10 e seria zerado incorretamente.
+  let roundedTax = Number(finalTax.toFixed(2));
+
+  // 5. Regra de Corte Mínimo (Específica para Dependentes)
   // "TODA PESSOA COM DEPENDENTE O RESULTADO DO IRPF COMEÇA EM +R$ 0,1... EM DIANTE"
-  // Se tem dependente e o valor for irrisório (abaixo de 0.10), zera.
-  // Se NÃO tem dependente, mantém o valor exato calculado.
+  // Se houver dependentes (hasDependents = true), valores abaixo de 0.10 (como 0.01 a 0.09) são zerados.
+  // Se for 0.10 ou maior, mantém.
   if (hasDependents) {
-      if (finalTax < 0.10) {
-        finalTax = 0;
+      if (roundedTax < 0.10) {
+        return 0;
       }
   }
 
-  return Number(finalTax.toFixed(2));
+  return roundedTax;
 };
 
 // Função auxiliar para cálculo de INSS isolado
@@ -145,9 +151,10 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const inss = calculateInssOnly(totalGrossForTax);
   const fgtsMonthly = Number((totalGrossForTax * 0.08).toFixed(2));
   
-  // Base IR: Bruto - Dependentes (INSS não deduzido aqui para manter limite de 5000 no bruto)
+  // Base IR: Bruto - Dependentes (INSS não deduzido aqui para manter limite de 5000 no bruto conforme solicitação)
+  // Nota: A dedução de dependentes é aplicada aqui para formar a Base de Cálculo
   const deductionVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = totalGrossForTax - deductionVal;
+  const irBase = Math.max(0, totalGrossForTax - deductionVal);
   
   const irpf = calculateIrpfOnly(irBase, includeDependents);
 
@@ -211,7 +218,7 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
   
   // Base IR 13º: Bruto - Dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = fullValue - deductionVal;
+  const irBase = Math.max(0, fullValue - deductionVal);
   
   const irpf = calculateIrpfOnly(irBase, data.includeDependents);
   
@@ -407,7 +414,7 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
   
   // IRPF Base Unificada 
-  const irUnifiedBase = totalGross - deductionVal;
+  const irUnifiedBase = Math.max(0, totalGross - deductionVal);
   
   // Aplica a tabela progressiva sobre o montante total
   const unifiedIrpf = calculateIrpfOnly(irUnifiedBase, data.includeDependents);
@@ -566,7 +573,7 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   
   // Base IR Férias: Bruto - Dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = taxableBase - deductionVal;
+  const irBase = Math.max(0, taxableBase - deductionVal);
 
   const discountIr = calculateIrpfOnly(irBase, data.includeDependents); 
   
