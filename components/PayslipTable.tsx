@@ -38,12 +38,12 @@ const PayslipTable: React.FC<PayslipProps> = ({ earnings, discounts, totalGross,
           </div>
           <div className="p-0">
              {earnings.map((item, idx) => (
-               <div key={`earn-${idx}`} className={`flex justify-between items-center p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors ${item.isTotal ? 'font-bold bg-slate-50' : ''}`}>
-                  <div className="flex flex-col">
-                    <span className="text-slate-700">{item.label}</span>
-                    {item.reference && <span className="text-[10px] text-slate-400">{item.reference}</span>}
+               <div key={`earn-${idx}`} className={`flex justify-between items-center p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors gap-3 ${item.isTotal ? 'font-bold bg-slate-50' : ''}`}>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-slate-700 break-words leading-tight">{item.label}</span>
+                    {item.reference && <span className="text-[10px] text-slate-400 mt-0.5">{item.reference}</span>}
                   </div>
-                  <span className="text-emerald-700 font-medium">{formatCurrency(item.value)}</span>
+                  <span className="text-emerald-700 font-medium whitespace-nowrap shrink-0">{formatCurrency(item.value)}</span>
                </div>
              ))}
              {/* Filler to align heights if needed, or just min-height */}
@@ -58,12 +58,12 @@ const PayslipTable: React.FC<PayslipProps> = ({ earnings, discounts, totalGross,
           </div>
           <div className="p-0">
              {discounts.map((item, idx) => (
-               <div key={`disc-${idx}`} className="flex justify-between items-center p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <div className="flex flex-col">
-                    <span className="text-slate-700">{item.label}</span>
-                    {item.reference && <span className="text-[10px] text-slate-400">{item.reference}</span>}
+               <div key={`disc-${idx}`} className="flex justify-between items-center p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors gap-3">
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-slate-700 break-words leading-tight">{item.label}</span>
+                    {item.reference && <span className="text-[10px] text-slate-400 mt-0.5">{item.reference}</span>}
                   </div>
-                  <span className="text-red-600 font-medium">{formatCurrency(Math.abs(item.value))}</span>
+                  <span className="text-red-600 font-medium whitespace-nowrap shrink-0">{formatCurrency(Math.abs(item.value))}</span>
                </div>
              ))}
              {discounts.length === 0 && <div className="p-4 text-center text-slate-300 italic">Sem descontos</div>}
@@ -74,16 +74,16 @@ const PayslipTable: React.FC<PayslipProps> = ({ earnings, discounts, totalGross,
       {/* FOOTER TOTALS */}
       <div className="bg-slate-50 border-t border-slate-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-           <div className="flex justify-between md:block md:text-center p-2 rounded border border-slate-200 bg-white">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Total de Proventos</span>
+           <div className="flex justify-between items-center md:block md:text-center p-3 rounded border border-slate-200 bg-white">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase md:mb-1">Total de Proventos</span>
               <span className="block font-bold text-emerald-700 text-lg">{formatCurrency(totalGross)}</span>
            </div>
-           <div className="flex justify-between md:block md:text-center p-2 rounded border border-slate-200 bg-white">
-              <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Total de Descontos</span>
+           <div className="flex justify-between items-center md:block md:text-center p-3 rounded border border-slate-200 bg-white">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase md:mb-1">Total de Descontos</span>
               <span className="block font-bold text-red-600 text-lg">{formatCurrency(totalDiscounts)}</span>
            </div>
-           <div className="flex justify-between md:block md:text-center p-2 rounded border border-blue-200 bg-blue-50">
-              <span className="block text-[10px] font-bold text-blue-500 uppercase mb-1">Valor Líquido</span>
+           <div className="flex justify-between items-center md:block md:text-center p-3 rounded border border-blue-200 bg-blue-50">
+              <span className="block text-[10px] font-bold text-blue-500 uppercase md:mb-1">Valor Líquido</span>
               <span className="block font-bold text-blue-800 text-lg">{formatCurrency(netValue)}</span>
            </div>
         </div>
