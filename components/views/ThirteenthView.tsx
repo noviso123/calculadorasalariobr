@@ -48,18 +48,18 @@ const ThirteenthView: React.FC = () => {
   };
 
   return (
-   <div className="w-full max-w-5xl mx-auto pb-32 block">
+   <div className="w-full max-w-5xl mx-auto pb-24">
       {/* 1. CABEÇALHO */}
-      <header className="mb-12 block relative z-10">
+      <header className="mb-8 md:mb-12">
         <h2 className="text-3xl font-bold text-slate-800">Décimo Terceiro 2026</h2>
         <p className="text-slate-500">Simule o recebimento da 1ª e 2ª parcela com precisão.</p>
       </header>
 
       {/* 2. ÁREA DE CÁLCULO */}
-      <div className="flex flex-col lg:flex-row gap-12 items-start w-full relative z-10">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
          
          {/* CONTAINER A: FORMULÁRIO */}
-         <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 block relative">
+         <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
             <form onSubmit={handleCalc} className="space-y-5">
                <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
                <InputGroup label="Meses Trabalhados" value={data.monthsWorked} onChange={(v) => setData({...data, monthsWorked: Math.min(12, Number(v))})} isSmall />
@@ -96,7 +96,7 @@ const ThirteenthView: React.FC = () => {
          </section>
 
          {/* CONTAINER B: RESULTADOS */}
-         <section className="w-full lg:w-7/12 block relative">
+         <section className="w-full lg:w-7/12 relative z-10">
             {result && (
                <div ref={resultsRef} className="space-y-6 animate-fade-in scroll-mt-6">
                   <h3 className="font-bold text-slate-700 md:text-lg">Fluxo de Recebimento</h3>
@@ -147,12 +147,12 @@ const ThirteenthView: React.FC = () => {
          </section>
       </div>
 
-      {/* --- BARREIRA FÍSICA 1 --- */}
-      {result && <div className="w-full h-16 bg-transparent block" style={{ clear: 'both' }} aria-hidden="true" />}
+      {/* SEPARADOR FÍSICO / OBRIGATÓRIO */}
+      {result && <div className="w-full h-12 bg-transparent pointer-events-none" aria-hidden="true"></div>}
 
       {/* CONTAINER C: CONSULTORIA IA */}
       {result && (
-        <section className="w-full block relative z-0">
+        <section className="w-full relative z-0 block mt-8">
             <div className="w-full bg-white p-6 md:p-8 rounded-3xl border border-blue-100 shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-600"></div>
                 <div className="flex items-center gap-4 mb-6">
@@ -169,12 +169,12 @@ const ThirteenthView: React.FC = () => {
         </section>
       )}
 
-      {/* --- BARREIRA FÍSICA 2 --- */}
-      {result && <div className="w-full h-16 bg-transparent block" style={{ clear: 'both' }} aria-hidden="true" />}
+      {/* SEPARADOR FÍSICO / OBRIGATÓRIO */}
+      {result && <div className="w-full h-12 bg-transparent pointer-events-none" aria-hidden="true"></div>}
 
       {/* CONTAINER D: PUBLICIDADE */}
       {result && (
-        <section className="w-full block relative z-0">
+        <section className="w-full relative z-0 block mt-8">
             <div className="w-full bg-slate-50 border border-slate-200 border-dashed rounded-xl p-6 flex justify-center">
                 <AdUnit slotId="7977197949" />
             </div>

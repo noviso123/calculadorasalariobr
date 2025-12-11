@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 
 interface AdUnitProps {
@@ -17,51 +16,23 @@ const AdUnit: React.FC<AdUnitProps> = ({ slotId, format = 'auto', className = ''
     // Se for placeholder, não tenta carregar o script do AdSense
     if (isPlaceholder) return;
 
-    // Função segura para carregar o anúncio
-    const loadAd = () => {
-      const container = containerRef.current;
-      
-      // Verifica robusta: Container existe, tem largura > 0 e não está oculto via CSS
-      if (
-        window.adsbygoogle && 
-        container && 
-        container.clientWidth > 0 && 
-        window.getComputedStyle(container).display !== 'none'
-      ) {
-        // Verifica se o anúncio já foi injetado (iframe ou data-adsbygoogle-status)
-        const insElement = container.querySelector('ins.adsbygoogle');
-        const status = insElement?.getAttribute('data-adsbygoogle-status');
-        const hasIframe = container.querySelector('iframe');
-
-        if (!status && !hasIframe) {
-          try {
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
-            setAdLoaded(true);
-          } catch (e) {
-            console.error("AdSense Push Error:", e);
+    const timer = setTimeout(() => {
+      try {
+        const container = containerRef.current;
+        if (window.adsbygoogle && container && container.offsetWidth > 0) {
+          const alreadyHasAd = container.querySelector('iframe');
+          if (!alreadyHasAd) {
+             (window.adsbygoogle = window.adsbygoogle || []).push({});
+             setAdLoaded(true);
           }
-        } else {
-            // Se já tem status, marca como carregado para não tentar de novo
-            setAdLoaded(true);
         }
+      } catch (e) {
+        console.error("AdSense Error:", e);
       }
-    };
+    }, 200);
 
-    // Tenta carregar com um delay maior para garantir que o layout (Flex/Grid) esteja estabilizado
-    const timer = setTimeout(loadAd, 800);
-
-    // Listener de resize para tentar carregar caso o container ganhe tamanho depois (ex: rotação de tela)
-    const handleResize = () => {
-        if (!adLoaded) loadAd();
-    };
-    
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-        clearTimeout(timer);
-        window.removeEventListener('resize', handleResize);
-    };
-  }, [slotId, isPlaceholder, adLoaded, format]); // Incluído format para recarregar se mudar
+    return () => clearTimeout(timer);
+  }, [slotId, isPlaceholder]);
 
   // Se for placeholder, retorna um box visual de aviso
   if (isPlaceholder) {
