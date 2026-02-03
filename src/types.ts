@@ -137,8 +137,10 @@ export interface ThirteenthResult {
     irpf: number;
     discountAdvance: number;
     value: number;
-    // Consignado geralmente desconta na 2ª parcela
-    maxMargin: number;
+    // Consignado
+    totalConsignableMargin: number;
+    availableConsignableMargin: number;
+    cardMargin: number;
     consignedDiscount: number;
     finalValue: number;
   };
@@ -171,7 +173,9 @@ export interface TerminationResult {
   totalNet: number; // Líquido Base da Rescisão (TRCT)
 
   // Consigned Fields for Termination
-  maxConsignableMargin: number; // 35% das verbas rescisórias líquidas
+  totalConsignableMargin: number; // 35% das verbas rescisórias líquidas
+  availableConsignableMargin: number;
+  cardMargin: number;
   consignedDiscount: number;    // Valor abatido na rescisão (TRCT)
 
   remainingLoanBalance: number; // Saldo devedor restante (após TRCT e FGTS)
@@ -199,7 +203,9 @@ export interface VacationResult {
   totalDiscounts: number;
   totalNet: number; // Base
   // Consigned
-  maxConsignableMargin: number;
+  totalConsignableMargin: number;
+  availableConsignableMargin: number;
+  cardMargin: number;
   consignedDiscount: number;
   finalNetVacation: number;
 }

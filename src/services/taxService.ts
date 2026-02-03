@@ -270,7 +270,7 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
   const secondInstallmentNetBase = fullValue - inss - irpf - firstInstallmentValue;
   const secondInstallmentNetFixed = Math.max(0, Number(secondInstallmentNetBase.toFixed(2)));
 
-  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(secondInstallmentNetFixed + firstInstallmentValue, data.consigned, data.includeConsigned);
+  const { totalMargin, availableMargin, cardMargin, discount: consignedDiscount } = calculateConsignedValues(secondInstallmentNetFixed + firstInstallmentValue, data.consigned, data.includeConsigned);
 
   const secondInstallmentFinal = Math.max(0, Number((secondInstallmentNetFixed - consignedDiscount).toFixed(2)));
 
@@ -288,7 +288,9 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
       irpf: Math.max(0, Number(irpf.toFixed(2))),
       discountAdvance: firstInstallmentValue,
       value: secondInstallmentNetFixed,
-      maxMargin,
+      totalConsignableMargin: totalMargin,
+      availableConsignableMargin: availableMargin,
+      cardMargin,
       consignedDiscount,
       finalValue: secondInstallmentFinal
     },
@@ -481,6 +483,8 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   let warrantyUsed = 0;
   let fineUsed = 0;
   let totalFgtsDeduction = 0;
+  let availableConsignableMargin = 0;
+  let cardMargin = 0;
   let finalFgtsToWithdraw = totalFgtsFromJob;
   let finalNetTermination = totalNet;
 
@@ -496,6 +500,9 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
       );
 
       consignedDiscount = Number(amountToDeductTRCT.toFixed(2));
+      availableConsignableMargin = Math.max(0, roundHelper(maxConsignableMargin - consignedDiscount));
+      cardMargin = roundHelper(totalNet * 0.05);
+
       remainingLoanBalance = Number((data.consigned.outstandingBalance - consignedDiscount).toFixed(2));
 
       const finalNetCalc = totalNet - consignedDiscount;
@@ -579,7 +586,9 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
     },
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
     totalNet: Number(totalNet.toFixed(2)),
-    maxConsignableMargin,
+    totalConsignableMargin: maxConsignableMargin,
+    availableConsignableMargin,
+    cardMargin,
     consignedDiscount,
     remainingLoanBalance,
     warrantyUsed,
@@ -632,25 +641,26 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   const totalNet = Math.max(0, Number(totalNetBase.toFixed(2)));
 
   // Consignado nas Férias
-  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(totalNet, data.consigned, data.includeConsigned);
+  const { totalMargin, availableMargin, cardMargin, discount: consignedDiscount } = calculateConsignedValues(totalNet, data.consigned, data.includeConsigned);
 
   const finalNetVacation = Math.max(0, Number((totalNet - consignedDiscount).toFixed(2)));
 
   return {
     baseSalary: remunerationBase,
-    vacationGross,
-    vacationThird,
-    allowanceGross,
-    allowanceThird,
-    advanceThirteenth,
-    totalGross,
+    vacationGross: Number(vacationGross.toFixed(2)),
+    vacationThird: Number(vacationThird.toFixed(2)),
+    allowanceGross: Number(allowanceGross.toFixed(2)),
+    allowanceThird: Number(allowanceThird.toFixed(2)),
+    advanceThirteenth: Number(advanceThirteenth.toFixed(2)),
+    totalGross: Number(totalGross.toFixed(2)),
     extrasBreakdown,
-    discountInss,
-    discountIr,
-    totalDiscounts,
-    totalNet,
-    // Consigned
-    maxConsignableMargin: maxMargin,
+    discountInss: Number(discountInss.toFixed(2)),
+    discountIr: Number(discountIr.toFixed(2)),
+    totalDiscounts: Number(totalDiscounts.toFixed(2)),
+    totalNet: Number(totalNet.toFixed(2)),
+    totalConsignableMargin: totalMargin,
+    availableConsignableMargin: availableMargin,
+    cardMargin,
     consignedDiscount,
     finalNetVacation
   };
