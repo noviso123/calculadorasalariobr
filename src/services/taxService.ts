@@ -166,7 +166,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
 
   // 2. Descontos Obrigatórios
   const inss = calculateInssOnly(totalGrossForTax);
-  const fgtsMonthly = Number((totalGrossForTax * 0.08).toFixed(2));
+  const fgtsMonthly = roundHelper(totalGrossForTax * 0.08);
 
   // Base IR: Bruto - INSS - Dependentes
   const deductionVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
@@ -185,7 +185,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     }
   }
 
-  const totalDiscounts = inss + irpf + otherDiscounts + transportVoucher + healthInsurance;
+  const totalDiscounts = roundHelper(inss + irpf + otherDiscounts + transportVoucher + healthInsurance);
 
   // 2b. Salário Família (Benefício)
   // Regra 2026: Até R$ 1.980,38 -> R$ 67,54 por dependente
@@ -205,7 +205,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(netForConsigned, consigned, includeConsigned);
 
   const finalNetSalaryBase = netSalary - consignedDiscount;
-  const finalNetSalary = Math.max(0, Number(finalNetSalaryBase.toFixed(2)));
+  const finalNetSalary = Math.max(0, roundHelper(finalNetSalaryBase));
 
   return {
     grossSalary,
@@ -712,7 +712,21 @@ export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
   // Porem o simulador oficial geralmente mostra a tabela progressiva padrão.
   // Vamos manter a lógica padrão.
 
-  taxValue = Math.max(0, exactTax);
+  taxValue = exactTax;
+
+  // 4b. Regra de transição 2026 (Lei 15.270 / MP 1.206)
+  // Para rendimentos brutos entre R$ 5.000,01 e R$ 7.350,00 vigora uma alíquota linear simplificada.
+  if (grossIncome > 5000.00 && grossIncome <= 7350.00) {
+      const excess = grossIncome - 5000.00;
+      const transitionTax = excess * 0.3581;
+
+      // Se a transição for mais benéfica que a tabela progressiva (o que é a regra), aplicamos.
+      if (transitionTax < taxValue) {
+          taxValue = transitionTax;
+      }
+  }
+
+  taxValue = Math.max(0, taxValue);
 
   // Effective Rate
   const effectiveRate = grossIncome > 0 ? (taxValue / grossIncome) * 100 : 0;
@@ -773,9 +787,9 @@ export const calculatePjTax = (data: PjInput): PjResult => {
   const net = Math.max(0, grossMonthly - taxValue - accountantCost);
 
   return {
-    net: Number(net.toFixed(2)),
-    taxValue: Number(taxValue.toFixed(2)),
-    taxRate: Number(taxRate.toFixed(2)),
+    net: roundHelper(net),
+    taxValue: roundHelper(taxValue),
+    taxRate: roundHelper(taxRate),
     regimeLabel
   };
 };

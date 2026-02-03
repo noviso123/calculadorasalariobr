@@ -1,61 +1,55 @@
-// Smart Advisor 2026 - Estratégias de Mercado e Planejamento Financeiro
-// Implementa Regra 50-30-20, Reserva de Emergência e Alocação de Ativos
-
 import { AIContext } from '../types';
+import { FINANCIAL_KNOWLEDGE, IncomeTier } from '../config/financialKnowledge';
 
 export const getFinancialAdvice = async (context: AIContext): Promise<string> => {
   // Simula processamento para UX
   await new Promise(resolve => setTimeout(resolve, 800));
 
-  const { net, gross, type } = context;
-  if (!net || net <= 0) return 'Aguardando dados para realizar a análise...';
+  const { net, type } = context;
+  if (!net || net <= 0) return 'Aguardando dados para realizar a análise financeira...';
 
-  let advice = `### 💹 Planejamento Financeiro Inteligente\n\n`;
+  // 1. Encontrar o Tier de Renda
+  const tier = FINANCIAL_KNOWLEDGE.tiers.find(t => net >= t.min && net <= t.max) || FINANCIAL_KNOWLEDGE.tiers[0];
 
-  // 1. REGRA 50-30-20 (Orçamento Base)
+  let advice = `### 💹 Plano Financeiro Personalizado: ${tier.label}\n\n`;
+
+  // 2. REGRA 50-30-20
   const needs = net * 0.5;
   const wants = net * 0.3;
   const invest = net * 0.2;
 
-  advice += `Para o seu líquido de **${formatCurrency(net)}**, a estratégia ideal de orçamento é:\n\n`;
-  advice += `- 🏠 **Essencial (50%):** ${formatCurrency(needs)} (Aluguel, Contas, Alimentação)\n`;
-  advice += `- 🎡 **Lazer/Desejos (30%):** ${formatCurrency(wants)} (Sair, Assinaturas, Hobbies)\n`;
-  advice += `- 📈 **Futuro/Investimento (20%):** **${formatCurrency(invest)}** (Otimização de Patrimônio)\n\n`;
+  advice += `Para um orçamento equilibrado de **${formatCurrency(net)}**, siga a regra 50-30-20:\n\n`;
+  advice += `- 🏠 **Necessidades (50%):** ${formatCurrency(needs)}\n`;
+  advice += `- 🎡 **Estilo de Vida (30%):** ${formatCurrency(wants)}\n`;
+  advice += `- 📈 **Investimento (20%):** **${formatCurrency(invest)}**\n\n`;
 
-  // 2. ESTRATÉGIA DE RESERVA DE EMERGÊNCIA
-  const reserveGoal = needs * 6; // 6 meses de gastos essenciais
-  advice += `#### 🛡️ Sua Proteção Financeira\n`;
-  advice += `Sua meta de **Reserva de Emergência** deve ser de **${formatCurrency(reserveGoal)}**. `;
-  advice += `Este valor deve estar em ativos de **liquidez imediata** (você pode sacar hoje se precisar) e baixo risco.\n\n`;
+  // 3. ESTRATÉGIA DE PROTEÇÃO
+  const reserveGoal = needs * 6;
+  advice += `#### 🛡️ Proteção e Reserva de Emergência\n`;
+  advice += `Ideal: **${formatCurrency(reserveGoal)}** (para cobrir 6 meses de gastos essenciais).\n\n`;
 
-  // 3. ESTRATÉGIA DE INVESTIMENTO (PERSONALIZADA POR RENDA OU CENÁRIO)
-  advice += `#### 🚀 Estratégia de Alocação (Mercado 2026)\n`;
+  // 4. PORTFÓLIO SUGERIDO (DATA-DRIVEN)
+  advice += `#### 🚀 Estratégia de Alocação (Perfil: ${tier.label})\n`;
+  advice += `*${tier.strategy}*\n\n`;
 
-  if (net < 3000) {
-      advice += `Foco total em **Reserva de Oportunidade**. Utilize **CDBs de Liquidez Diária** que rendam pelo menos 100% do CDI. Evite Taxas de Administração em corretoras.\n`;
-  } else if (net < 8000) {
-      advice += `- **60% em Renda Fixa Social:** Tesouro Selic ou CDBs de bancos médios.\n`;
-      advice += `- **30% em IPCA+:** Proteja seu poder de compra contra a inflação de 2026.\n`;
-      advice += `- **10% em Fundos Imobiliários (FIIs):** Comece a gerar renda passiva isenta de IR.\n`;
-  } else {
-      advice += `- **Renda Fixa (40%):** Diversifique entre Selic e Prefixado para travar taxas altas.\n`;
-      advice += `- **Renda Variável (40%):** Explore ETFs de baixo custo (BOVA11, IVVB11 para dolarizar parte do patrimônio).\n`;
-      advice += `- **Investimento Global (20%):** Com sua renda, vale a pena abrir conta internacional para fugir do risco Brasil.\n`;
-  }
+  tier.allocations.forEach(alloc => {
+      advice += `- **${alloc.percentage}% em ${alloc.asset}**: ${alloc.description} *[Risco: ${alloc.risk}]*\n`;
+  });
 
-  // 4. INSIGHTS ESPECÍFICOS POR FERRAMENTA
+  advice += `\n💡 **Dica Fiscal:** ${tier.taxTip}\n\n`;
+
+  // 5. INSIGHTS ESPECÍFICOS POR CONTEXTO
   if (type === 'vacation') {
-      advice += `\n> **⚠️ Alerta de Férias:** Seu "extra" de ${formatCurrency(net/4)} (1/3 constitucional) não deve ser gasto impulsivamente. Use-o para quitar dívidas de juros altos ou aportar na Reserva.\n`;
+      advice += `> **⚠️ Estratégia de Férias:** Utilize o seu 1/3 extra para quitar dívidas de curto prazo ou blindar sua reserva. Evite usar este valor para consumo imediato se sua reserva não estiver completa.\n`;
   } else if (type === 'thirteenth') {
-      advice += `\n> **🎁 Dica de 13º:** É o melhor momento para fazer aportes em **Previdência Privada (PGBL)** se você faz declaração completa, reduzindo seu IR em até 12%.\n`;
+      advice += `> **🎁 Estratégia de 13º:** Como é um rendimento de tributação exclusiva, é o momento perfeito para aportar em **PGBL** e reduzir seu imposto de renda futuro em até 12% da renda bruta.\n`;
   } else if (type === 'termination') {
-      advice += `\n> **💼 Gestão de Rescisão:** Mantenha este montante em um **Tesouro Selic**. Não invista em ativos bloqueados ou de risco (Ações) enquanto não tiver uma nova fonte de renda garantida.\n`;
+      advice += `> **💼 Gestão de Rescisão:** Priorize liquidez absoluta (Tesouro Selic). Não trave este capital em ativos de prazo longo enquanto não houver nova previsibilidade salarial.\n`;
   } else if (type === 'irpf') {
-      advice += `\n> **⚖️ Otimização Fiscal:** Sua base de cálculo foi otimizada pelo modelo **${context.gross > context.net ? 'Simplificado' : 'Legal'}**. `;
-      advice += `Se você tiver planos de previdência complementar (PGBL) ou mais dependentes no futuro, lembre-se de conferir se o modelo Legal passa a compensar mais.`;
+      advice += `> **⚖️ Otimização IRPF:** Pela sua renda, o mercado sugere ${net > 7000 ? 'consultar o Modelo Legal' : 'manter o Modelo Simplificado'}. ${FINANCIAL_KNOWLEDGE.scenarios.transition}\n`;
   }
 
-  advice += `\n---\n*Análise autônoma baseada em princípios de educação financeira. Consulte um assessor para decisões específicas.*`;
+  advice += `\n---\n*Esta análise utiliza dados do mercado financeiro e princípios de asset management. Não constitui recomendação direta de compra/venda de ativos.*`;
 
   return advice;
 };
