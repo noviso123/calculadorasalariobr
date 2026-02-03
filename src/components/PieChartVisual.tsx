@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload, totalGross }: { active?: boolean, payl
   return null;
 };
 
-const PieChartVisual: React.FC<Props> = ({ data }) => {
+const PieChartVisual: React.FC<Props> = React.memo(({ data }) => {
   // Cores Semânticas
   const COLORS = {
     NET: '#059669',    // Emerald 600 (Dinheiro no bolso)

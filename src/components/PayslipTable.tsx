@@ -17,7 +17,7 @@ interface PayslipProps {
   footerNote?: React.ReactNode;
 }
 
-const PayslipTable: React.FC<PayslipProps> = ({ earnings, discounts, totalGross, totalDiscounts, netValue, footerNote }) => {
+const PayslipTable: React.FC<PayslipProps> = React.memo(({ earnings, discounts, totalGross, totalDiscounts, netValue, footerNote }) => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 

@@ -15,8 +15,10 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
-          'vendor-utils': ['react-router-dom', 'react-helmet-async'],
-          'vendor-libs': ['recharts', 'jspdf', 'jspdf-autotable']
+          'vendor-routing': ['react-router-dom', 'react-helmet-async'],
+          'vendor-charts': ['recharts'],
+          'vendor-pdf': ['jspdf', 'jspdf-autotable'],
+          'vendor-ui': ['lucide-react', 'clsx', 'tailwind-merge']
         }
       }
     },
