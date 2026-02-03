@@ -1,5 +1,5 @@
 import { AIContext } from '../types';
-import { FINANCIAL_KNOWLEDGE, IncomeTier } from '../config/financialKnowledge';
+import { FINANCIAL_KNOWLEDGE } from '../config/financialKnowledge';
 
 export const getFinancialAdvice = async (context: AIContext): Promise<string> => {
   // Simula processamento para UX
@@ -11,7 +11,7 @@ export const getFinancialAdvice = async (context: AIContext): Promise<string> =>
   // 1. Encontrar o Tier de Renda
   const tier = FINANCIAL_KNOWLEDGE.tiers.find(t => net >= t.min && net <= t.max) || FINANCIAL_KNOWLEDGE.tiers[0];
 
-  let advice = `### 💹 Plano Financeiro Personalizado: ${tier.label}\n\n`;
+  let advice = `### 💰 Plano Financeiro Personalizado: ${tier.label}\n\n`;
 
   // 2. REGRA 50-30-20
   const needs = net * 0.5;
@@ -20,7 +20,7 @@ export const getFinancialAdvice = async (context: AIContext): Promise<string> =>
 
   advice += `Para um orçamento equilibrado de **${formatCurrency(net)}**, siga a regra 50-30-20:\n\n`;
   advice += `- 🏠 **Necessidades (50%):** ${formatCurrency(needs)}\n`;
-  advice += `- 🎡 **Estilo de Vida (30%):** ${formatCurrency(wants)}\n`;
+  advice += `- 🎯 **Estilo de Vida (30%):** ${formatCurrency(wants)}\n`;
   advice += `- 📈 **Investimento (20%):** **${formatCurrency(invest)}**\n\n`;
 
   // 3. ESTRATÉGIA DE PROTEÇÃO

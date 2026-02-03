@@ -51,11 +51,11 @@ const AdUnit: React.FC<AdUnitProps> = ({ slotId, format = 'auto', className = ''
       <span className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">{label}</span>
       <div
         ref={containerRef}
-        className="w-full bg-slate-50 min-h-[100px] flex items-center justify-center rounded-lg overflow-hidden border border-slate-100 relative"
+        className="w-full bg-slate-50 min-h-[250px] flex items-center justify-center rounded-lg overflow-hidden border border-slate-100 relative"
       >
         <ins
           className="adsbygoogle"
-          style={{ display: 'block', width: '100%' }}
+          style={{ display: 'block', width: '100%', minHeight: '250px' }}
           data-ad-client="ca-pub-9013233807727287"
           data-ad-slot={slotId}
           data-ad-format={format}
