@@ -55,7 +55,13 @@ const Layout: React.FC = () => {
 
             {/* MOBILE HEADER */}
             <div className="md:hidden bg-[#1e3a8a] text-white p-4 flex items-center justify-between sticky top-0 z-50 shadow-[0_4px_12px_rgba(0,0,0,0.1)] h-16 px-6">
-                <span className="font-bold text-lg flex items-center gap-2"><CalculatorIcon /> calculadorasalariobr</span>
+                <Link to="/" className="font-bold text-lg flex items-center gap-3">
+                    <CalculatorIcon />
+                    <div className="flex flex-col leading-tight">
+                        <span className="text-sm font-black uppercase tracking-tighter">Calculadora Salario BR</span>
+                        <span className="text-indigo-300 font-bold text-xs">2026</span>
+                    </div>
+                </Link>
                 <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
                     <MenuIcon />
                 </button>
@@ -76,12 +82,15 @@ const Layout: React.FC = () => {
                 md:translate-x-0 md:relative md:sticky md:top-0 md:h-screen md:overflow-y-auto md:flex md:w-72 md:flex-col md:shadow-none lg:w-80 md:shrink-0`}
             >
                 <div className="p-8 border-b border-white/10 flex items-center justify-between md:justify-start gap-3">
-                <div className="flex items-center gap-4">
-                    <div className="bg-white/10 p-2.5 rounded-2xl hidden md:block backdrop-blur-xl ring-1 ring-white/20">
-                    <CalculatorIcon />
+                <Link to="/" className="flex items-center gap-4 group">
+                    <div className="bg-white/10 p-2.5 rounded-2xl hidden md:block backdrop-blur-xl ring-1 ring-white/20 group-hover:bg-white/20 transition-colors">
+                        <CalculatorIcon />
                     </div>
-                    <h1 className="text-xl font-extrabold tracking-tight">calculadorasalario<span className="text-blue-400 font-light">br</span></h1>
-                </div>
+                    <div className="flex flex-col leading-none">
+                        <h1 className="text-lg font-black tracking-tighter uppercase whitespace-nowrap">Calculadora Salario <span className="text-blue-400">BR</span></h1>
+                        <span className="text-blue-300/60 font-bold text-xs mt-1 tracking-[0.3em]">2026</span>
+                    </div>
+                </Link>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-white/60 hover:text-white transition-colors p-2"><CloseIcon /></button>
                 </div>
 
