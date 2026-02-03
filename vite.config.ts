@@ -9,5 +9,16 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
+          charts: ['recharts'],
+          utils: ['clsx', 'tailwind-merge'] // Add commonly used utils here if verified
+        }
+      }
+    }
   }
 });
