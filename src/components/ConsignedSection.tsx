@@ -88,6 +88,7 @@ const ConsignedSection: React.FC<Props> = React.memo(({ isActive, onToggle, data
 
         </div>
       )}
+    </div>
   );
 });
 
