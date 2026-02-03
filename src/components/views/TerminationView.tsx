@@ -4,8 +4,9 @@ import { TerminationInput, TerminationResult, ExtrasInput, ConsignedInput, AICon
 import { calculateTermination } from '../../services/taxService';
 import { InputGroup, ExtrasSection, Row } from '../Shared';
 import ConsignedSection from '../ConsignedSection';
-import AIAdvisor from '../AIAdvisor';
 import AdUnit from '../AdUnit';
+
+const AIAdvisor = React.lazy(() => import('../AIAdvisor'));
 
 const BankIcon: React.FC = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="21" width="18" height="2" rx="1"/><rect x="5" y="3" width="14" height="14" rx="2"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M9 11h.01"/><path d="M15 11h.01"/><path d="M12 15h.01"/></svg>;
 
@@ -378,7 +379,9 @@ const TerminationView: React.FC = () => {
                         <p className="text-sm text-slate-500">Receba insights financeiros baseados no seu cálculo.</p>
                     </div>
                 </div>
-                <AIAdvisor context={aiContext} />
+                <React.Suspense fallback={<div className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>}>
+                    <AIAdvisor context={aiContext} />
+                </React.Suspense>
             </div>
         </section>
       )}

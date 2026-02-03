@@ -4,8 +4,9 @@ import { VacationInput, VacationResult, ExtrasInput, ConsignedInput, AIContext }
 import { calculateVacation } from '../../services/taxService';
 import { InputGroup, ExtrasSection, Row } from '../Shared';
 import ConsignedSection from '../ConsignedSection';
-import AIAdvisor from '../AIAdvisor';
 import AdUnit from '../AdUnit';
+
+const AIAdvisor = React.lazy(() => import('../AIAdvisor'));
 
 const initialExtras: ExtrasInput = {
   workload: 220, hours50: 0, hours100: 0, hoursNight: 0, hoursStandby: 0, hoursInterjornada: 0, includeDsr: true
@@ -201,7 +202,9 @@ const VacationView: React.FC = () => {
                         <p className="text-sm text-slate-500">Receba insights financeiros baseados no seu cálculo.</p>
                     </div>
                 </div>
-                <AIAdvisor context={getAIContext()} />
+                <React.Suspense fallback={<div className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>}>
+                    <AIAdvisor context={getAIContext()} />
+                </React.Suspense>
             </div>
         </section>
       )}

@@ -4,8 +4,9 @@ import { ThirteenthInput, ThirteenthResult, ExtrasInput, ConsignedInput, AIConte
 import { calculateThirteenth } from '../../services/taxService';
 import { InputGroup, ExtrasSection, Row } from '../Shared';
 import ConsignedSection from '../ConsignedSection';
-import AIAdvisor from '../AIAdvisor';
 import AdUnit from '../AdUnit';
+
+const AIAdvisor = React.lazy(() => import('../AIAdvisor'));
 
 // Ícone customizado para evitar dependência extra
 const ArrowIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>;
@@ -185,7 +186,9 @@ const ThirteenthView: React.FC = () => {
                         <p className="text-sm text-slate-500">Receba insights financeiros baseados no seu cálculo.</p>
                     </div>
                 </div>
-                <AIAdvisor context={getAIContext()} />
+                <React.Suspense fallback={<div className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>}>
+                    <AIAdvisor context={getAIContext()} />
+                </React.Suspense>
             </div>
         </section>
       )}

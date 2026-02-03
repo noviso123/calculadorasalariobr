@@ -5,10 +5,12 @@ import { calculateSalary } from '../../services/taxService';
 import { InputGroup, ExtrasSection, ResultCard } from '../Shared';
 import { Check } from 'lucide-react';
 import ConsignedSection from '../ConsignedSection';
-import PieChartVisual from '../PieChartVisual';
-import AIAdvisor from '../AIAdvisor';
 import PayslipTable, { PayslipItem } from '../PayslipTable';
 import AdUnit from '../AdUnit';
+
+// Lazy loading for heavy components
+const PieChartVisual = React.lazy(() => import('../PieChartVisual'));
+const AIAdvisor = React.lazy(() => import('../AIAdvisor'));
 
 const initialExtras: ExtrasInput = {
   workload: 220, hours50: 0, hours100: 0, hoursNight: 0, hoursStandby: 0, hoursInterjornada: 0, includeDsr: true
@@ -193,8 +195,10 @@ const SalaryView: React.FC = () => {
                 </div>
 
                 {/* Gráfico */}
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-center h-fit">
-                    <PieChartVisual data={result} />
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-center h-fit min-h-[300px]">
+                    <React.Suspense fallback={<div className="h-[300px] w-full bg-slate-50 animate-pulse rounded-full flex items-center justify-center text-slate-300">Carregando visualização...</div>}>
+                      <PieChartVisual data={result} />
+                    </React.Suspense>
                   </div>
 
                  {/* BOTÃO PDF */}
@@ -229,7 +233,9 @@ const SalaryView: React.FC = () => {
                         <p className="text-sm text-slate-500">Receba insights financeiros baseados no seu cálculo.</p>
                     </div>
                 </div>
-                <AIAdvisor context={aiContext} />
+                <React.Suspense fallback={<div className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>}>
+                  <AIAdvisor context={aiContext} />
+                </React.Suspense>
             </div>
         </section>
       )}

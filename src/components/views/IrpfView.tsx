@@ -2,9 +2,10 @@
 import React, { useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { InputGroup } from '../Shared';
-import AIAdvisor from '../AIAdvisor';
 import { IrpfInput, IrpfResult } from '../../types';
 import { calculateIrpfSimulated } from '../../services/taxService';
+
+const AIAdvisor = React.lazy(() => import('../AIAdvisor'));
 
 const IrpfView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -154,15 +155,17 @@ const IrpfView: React.FC = () => {
 
                 {/* AI ADVISOR INTEGRATION */}
                 <div className="mt-8">
-                     <AIAdvisor
-                        context={{
-                            type: 'irpf',
-                            gross: result.baseSalary,
-                            net: result.baseSalary - result.taxValue, // Líquido após IR
-                            discounts: result.taxValue + result.inssDeduction,
-                            inss: result.inssDeduction
-                        }}
-                     />
+                     <React.Suspense fallback={<div className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"></div>}>
+                        <AIAdvisor
+                            context={{
+                                type: 'irpf',
+                                gross: result.baseSalary,
+                                net: result.baseSalary - result.taxValue, // Líquido após IR
+                                discounts: result.taxValue + result.inssDeduction,
+                                inss: result.inssDeduction
+                            }}
+                        />
+                     </React.Suspense>
                 </div>
 
              </div>
