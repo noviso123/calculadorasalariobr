@@ -92,24 +92,53 @@ const CompareView: React.FC = () => {
             </form>
         </section>
 
-        {/* LADO DIREITO: ANALISE MENSAL DETALHADA */}
+        {/* LADO DIREITO: DASHBOARD DE COMPARAÇÃO */}
         <section className="w-full lg:w-8/12 relative z-10">
             {resultClt && resultPj ? (
-             <div className="animate-fade-in-up space-y-6">
+             <div className="animate-fade-in-up space-y-8">
 
-                {/* ANALISE DE IMPACTO MENSAL MÉDIO */}
+                {/* DASHBOARD DE RESUMO RÁPIDO */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-6 rounded-3xl border border-blue-100 shadow-sm hover:shadow-md transition-all">
+                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-1">CLT Total Real</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-black text-slate-800">
+                                {formatCurrency(resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary / 12) + (resultClt.grossSalary / 3 / 12) + resultClt.fgtsMonthly)}
+                            </span>
+                            <span className="text-[10px] text-slate-400">/mês</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-2 font-medium">Líquido em Folha: {formatCurrency(resultClt.finalNetSalary)}</p>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl border border-indigo-100 shadow-sm hover:shadow-md transition-all">
+                        <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest block mb-1">PJ Líquido Final</span>
+                        <div className="flex items-baseline gap-1 focus-ring">
+                            <span className="text-2xl font-black text-slate-800">
+                                {formatCurrency(resultPj.net)}
+                            </span>
+                            <span className="text-[10px] text-slate-400">/mês</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-2 italic">Líquido de impostos e contador</p>
+                    </div>
+
+                    <div className={`p-6 rounded-3xl border shadow-sm hover:shadow-md transition-all ${Math.abs(resultPj.net - (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly)) > 0 ? (resultPj.net > (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly) ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100') : 'bg-slate-50 border-slate-100'}`}>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Diferença Mensal</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className={`text-2xl font-black ${resultPj.net > (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly) ? 'text-emerald-600' : 'text-red-600'}`}>
+                                {formatCurrency(Math.abs(resultPj.net - (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly)))}
+                            </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-2 font-bold">
+                            {resultPj.net > (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly) ? 'A favor do PJ' : 'A favor do CLT'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* DETALHAMENTO DA COMPOSIÇÃO MENSAL */}
                 <div className="bg-white p-1 rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-                    <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
-                         <div>
-                            <h4 className="text-lg font-bold">Rendimento Líquido Mensal</h4>
-                            <p className="text-xs opacity-60">Considerando provisões de 13º, Férias e FGTS</p>
-                         </div>
-                         <div className="text-right">
-                             <span className="text-xs uppercase font-medium opacity-50 block">Diferença Mensal</span>
-                             <span className={`text-2xl font-black ${ (resultPj.net) > (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly) ? 'text-emerald-400' : 'text-blue-400'}`}>
-                                {formatCurrency(Math.abs((resultPj.net) - (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly)))}
-                             </span>
-                         </div>
+                    <div className="bg-slate-800 text-white p-5">
+                        <h4 className="text-lg font-bold">Memória de Cálculo (Mensal)</h4>
+                        <p className="text-xs opacity-60">Para uma comparação justa, os direitos anuais CLT foram diluídos em 12 meses.</p>
                     </div>
 
                     <div className="overflow-x-auto">
