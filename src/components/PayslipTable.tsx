@@ -90,7 +90,6 @@ const PayslipTable: React.FC<PayslipProps> = React.memo(({ earnings, discounts, 
         {footerNote && <div className="mt-4 pt-3 border-t border-slate-200 text-xs text-slate-500 text-center">{footerNote}</div>}
       </div>
     </div>
-    </div>
   );
 });
 
