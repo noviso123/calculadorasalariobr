@@ -115,8 +115,10 @@ export interface CalculationResult {
   totalDiscounts: number;
   effectiveRate: number;
   fgtsMonthly: number;
-  // Consigned Fields
-  maxConsignableMargin: number;
+  // Consigned Margin Details (CLT 2026 Rules)
+  totalConsignableMargin: number;  // 35% do líquido para empréstimo
+  availableConsignableMargin: number; // 35% - parcela atual
+  cardMargin: number;              // 5% exclusivo para cartão
   consignedDiscount: number;
   finalNetSalary: number; // Líquido Final (Pós Consignado)
 }

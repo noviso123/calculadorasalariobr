@@ -61,16 +61,19 @@ export const generatePayslipPdf = (result: CalculationResult) => {
   });
 
   const finalY = (doc as any).lastAutoTable.finalY + 15;
-  doc.setFontSize(12);
-  doc.setTextColor(0);
+  doc.setFontSize(10);
+  doc.setTextColor(TEXT_SLATE[0], TEXT_SLATE[1], TEXT_SLATE[2]);
   doc.text(`FGTS Mensal: ${formatBRL(result.fgtsMonthly)}`, 14, finalY);
+  doc.text(`Margem Consignável Empréstimo (35%): ${formatBRL(result.totalConsignedMargin)}`, 14, finalY + 6);
+  doc.text(`Margem Disponível p/ Novo Crédito: ${formatBRL(result.availableConsignableMargin)}`, 14, finalY + 12);
+  doc.text(`Margem exclusiva para Cartão (5%): ${formatBRL(result.cardMargin)}`, 14, finalY + 18);
 
   doc.setFillColor(BRAND_PRIMARY[0], BRAND_PRIMARY[1], BRAND_PRIMARY[2]);
-  doc.rect(140, finalY - 10, 60, 20, 'F');
+  doc.rect(140, finalY - 5, 60, 20, 'F');
   doc.setTextColor(255);
-  doc.text("LÍQUIDO:", 145, finalY);
+  doc.text("LÍQUIDO:", 145, finalY + 5);
   doc.setFontSize(16);
-  doc.text(formatBRL(result.finalNetSalary), 195, finalY, { align: 'right' });
+  doc.text(formatBRL(result.finalNetSalary), 195, finalY + 5, { align: 'right' });
 
   drawFooter(doc);
   doc.save('Holerite_2026_Simulado.pdf');

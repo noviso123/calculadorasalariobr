@@ -129,15 +129,32 @@ const calculateExtrasValue = (grossSalary: number, extras: ExtrasInput): ExtrasB
   };
 };
 
-// Helper para Consignado: Retorna { maxMargin, discount }
+// Helper para Consignado: Retorna { totalMargin, availableMargin, cardMargin, discount }
 const calculateConsignedValues = (netBase: number, consigned: ConsignedInput, isActive: boolean) => {
+  // Margem de 35% para empréstimos e 5% para cartão (Lei 14.431/2022 e vigentes)
+  const totalLoanMargin = roundHelper(netBase * 0.35);
+  const cardMargin = roundHelper(netBase * 0.05);
+
   if (!isActive || !consigned) {
-    return { maxMargin: 0, discount: 0 };
+    return {
+      totalMargin: totalLoanMargin,
+      availableMargin: totalLoanMargin,
+      cardMargin,
+      discount: 0
+    };
   }
-  // Margem de 35% sobre a Remuneração Disponível (Líquido Base)
-  const maxMargin = Number((netBase * 0.35).toFixed(2));
-  const discount = Math.min(consigned.monthlyInstallment, maxMargin);
-  return { maxMargin, discount: Number(discount.toFixed(2)) };
+
+  const currentInstallment = consigned.monthlyInstallment || 0;
+  // O desconto real não pode ultrapassar a margem total (35%)
+  const discount = Math.min(currentInstallment, totalLoanMargin);
+  const availableMargin = Math.max(0, roundHelper(totalLoanMargin - discount));
+
+  return {
+    totalMargin: totalLoanMargin,
+    availableMargin,
+    cardMargin,
+    discount: roundHelper(discount)
+  };
 };
 
 export const calculateSalary = (data: SalaryInput): CalculationResult => {
@@ -200,9 +217,9 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const netSalary = Math.max(0, Number(netSalaryBase.toFixed(2)));
 
   // 3. Consignado
-  // A margem consignável (35%) é calculada sobre a Remuneração Líquida (Bruto - INSS - IRPF)
-  const netForConsigned = totalGrossForTax - inss - irpf;
-  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(netForConsigned, consigned, includeConsigned);
+  // A margem consignável é calculada sobre a Remuneração Líquida (Bruto - INSS - IRPF)
+  const netForConsigned = Math.max(0, totalGrossForTax - inss - irpf);
+  const { totalMargin, availableMargin, cardMargin, discount: consignedDiscount } = calculateConsignedValues(netForConsigned, consigned, includeConsigned);
 
   const finalNetSalaryBase = netSalary - consignedDiscount;
   const finalNetSalary = Math.max(0, roundHelper(finalNetSalaryBase));
@@ -221,7 +238,9 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
     effectiveRate: totalGrossForTax > 0 ? Number(((totalDiscounts / totalGrossForTax) * 100).toFixed(2)) : 0,
     fgtsMonthly,
-    maxConsignableMargin: maxMargin,
+    totalConsignedMargin: totalMargin,
+    availableConsignableMargin: availableMargin,
+    cardMargin,
     consignedDiscount,
     familySalary,
     finalNetSalary

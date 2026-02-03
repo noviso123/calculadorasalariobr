@@ -203,10 +203,15 @@ const SalaryView: React.FC = () => {
                      totalDiscounts={result.totalDiscounts + result.consignedDiscount}
                      netValue={result.finalNetSalary}
                      footerNote={
-                       <div className="flex items-center justify-center gap-2">
-                          <span className="text-emerald-600 font-bold">FGTS do Mês: {formatCurrency(result.fgtsMonthly)}</span>
-                          <span className="text-slate-300">|</span>
-                          <span>Margem Disp: {formatCurrency(result.maxConsignableMargin)}</span>
+                       <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-center gap-2 text-[10px] md:text-sm">
+                             <span className="text-emerald-600 font-bold">FGTS do Mês: {formatCurrency(result.fgtsMonthly)}</span>
+                             <span className="text-slate-300">|</span>
+                             <span className="text-indigo-600 font-bold">Margem Emp. Disp: {formatCurrency(result.availableConsignableMargin)}</span>
+                          </div>
+                          <div className="flex items-center justify-center gap-2 text-[10px] md:text-xs opacity-80">
+                             <span className="text-slate-500 font-semibold italic">Margem exclusiva p/ Cartão (5%): {formatCurrency(result.cardMargin)}</span>
+                          </div>
                        </div>
                      }
                    />
