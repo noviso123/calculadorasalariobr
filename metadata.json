@@ -1,5 +1,5 @@
 {
-  "name": "Calculadora Salário Líquido 2026 | Rescisão e Férias CLT",
+  "name": "calculadorasalariobr | Calculadora Salário Líquido 2026",
   "description": "Ferramenta completa para cálculo de Salário Líquido, Rescisão de Contrato, Férias e Décimo Terceiro (CLT 2026). Simule descontos de INSS, IRPF e FGTS com as tabelas oficiais atualizadas. Inclui consultor financeiro com IA.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [ ]
 }

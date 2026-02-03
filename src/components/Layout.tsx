@@ -73,7 +73,7 @@ const Layout: React.FC = () => {
                     <div className="bg-white/10 p-2 rounded-lg hidden md:block">
                     <CalculatorIcon />
                     </div>
-                    <h1 className="text-xl font-bold tracking-tight">Calculadora <span className="text-blue-300 font-light">Salário 2026</span></h1>
+                    <h1 className="text-xl font-bold tracking-tight">Calculadora <span className="text-blue-300 font-light">Salário BR</span></h1>
                 </div>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-blue-200"><CloseIcon /></button>
                 </div>
