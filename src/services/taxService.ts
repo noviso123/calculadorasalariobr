@@ -238,7 +238,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
     effectiveRate: totalGrossForTax > 0 ? Number(((totalDiscounts / totalGrossForTax) * 100).toFixed(2)) : 0,
     fgtsMonthly,
-    totalConsignedMargin: totalMargin,
+    totalConsignableMargin: totalMargin,
     availableConsignableMargin: availableMargin,
     cardMargin,
     consignedDiscount,

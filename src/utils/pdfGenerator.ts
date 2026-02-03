@@ -64,7 +64,7 @@ export const generatePayslipPdf = (result: CalculationResult) => {
   doc.setFontSize(10);
   doc.setTextColor(TEXT_SLATE[0], TEXT_SLATE[1], TEXT_SLATE[2]);
   doc.text(`FGTS Mensal: ${formatBRL(result.fgtsMonthly)}`, 14, finalY);
-  doc.text(`Margem Consignável Empréstimo (35%): ${formatBRL(result.totalConsignedMargin)}`, 14, finalY + 6);
+  doc.text(`Margem Consignável Empréstimo (35%): ${formatBRL(result.totalConsignableMargin)}`, 14, finalY + 6);
   doc.text(`Margem Disponível p/ Novo Crédito: ${formatBRL(result.availableConsignableMargin)}`, 14, finalY + 12);
   doc.text(`Margem exclusiva para Cartão (5%): ${formatBRL(result.cardMargin)}`, 14, finalY + 18);
 

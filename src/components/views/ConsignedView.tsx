@@ -20,8 +20,8 @@ const ConsignedView: React.FC = () => {
         includeConsigned: true, consigned: { monthlyInstallment: 9999999, outstandingBalance: 0, hasFgtsWarranty: false, fgtsBalance: 0 } // Força o cálculo da margem máxima
       });
       setResult({
-        margin: simResult.maxConsignableMargin,
-        maxInstallment: simResult.maxConsignableMargin
+        margin: simResult.totalConsignableMargin,
+        maxInstallment: simResult.totalConsignableMargin
       });
     } else {
         setResult(null);
