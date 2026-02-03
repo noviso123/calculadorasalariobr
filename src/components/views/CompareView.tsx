@@ -205,7 +205,7 @@ const CompareView: React.FC = () => {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-12 -mt-12 group-hover:bg-blue-100 transition-colors"></div>
                         <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] block mb-2 relative">Equivalente Real CLT</span>
                         <div className="flex items-baseline gap-1 relative">
-                            <span className="text-xl md:text-2xl font-black text-slate-800">
+                            <span className="text-lg md:text-xl font-black text-slate-800 leading-none">
                                 {formatCurrency(showAnnual
                                   ? (resultClt.finalNetSalary * 13.33) + (resultClt.otherDiscounts * 12) + (resultClt.fgtsMonthly * 12)
                                   : resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary / 12) + (resultClt.grossSalary / 3 / 12) + resultClt.fgtsMonthly
@@ -222,7 +222,7 @@ const CompareView: React.FC = () => {
                         <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 group-hover:bg-white/20 transition-colors"></div>
                         <span className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em] block mb-2 relative">PJ Líquido Real</span>
                         <div className="flex items-baseline gap-1 relative">
-                            <span className="text-xl md:text-2xl font-black">
+                            <span className="text-lg md:text-xl font-black leading-none">
                                 {formatCurrency(showAnnual ? resultPj.annualNet : resultPj.monthlyAverageReal)}
                             </span>
                         </div>
@@ -244,7 +244,7 @@ const CompareView: React.FC = () => {
                             <div className={`p-7 rounded-[2rem] border shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-all ${pjIsBetter ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] block mb-2">Vantagem {pjIsBetter ? 'PJ' : 'CLT'}</span>
                                 <div className="flex items-baseline gap-1">
-                                    <span className={`text-xl md:text-2xl font-black ${pjIsBetter ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    <span className={`text-lg md:text-xl font-black ${pjIsBetter ? 'text-emerald-600' : 'text-red-600'} leading-none`}>
                                         {formatCurrency(Math.abs(diff))}
                                     </span>
                                 </div>
