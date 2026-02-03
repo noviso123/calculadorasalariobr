@@ -14,7 +14,7 @@ const CookieConsent: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 text-white p-4 z-[60] backdrop-blur-md border-t border-slate-700 shadow-2xl transition-all duration-500">
+    <div className="fixed bottom-0 left-0 right-0 bg-slate-900/98 text-white p-5 z-[200] backdrop-blur-lg border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] transition-all duration-500 animate-fade-in-up">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex-1">
           <p className="text-sm text-slate-300 text-center md:text-left leading-relaxed">
