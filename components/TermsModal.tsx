@@ -13,7 +13,7 @@ const TermsModal: React.FC<Props> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity" onClick={onClose} />
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden relative flex flex-col animate-[fadeIn_0.3s_ease-out]">
-        
+
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
           <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -26,17 +26,17 @@ const TermsModal: React.FC<Props> = ({ isOpen, onClose }) => {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 12"/></svg>
           </button>
         </div>
-        
+
         {/* Content */}
         <div className="p-6 overflow-y-auto text-slate-600 text-sm leading-relaxed space-y-5">
-          <p>Ao acessar o site <strong>Calculadora Salário 2026</strong>, você concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis ​​e concorda que é responsável pelo cumprimento de todas as leis locais aplicáveis.</p>
-          
+          <p>Ao acessar o site <strong>Calculadora Salário 2026</strong>, você concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis e concorda que é responsável pelo cumprimento de todas as leis locais aplicáveis.</p>
+
           <h4 className="font-bold text-slate-800 text-base border-b pb-1">1. Isenção de Responsabilidade (Disclaimer)</h4>
           <div className="bg-red-50 p-4 rounded-xl border border-red-100">
             <p className="text-red-900 font-medium">
-              Os materiais no site da Calculadora Salário 2026 são fornecidos "como estão". Esta ferramenta é destinada a simulações e estimativas. 
-              <strong>Os resultados não têm valor legal para fins de homologação trabalhista.</strong> 
-              Podem ocorrer variações devido a Convenções Coletivas de Trabalho (CCT), particularidades contratuais e interpretações jurídicas. 
+              Os materiais no site da Calculadora Salário 2026 são fornecidos "como estão". Esta ferramenta é destinada a simulações e estimativas.
+              <strong>Os resultados não têm valor legal para fins de homologação trabalhista.</strong>
+              Podem ocorrer variações devido a Convenções Coletivas de Trabalho (CCT), particularidades contratuais e interpretações jurídicas.
               Recomendamos sempre a conferência por um contador ou profissional de RH qualificado.
             </p>
           </div>
@@ -53,7 +53,7 @@ const TermsModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <h4 className="font-bold text-slate-800 text-base border-b pb-1">5. Modificações</h4>
           <p>O Calculadora Salário 2026 pode revisar estes termos de serviço do site a qualquer momento, sem aviso prévio. Ao usar este site, você concorda em ficar vinculado à versão atual desses termos de serviço.</p>
         </div>
-        
+
         {/* Footer */}
         <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
           <button onClick={onClose} className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-lg shadow-blue-200">

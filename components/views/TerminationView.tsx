@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { TerminationInput, TerminationResult, ExtrasInput, ConsignedInput, AIContext } from '../../types';
 import { calculateTermination } from '../../services/taxService';
@@ -27,19 +27,7 @@ const TerminationView: React.FC = () => {
 
   const [result, setResult] = useState<TerminationResult | null>(null);
 
-  // Auto-detect 13th advance logic
-  useEffect(() => {
-    if (data.endDate) {
-      const end = new Date(data.endDate + 'T12:00:00');
-      const month = end.getMonth();
-      if (month === 11) {
-         setData(prev => ({ ...prev, thirteenthAdvancePaid: true }));
-      }
-      else if (month === 0) {
-         setData(prev => ({ ...prev, thirteenthAdvancePaid: false }));
-      }
-    }
-  }, [data.endDate]);
+
 
   const handleCalc = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,17 +40,17 @@ const TerminationView: React.FC = () => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
-  const getAIContext = (): AIContext | null => {
+  const aiContext = React.useMemo(() => {
     if (!result) return null;
     return {
-      type: 'termination',
+      type: 'termination' as const,
       gross: result.totalGross,
       net: result.finalNetTermination,
       discounts: result.totalDiscounts + result.consignedDiscount,
       inss: result.discountInss,
       terminationReason: data.reason
     };
-  };
+  }, [result, data.reason]);
 
   return (
    <div className="w-full max-w-7xl mx-auto pb-24">
@@ -91,7 +79,19 @@ const TerminationView: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Data Saída</label>
-                    <input type="date" value={data.endDate} onChange={(e) => setData({...data, endDate: e.target.value})} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 outline-none" required />
+                    <input type="date" value={data.endDate} onChange={(e) => {
+                      const newDate = e.target.value;
+                      let newThirteenthPaid = data.thirteenthAdvancePaid;
+
+                      if (newDate) {
+                        const end = new Date(newDate + 'T12:00:00');
+                        const month = end.getMonth();
+                        if (month === 11) newThirteenthPaid = true;
+                        else if (month === 0) newThirteenthPaid = false;
+                      }
+
+                      setData({...data, endDate: newDate, thirteenthAdvancePaid: newThirteenthPaid});
+                    }} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 outline-none" required />
                   </div>
                </div>
 
@@ -100,7 +100,7 @@ const TerminationView: React.FC = () => {
                   <select
                     value={data.reason}
                     onChange={(e) => {
-                      const r = e.target.value as any;
+                      const r = e.target.value as 'dismissal_no_cause' | 'dismissal_cause' | 'resignation' | 'agreement';
                       let ns = data.noticeStatus;
                       if (r === 'dismissal_no_cause') ns = 'indemnified';
                       if (r === 'resignation') ns = 'worked';
@@ -134,7 +134,7 @@ const TerminationView: React.FC = () => {
                     <label className="block text-xs font-bold text-slate-500 mb-1">Aviso Prévio</label>
                     <select
                       value={data.noticeStatus}
-                      onChange={(e) => setData({...data, noticeStatus: e.target.value as any})}
+                      onChange={(e) => setData({...data, noticeStatus: e.target.value as 'worked' | 'indemnified' | 'not_fulfilled' | 'waived'})}
                       className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none"
                     >
                        {data.reason === 'dismissal_no_cause' && (
@@ -349,7 +349,7 @@ const TerminationView: React.FC = () => {
                         <p className="text-sm text-slate-500">Receba insights financeiros baseados no seu cálculo.</p>
                     </div>
                 </div>
-                <AIAdvisor context={getAIContext()} />
+                <AIAdvisor context={aiContext} />
             </div>
         </section>
       )}

@@ -7,6 +7,29 @@ interface Props {
   data: CalculationResult;
 }
 
+
+const CustomTooltip = ({ active, payload, totalGross }: { active?: boolean, payload?: any[], totalGross: number }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    // Helper para formatar moeda dentro do tooltip (já que não tem acesso direto à função interna)
+    const formatCurrency = (value: number) =>
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+    return (
+      <div className="bg-white p-3 border border-slate-100 shadow-xl rounded-xl">
+        <p className="text-xs font-bold text-slate-400 uppercase mb-1">{item.name}</p>
+        <p className="text-lg font-bold" style={{ color: item.color }}>
+          {formatCurrency(item.value)}
+        </p>
+        <p className="text-[10px] text-slate-400 mt-1">
+          {((item.value / totalGross) * 100).toFixed(1)}% do Bruto
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 const PieChartVisual: React.FC<Props> = ({ data }) => {
   // Cores Semânticas
   const COLORS = {
@@ -23,31 +46,14 @@ const PieChartVisual: React.FC<Props> = ({ data }) => {
     { name: 'Outros/Saúde', value: data.healthInsurance + data.otherDiscounts + data.transportVoucher + data.consignedDiscount, color: COLORS.OTHERS },
   ].filter(item => item.value > 0);
 
-  const formatCurrency = (value: number) => 
+  const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  // Custom Tooltip
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-slate-100 shadow-xl rounded-xl">
-          <p className="text-xs font-bold text-slate-400 uppercase mb-1">{item.name}</p>
-          <p className="text-lg font-bold" style={{ color: item.color }}>
-            {formatCurrency(item.value)}
-          </p>
-          <p className="text-[10px] text-slate-400 mt-1">
-            {((item.value / (data.grossSalary + data.totalExtras)) * 100).toFixed(1)}% do Bruto
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+
 
   return (
     <div className="w-full h-full flex flex-col md:flex-row items-center justify-between gap-6">
-      
+
       {/* Gráfico Donut */}
       <div className="relative h-48 w-48 md:h-56 md:w-56 flex-shrink-0">
         <ResponsiveContainer width="100%" height="100%">
@@ -67,10 +73,10 @@ const PieChartVisual: React.FC<Props> = ({ data }) => {
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+            <Tooltip content={<CustomTooltip totalGross={data.grossSalary + data.totalExtras} />} cursor={{ fill: 'transparent' }} />
           </PieChart>
         </ResponsiveContainer>
-        
+
         {/* Texto Central (Destaque Líquido) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Líquido</span>

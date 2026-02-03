@@ -13,6 +13,20 @@ const BriefcaseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" h
 const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>;
 const BankIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="21" width="18" height="2" rx="1"/><rect x="5" y="3" width="14" height="14" rx="2"/><path d="M12 11h.01"/><path d="M12 7h.01"/><path d="M9 11h.01"/><path d="M15 11h.01"/><path d="M12 15h.01"/></svg>;
 
+
+const NavItem = ({ to, icon, label, currentPath }: { to: string, icon: React.ReactNode, label: string, currentPath: string }) => {
+    const isActive = currentPath === to || (to !== '/' && currentPath.startsWith(to));
+    return (
+        <Link
+            to={to}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-blue-700 text-white shadow-lg shadow-blue-900/20' : 'text-blue-100 hover:bg-white/10'}`}
+        >
+            {icon}
+            <span>{label}</span>
+        </Link>
+    );
+};
+
 const Layout: React.FC = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
@@ -24,18 +38,7 @@ const Layout: React.FC = () => {
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
 
-    const NavItem = ({ to, icon, label }: { to: string, icon: React.ReactNode, label: string }) => {
-        const isActive = location.pathname === to || (to !== '/' && location.pathname.startsWith(to));
-        return (
-            <Link
-                to={to}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-blue-700 text-white shadow-lg shadow-blue-900/20' : 'text-blue-100 hover:bg-white/10'}`}
-            >
-                {icon}
-                <span>{label}</span>
-            </Link>
-        );
-    };
+
 
     return (
         <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row">
@@ -75,11 +78,11 @@ const Layout: React.FC = () => {
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
-                    <NavItem to="/" icon={<CalculatorIcon />} label="Salário Líquido" />
-                    <NavItem to="/ferias" icon={<SunIcon />} label="Férias" />
-                    <NavItem to="/decimo-terceiro" icon={<CoinsIcon />} label="Décimo Terceiro" />
-                    <NavItem to="/rescisao" icon={<BriefcaseIcon />} label="Rescisão" />
-                    <NavItem to="/consignado" icon={<BankIcon />} label="Simular Consignado" />
+                    <NavItem to="/" icon={<CalculatorIcon />} label="Salário Líquido" currentPath={location.pathname} />
+                    <NavItem to="/ferias" icon={<SunIcon />} label="Férias" currentPath={location.pathname} />
+                    <NavItem to="/decimo-terceiro" icon={<CoinsIcon />} label="Décimo Terceiro" currentPath={location.pathname} />
+                    <NavItem to="/rescisao" icon={<BriefcaseIcon />} label="Rescisão" currentPath={location.pathname} />
+                    <NavItem to="/consignado" icon={<BankIcon />} label="Simular Consignado" currentPath={location.pathname} />
                 </nav>
 
                 <div className="p-4">

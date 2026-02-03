@@ -6,7 +6,7 @@ import { InputGroup, ExtrasSection, ResultCard } from '../Shared';
 import ConsignedSection from '../ConsignedSection';
 import PieChartVisual from '../PieChartVisual';
 import AIAdvisor from '../AIAdvisor';
-import PayslipTable from '../PayslipTable';
+import PayslipTable, { PayslipItem } from '../PayslipTable';
 import AdUnit from '../AdUnit';
 
 const initialExtras: ExtrasInput = {
@@ -34,17 +34,17 @@ const SalaryView: React.FC = () => {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
-  const getAIContext = (): AIContext | null => {
+  const aiContext = React.useMemo(() => {
     if (!result) return null;
     return {
-      type: 'salary',
+      type: 'salary' as const,
       gross: result.grossSalary,
       net: result.finalNetSalary,
       discounts: result.totalDiscounts + result.consignedDiscount,
       inss: result.inss,
       extras: result.totalExtras
     };
-  };
+  }, [result]);
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -143,21 +143,21 @@ const SalaryView: React.FC = () => {
                    <PayslipTable
                      earnings={[
                        { label: 'Salário Base', value: result.grossSalary, type: 'earning' },
-                       ...(result.familySalary > 0 ? [{ label: 'Salário Família', value: result.familySalary, type: 'earning' } as any] : []),
-                       ...(result.extrasBreakdown.value50 > 0 ? [{ label: 'Hora Extra 50%', value: result.extrasBreakdown.value50, type: 'earning' } as any] : []),
-                       ...(result.extrasBreakdown.value100 > 0 ? [{ label: 'Hora Extra 100%', value: result.extrasBreakdown.value100, type: 'earning' } as any] : []),
-                       ...(result.extrasBreakdown.valueNight > 0 ? [{ label: 'Adicional Noturno', value: result.extrasBreakdown.valueNight, type: 'earning' } as any] : []),
-                       ...(result.extrasBreakdown.valueStandby > 0 ? [{ label: 'Sobreaviso', value: result.extrasBreakdown.valueStandby, type: 'earning' } as any] : []),
-                       ...(result.extrasBreakdown.valueInterjornada > 0 ? [{ label: 'Interjornada', value: result.extrasBreakdown.valueInterjornada, type: 'earning' } as any] : []),
-                       ...(result.extrasBreakdown.valueDsr > 0 ? [{ label: 'DSR', value: result.extrasBreakdown.valueDsr, type: 'earning' } as any] : []),
+                       ...(result.familySalary > 0 ? [{ label: 'Salário Família', value: result.familySalary, type: 'earning' } as PayslipItem] : []),
+                       ...(result.extrasBreakdown.value50 > 0 ? [{ label: 'Hora Extra 50%', value: result.extrasBreakdown.value50, type: 'earning' } as PayslipItem] : []),
+                       ...(result.extrasBreakdown.value100 > 0 ? [{ label: 'Hora Extra 100%', value: result.extrasBreakdown.value100, type: 'earning' } as PayslipItem] : []),
+                       ...(result.extrasBreakdown.valueNight > 0 ? [{ label: 'Adicional Noturno', value: result.extrasBreakdown.valueNight, type: 'earning' } as PayslipItem] : []),
+                       ...(result.extrasBreakdown.valueStandby > 0 ? [{ label: 'Sobreaviso', value: result.extrasBreakdown.valueStandby, type: 'earning' } as PayslipItem] : []),
+                       ...(result.extrasBreakdown.valueInterjornada > 0 ? [{ label: 'Interjornada', value: result.extrasBreakdown.valueInterjornada, type: 'earning' } as PayslipItem] : []),
+                       ...(result.extrasBreakdown.valueDsr > 0 ? [{ label: 'DSR', value: result.extrasBreakdown.valueDsr, type: 'earning' } as PayslipItem] : []),
                      ]}
                      discounts={[
                        { label: 'INSS', value: result.inss, type: 'discount' },
                        { label: 'Imposto de Renda (IRPF)', value: result.irpf, type: 'discount' },
-                       ...(result.transportVoucher > 0 ? [{ label: 'Vale Transporte', value: result.transportVoucher, type: 'discount' } as any] : []),
-                       ...(result.healthInsurance > 0 ? [{ label: 'Plano de Saúde', value: result.healthInsurance, type: 'discount' } as any] : []),
-                       ...(result.otherDiscounts > 0 ? [{ label: 'Outros Descontos', value: result.otherDiscounts, type: 'discount' } as any] : []),
-                       ...(result.consignedDiscount > 0 ? [{ label: 'Empréstimo Consignado', value: result.consignedDiscount, type: 'discount' } as any] : []),
+                       ...(result.transportVoucher > 0 ? [{ label: 'Vale Transporte', value: result.transportVoucher, type: 'discount' } as PayslipItem] : []),
+                       ...(result.healthInsurance > 0 ? [{ label: 'Plano de Saúde', value: result.healthInsurance, type: 'discount' } as PayslipItem] : []),
+                       ...(result.otherDiscounts > 0 ? [{ label: 'Outros Descontos', value: result.otherDiscounts, type: 'discount' } as PayslipItem] : []),
+                       ...(result.consignedDiscount > 0 ? [{ label: 'Empréstimo Consignado', value: result.consignedDiscount, type: 'discount' } as PayslipItem] : []),
                      ]}
                      totalGross={result.grossSalary + result.totalExtras + result.familySalary}
                      totalDiscounts={result.totalDiscounts + result.consignedDiscount}
@@ -198,7 +198,7 @@ const SalaryView: React.FC = () => {
                         <p className="text-sm text-slate-500">Receba insights financeiros baseados no seu cálculo.</p>
                     </div>
                 </div>
-                <AIAdvisor context={getAIContext()} />
+                <AIAdvisor context={aiContext} />
             </div>
         </section>
       )}

@@ -1,4 +1,4 @@
-import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, IrBreakdown } from '../types';
+import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput } from '../types';
 
 // INSS Progressivo 2026 (Teto R$ 8.475,55 - Reajuste 3,9%)
 const INSS_BRACKETS = [
@@ -39,10 +39,10 @@ const calculateIrpfOnly = (base: number, hasDependents: boolean): number => {
   }
 
   // 3. Garante que o valor não seja negativo antes de qualquer arredondamento
-  let finalTax = Math.max(0, tax);
+  const finalTax = Math.max(0, tax);
 
   // 4. Arredonda para 2 casas decimais usando helper robusto
-  let roundedTax = roundHelper(finalTax);
+  const roundedTax = roundHelper(finalTax);
 
   // 5. Regra de Corte Mínimo (Específica para Dependentes)
   if (hasDependents) {

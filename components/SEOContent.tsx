@@ -3,6 +3,31 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ViewType } from '../types';
 
+
+// Componente auxiliar para link interno
+const InternalLink = ({ to, label }: { to: string, label: string }) => (
+  <Link
+    to={to}
+    className="text-blue-600 font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
+  >
+    {label}
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 8v9"/></svg>
+  </Link>
+);
+
+const MethodologyFooter = () => (
+  <div className="mt-8 pt-6 border-t border-slate-200 text-xs text-slate-500 bg-slate-50 p-4 rounded-lg">
+    <h5 className="font-bold text-slate-700 mb-1 uppercase tracking-wider">Metodologia e Fontes Legais</h5>
+    <p className="leading-relaxed">
+      Os cálculos apresentados nesta ferramenta utilizam como base a <strong>Consolidação das Leis do Trabalho (CLT) - Decreto-lei nº 5.452/1943</strong>,
+      incluindo atualizações da Reforma Trabalhista (Lei 13.467/2017). As alíquotas de INSS e IRRF seguem as tabelas progressivas oficiais
+      vigentes ou projetadas para o exercício de 2026, conforme diretrizes da Receita Federal e Previdência Social.
+      <br/><br/>
+      <em>Última revisão da metodologia: Janeiro/2026.</em>
+    </p>
+  </div>
+);
+
 interface Props {
   view: ViewType;
 }
@@ -10,28 +35,9 @@ interface Props {
 const SEOContent: React.FC<Props> = ({ view }) => {
 
   // Componente auxiliar para link interno
-  const InternalLink = ({ to, label }: { to: string, label: string }) => (
-    <Link
-      to={to}
-      className="text-blue-600 font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
-    >
-      {label}
-      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 8v9"/></svg>
-    </Link>
-  );
 
-  const MethodologyFooter = () => (
-    <div className="mt-8 pt-6 border-t border-slate-200 text-xs text-slate-500 bg-slate-50 p-4 rounded-lg">
-      <h5 className="font-bold text-slate-700 mb-1 uppercase tracking-wider">Metodologia e Fontes Legais</h5>
-      <p className="leading-relaxed">
-        Os cálculos apresentados nesta ferramenta utilizam como base a <strong>Consolidação das Leis do Trabalho (CLT) - Decreto-lei nº 5.452/1943</strong>,
-        incluindo atualizações da Reforma Trabalhista (Lei 13.467/2017). As alíquotas de INSS e IRRF seguem as tabelas progressivas oficiais
-        vigentes ou projetadas para o exercício de 2026, conforme diretrizes da Receita Federal e Previdência Social.
-        <br/><br/>
-        <em>Última revisão da metodologia: Janeiro/2026.</em>
-      </p>
-    </div>
-  );
+
+
 
   const contentMap: Record<ViewType, React.ReactNode> = {
     salary: (

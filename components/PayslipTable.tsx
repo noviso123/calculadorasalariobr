@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface PayslipItem {
+export interface PayslipItem {
   label: string;
   reference?: string;
   value: number;
@@ -18,7 +18,7 @@ interface PayslipProps {
 }
 
 const PayslipTable: React.FC<PayslipProps> = ({ earnings, discounts, totalGross, totalDiscounts, netValue, footerNote }) => {
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
@@ -30,7 +30,7 @@ const PayslipTable: React.FC<PayslipProps> = ({ earnings, discounts, totalGross,
       </div>
 
       <div className="flex flex-col md:flex-row">
-        
+
         {/* COLUNA PROVENTOS */}
         <div className="flex-1 border-b md:border-b-0 md:border-r border-slate-200">
           <div className="bg-emerald-50/50 p-2 text-center text-emerald-700 font-bold border-b border-emerald-100/50 text-xs uppercase">

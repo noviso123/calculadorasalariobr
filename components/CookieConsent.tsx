@@ -2,15 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const CookieConsent: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    // Verifica se já aceitou os cookies
-    const consent = localStorage.getItem('cookie_consent_2026');
-    if (!consent) {
-      setIsVisible(true);
-    }
-  }, []);
+  const [isVisible, setIsVisible] = useState(() => {
+    return !localStorage.getItem('cookie_consent_2026');
+  });
 
   const handleAccept = () => {
     localStorage.setItem('cookie_consent_2026', 'true');

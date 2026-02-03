@@ -19,7 +19,7 @@ const TermsView: React.FC = () => {
         </h1>
 
         <div className="prose prose-blue max-w-none text-slate-600">
-          <p className="lead">Ao acessar o site <strong>Calculadora Salário 2026</strong>, você concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis ​​e concorda que é responsável pelo cumprimento de todas as leis locais aplicáveis.</p>
+          <p className="lead">Ao acessar o site <strong>Calculadora Salário 2026</strong>, você concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis e concorda que é responsável pelo cumprimento de todas as leis locais aplicáveis.</p>
 
           <div className="bg-red-50 p-6 rounded-xl border border-red-100 not-prose mb-8">
             <h4 className="font-bold text-red-900 text-lg mb-2">1. Isenção de Responsabilidade (Disclaimer)</h4>

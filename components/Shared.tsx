@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ExtrasInput, ConsignedInput } from '../types';
+import { ExtrasInput } from '../types';
 
 // --- INPUT GROUP ---
 interface InputGroupProps {
@@ -45,10 +45,10 @@ export const ExtrasSection: React.FC<ExtrasSectionProps> = ({ isActive, onToggle
       <input type="checkbox" checked={isActive} onChange={(e) => onToggle(e.target.checked)} className="h-5 w-5 accent-orange-600 rounded" />
       <span className="text-sm font-semibold text-slate-700">{labelOverride || "Incluir Adicionais e Horas Extras"}</span>
     </label>
-    
+
     {isActive && (
       <div className="p-4 pt-0 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-fade-in border-t border-orange-100/50 mt-2 pt-4">
-        
+
         <div className="col-span-1 sm:col-span-2 mb-2 bg-white/50 p-2 rounded-lg border border-orange-100">
            <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Carga Horária Mensal (Padrão 220)</label>
            <input type="number" value={data.workload || ''} onChange={e => onChange({...data,workload: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="220" />
@@ -71,7 +71,7 @@ export const ExtrasSection: React.FC<ExtrasSectionProps> = ({ isActive, onToggle
           <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Adicional Noturno (Horas)</label>
           <input type="number" value={data.hoursNight || ''} onChange={e => onChange({...data, hoursNight: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="0" />
         </div>
-        
+
         <div className="col-span-1">
           <label className="block text-[10px] font-bold text-orange-700 mb-1 uppercase">Sobreaviso (Horas)</label>
           <input type="number" value={data.hoursStandby || ''} onChange={e => onChange({...data, hoursStandby: Number(e.target.value)})} className="w-full p-2 text-sm rounded-lg border border-orange-200 focus:ring-2 focus:ring-orange-400 outline-none" placeholder="0" />
