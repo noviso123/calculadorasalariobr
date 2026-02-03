@@ -16,9 +16,11 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
           charts: ['recharts'],
-          utils: ['clsx', 'tailwind-merge'] // Add commonly used utils here if verified
+          pdf: ['jspdf', 'jspdf-autotable', 'html2canvas'],
+          ai: ['@google/genai']
         }
       }
-    }
+    },
+    chunkSizeWarningLimit: 1000
   }
 });
