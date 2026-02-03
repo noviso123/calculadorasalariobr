@@ -5,117 +5,105 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --brand-primary: #1d4ed8;
+    --brand-secondary: #1e3a8a;
+    --brand-accent: #3b82f6;
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --surface-bg: #f8fafc;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #f8fafc;
+    background-color: var(--surface-bg);
     color: #0f172a;
     -webkit-font-smoothing: antialiased;
     background-image:
-      radial-gradient(at 0% 0%, hsla(210, 100%, 96%, 1) 0, transparent 50%),
-      radial-gradient(at 50% 0%, hsla(214, 100%, 94%, 1) 0, transparent 50%),
-      radial-gradient(at 100% 0%, hsla(210, 100%, 96%, 1) 0, transparent 50%);
+      radial-gradient(at 0% 0%, hsla(210, 100%, 98%, 1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(214, 100%, 96%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(210, 100%, 98%, 1) 0, transparent 50%);
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
-    @apply tracking-tight;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
   .glass-card {
-    background-color: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    /* Optimized from 24px */
-    border-width: 1px;
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 4px 20px 0 rgba(15, 23, 42, 0.05);
-    /* Lighter shadow */
-    will-change: transform, opacity;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  }
+
+  .glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.12);
   }
 
   .glass-input {
-    background-color: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(8px);
-    border-width: 1px;
-    border-color: rgba(203, 213, 225, 0.6);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(4px);
+    border: 1.5px solid rgba(203, 213, 225, 0.4);
+    transition: all 0.2s ease;
   }
 
   .glass-input:focus {
-    background-color: rgba(255, 255, 255, 0.95);
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border-color: #3b82f6;
-  }
-
-  .premium-shadow {
-    box-shadow: 0 12px 30px rgba(8, 112, 184, 0.08);
-    /* Optimized */
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--brand-accent);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
   }
 
   .nav-active-pill {
-    position: absolute;
-    left: 0;
-    top: 25%;
-    bottom: 25%;
-    width: 0.25rem;
-    background-color: #ffffff;
-    border-radius: 9999px;
+    @apply absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,0.8)];
   }
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 200%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.99);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-  will-change: transform, opacity;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
-  will-change: transform, opacity;
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Scrollbar Optimization */
-::-webkit-scrollbar {
-  width: 8px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
+/* Base interactive transitions */
+button, a {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }

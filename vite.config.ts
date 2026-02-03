@@ -14,13 +14,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
-          charts: ['recharts'],
-          pdf: ['jspdf', 'jspdf-autotable', 'html2canvas'],
-          ai: ['@google/genai']
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-utils': ['react-router-dom', 'react-helmet-async'],
+          'vendor-libs': ['recharts', 'jspdf', 'jspdf-autotable']
         }
       }
     },
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 800,
+    cssCodeSplit: true,
+    minify: 'esbuild'
   }
 });

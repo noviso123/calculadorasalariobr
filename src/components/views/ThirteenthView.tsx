@@ -20,6 +20,16 @@ const initialConsigned: ConsignedInput = {
 
 const ThirteenthView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const Schema = React.lazy(() => import('../Schema'));
+
+  const thirteenthSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Calculadora de 13º Salário 2026",
+    "operatingSystem": "Web",
+    "applicationCategory": "FinanceApplication",
+    "description": "Calcule as parcelas do décimo terceiro salário 2026 com descontos oficiais de INSS e IRRF."
+  };
 
   const [data, setData] = useState<ThirteenthInput>({
     grossSalary: 0, monthsWorked: 12, includeDependents: false, dependents: 0,
@@ -62,10 +72,17 @@ const ThirteenthView: React.FC = () => {
   return (
    <div className="w-full max-w-5xl mx-auto pb-24">
       <Helmet>
-        <title>Calculadora Décimo Terceiro 2026 - 1ª e 2ª Parcela</title>
-        <meta name="description" content="Saiba quanto vai receber de 13º Salário em 2026. Cálculo exato da primeira e segunda parcela com descontos atualizados." />
+        <title>Calculadora Décimo Terceiro 2026 | Simular 1ª e 2ª Parcela</title>
+        <meta name="description" content="Saiba quanto vai receber de 13º Salário em 2026. Cálculo exato da primeira e segunda parcela com descontos de fim de ano atualizados. Grátis e online." />
         <link rel="canonical" href="https://calculadorasalariobr.com.br/decimo-terceiro" />
+        <meta property="og:title" content="Calculadora Décimo Terceiro 2026 | Simular Parcelas" />
+        <meta property="og:description" content="Veja o valor da sua 1ª e 2ª parcela do 13º 2026 em segundos." />
+        <meta property="og:url" content="https://calculadorasalariobr.com.br/decimo-terceiro" />
       </Helmet>
+
+      <React.Suspense fallback={null}>
+        <Schema data={thirteenthSchema} />
+      </React.Suspense>
       {/* 1. CABEÇALHO */}
       <header className="mb-12 md:mb-16">
         <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">Décimo Terceiro <span className="text-blue-600">2026</span></h2>

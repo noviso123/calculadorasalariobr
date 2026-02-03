@@ -237,14 +237,21 @@ export interface PjInput {
   grossMonthly: number;
   regime: PjRegime;
   accountantCost: number;
-  taxRate?: number; // Optional override
+  otherMonthlyExpenses: number; // Plano de saúde PJ, impostos extras, etc.
+  taxRate?: number;
+  vacationDaysTarget: number; // Quantos dias pretende parar no ano (sem faturar)
 }
 
 export interface PjResult {
-  net: number;
+  netMonthly: number;
   taxValue: number;
   taxRate: number;
   regimeLabel: string;
+  totalMonthlyExpenses: number;
+  annualNet: number;
+  annualTax: number;
+  annualExpenses: number;
+  monthlyAverageReal: number; // Média mensal descontando as férias não pagas
 }
 
 
@@ -269,4 +276,22 @@ export interface IrpfResult {
     rate: number;
     tax: number;
   }[];
+}
+
+export interface EmployerCost {
+  grossSalary: number;
+  inssPatronal: number;
+  fgts: number;
+  rat: number;
+  terceiros: number;
+  provision13th: number;
+  provisionVacation: number;
+  totalCostMonthly: number;
+  totalCostAnnual: number;
+}
+
+export interface ComparisonChartData {
+  month: string;
+  cltCumulative: number;
+  pjCumulative: number;
 }

@@ -21,6 +21,7 @@ const initialConsigned: ConsignedInput = {
 
 const SalaryView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const Schema = React.lazy(() => import('../Schema'));
 
   const [data, setData] = useState<SalaryInput>({
     grossSalary: 0, includeDependents: false, dependents: 0, otherDiscounts: 0, healthInsurance: 0,
@@ -42,7 +43,6 @@ const SalaryView: React.FC = () => {
 
   const handleCalc = (e: React.FormEvent) => {
     e.preventDefault();
-    // Optional: Scroll to results if needed, or just do nothing as it's auto-calc
     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -62,13 +62,31 @@ const SalaryView: React.FC = () => {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
+  const salarySchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Calculadora de Salário Líquido 2026",
+    "operatingSystem": "Web",
+    "applicationCategory": "FinanceApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "description": "Cálculo preciso de salário líquido 2026 com descontos de INSS, FGTS e IRPF atualizados conforme nova tabela de isenção."
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto pb-24">
       <Helmet>
-        <title>Calculadora Salário Líquido 2026 - Oficial e Atualizada</title>
-        <meta name="description" content="Calcule seu salário líquido 2026 com as novas tabelas de INSS e IRRF. Simule descontos, horas extras e benefícios. Grátis e preciso." />
+        <title>Calculadora Salário Líquido 2026 | Simulação CLT Oficial</title>
+        <meta name="description" content="Calcule seu salário líquido 2026 com as novas tabelas de INSS e IRRF. Simule descontos de 5k de isenção, horas extras e benefícios CLT. Grátis e 100% atualizada." />
         <link rel="canonical" href="https://calculadorasalariobr.com.br/" />
+        {/* Open Graph / FB */}
+        <meta property="og:title" content="Calculadora Salário Líquido 2026 | Simulação CLT Oficial" />
+        <meta property="og:description" content="Simulação precisa de ganhos reais com a nova tabela de IRRF 2026. Grátis e rápida." />
+        <meta property="og:url" content="https://calculadorasalariobr.com.br/" />
       </Helmet>
+
+      <React.Suspense fallback={null}>
+        <Schema data={salarySchema} />
+      </React.Suspense>
 
       {/* 1. CABEÇALHO */}
       <header className="mb-12 md:mb-16">

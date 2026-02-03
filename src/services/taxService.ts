@@ -1,4 +1,4 @@
-import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, PjInput, PjResult, PjRegime, IrpfInput, IrpfResult } from '../types';
+import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, PjInput, PjResult, PjRegime, IrpfInput, IrpfResult, EmployerCost } from '../types';
 import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE, IRPF_BRACKETS, SIMPLIFIED_DISCOUNT_VALUE } from '../config/taxConstants';
 
 
@@ -747,49 +747,115 @@ export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
   };
 };
 
-// --- PJ CALCULATOR (AUTOMATIC TAX) ---
+// --- PJ CALCULATOR (AUTOMATIC TAX 2026) ---
 export const calculatePjTax = (data: PjInput): PjResult => {
-  const { grossMonthly, regime, accountantCost } = data;
+  const { grossMonthly, regime, accountantCost, otherMonthlyExpenses, vacationDaysTarget } = data;
 
   let taxRate = 0;
   let regimeLabel = '';
 
+  // Projeção baseada em faturamento ANUAL para Simples Nacional
+  const annualGrossProjected = grossMonthly * 12;
+
   switch (regime) {
     case 'mei':
-      taxRate = 0;
+      taxRate = 0; // Fixado por valor
       regimeLabel = 'MEI (Microempreendedor Individual)';
       break;
 
     case 'simples_nacional_3':
-      taxRate = 6;
+      // Faixas básicas Anexo III 2026
+      if (annualGrossProjected <= 180000) taxRate = 6.0;
+      else if (annualGrossProjected <= 360000) taxRate = 8.2;
+      else if (annualGrossProjected <= 720000) taxRate = 10.5;
+      else taxRate = 12.5;
       regimeLabel = 'Simples Nacional (Anexo III)';
       break;
 
     case 'simples_nacional_5':
-      taxRate = 15.5;
+      // Faixas básicas Anexo V 2026
+      if (annualGrossProjected <= 180000) taxRate = 15.5;
+      else if (annualGrossProjected <= 360000) taxRate = 18.0;
+      else taxRate = 19.5;
       regimeLabel = 'Simples Nacional (Anexo V)';
       break;
 
     case 'lucro_presumido':
-      taxRate = 14.33;
+      taxRate = 14.33; // Média padrão (ISS + PIS/COFINS + IRPJ/CSLL)
       regimeLabel = 'Lucro Presumido';
       break;
   }
 
-  let taxValue = 0;
+  let taxValueMonthly = 0;
   if (regime === 'mei') {
-      taxValue = 82.50;
-      taxRate = (taxValue / (grossMonthly || 1)) * 100;
+      // MEI 2026 Estimado (5% min wage + ISS/ICMS) -> Salário min ~R$ 1570
+      taxValueMonthly = 85.00;
+      taxRate = (taxValueMonthly / (grossMonthly || 1)) * 100;
   } else {
-      taxValue = grossMonthly * (taxRate / 100);
+      taxValueMonthly = grossMonthly * (taxRate / 100);
   }
 
-  const net = Math.max(0, grossMonthly - taxValue - accountantCost);
+  const totalMonthlyExpenses = accountantCost + otherMonthlyExpenses;
+  const netMonthly = Math.max(0, grossMonthly - taxValueMonthly - totalMonthlyExpenses);
+
+  // CÁLCULO ANUAL: Considera que o PJ geralmente não fatura nos dias de férias
+  // Meses trabalhados efetivamente: (360 - vacationDays) / 30
+  const monthsOfIncome = Math.max(0, (360 - (vacationDaysTarget || 0)) / 30);
+
+  const annualGross = grossMonthly * monthsOfIncome;
+  const annualTax = taxValueMonthly * monthsOfIncome;
+  const annualExpenses = totalMonthlyExpenses * 12; // Despesas fixas costumam correr o ano todo
+
+  const annualNet = Math.max(0, annualGross - annualTax - annualExpenses);
+  const monthlyAverageReal = annualNet / 12;
 
   return {
-    net: roundHelper(net),
-    taxValue: roundHelper(taxValue),
+    netMonthly: roundHelper(netMonthly),
+    taxValue: roundHelper(taxValueMonthly),
     taxRate: roundHelper(taxRate),
-    regimeLabel
+    regimeLabel,
+    totalMonthlyExpenses,
+    annualNet: roundHelper(annualNet),
+    annualTax: roundHelper(annualTax),
+    annualExpenses: roundHelper(annualExpenses),
+    monthlyAverageReal: roundHelper(monthlyAverageReal)
+  };
+};
+
+// --- EMPLOYER COST CALCULATOR (NEGOTIATION POWER) ---
+export const calculateEmployerCost = (grossSalary: number, regime: 'simples' | 'lucro_real_presumido' = 'lucro_real_presumido'): EmployerCost => {
+  // 1. INSS Patronal (20% se não for Simples Nacional ou se for Anexo IV)
+  const inssRate = regime === 'simples' ? 0 : 0.20;
+  const inssPatronal = grossSalary * inssRate;
+
+  // 2. FGTS (8%)
+  const fgts = grossSalary * 0.08;
+
+  // 3. RAT (Risco Ambiental do Trabalho - Médio 2%)
+  const ratRate = regime === 'simples' ? 0 : 0.02;
+  const rat = grossSalary * ratRate;
+
+  // 4. Terceiros (Sistema S - Médio 5.8%)
+  const terceirosRate = regime === 'simples' ? 0 : 0.058;
+  const terceiros = grossSalary * terceirosRate;
+
+  // 5. Provisões (13º e Férias + 1/3)
+  // 13º: 1/12 ≈ 8.33%
+  // Férias + 1/3: (1 + 1/3) / 12 = 1.33 / 12 ≈ 11.11%
+  const provision13th = grossSalary * (1/12);
+  const provisionVacation = grossSalary * (1.333333 / 12);
+
+  const totalCostMonthly = grossSalary + inssPatronal + fgts + rat + terceiros + provision13th + provisionVacation;
+
+  return {
+    grossSalary,
+    inssPatronal: roundHelper(inssPatronal),
+    fgts: roundHelper(fgts),
+    rat: roundHelper(rat),
+    terceiros: roundHelper(terceiros),
+    provision13th: roundHelper(provision13th),
+    provisionVacation: roundHelper(provisionVacation),
+    totalCostMonthly: roundHelper(totalCostMonthly),
+    totalCostAnnual: roundHelper(totalCostMonthly * 12)
   };
 };

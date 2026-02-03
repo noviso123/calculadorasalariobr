@@ -17,6 +17,17 @@ const initialConsigned: ConsignedInput = {
 
 const VacationView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const Schema = React.lazy(() => import('../Schema'));
+
+  const vacationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Calculadora de Férias 2026",
+    "operatingSystem": "Web",
+    "applicationCategory": "FinanceApplication",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+    "description": "Simulador completo de férias CLT 2026. Calcule 1/3 constitucional, abono pecuniário (venda de férias) e descontos de INSS/IRPF."
+  };
 
   const [data, setData] = useState<VacationInput>({
     grossSalary: 0, includeDependents: false, dependents: 0, daysTaken: 30, sellDays: false, daysSold: 10, advanceThirteenth: false,
@@ -60,10 +71,17 @@ const VacationView: React.FC = () => {
   return (
    <div className="w-full max-w-5xl mx-auto pb-24">
      <Helmet>
-        <title>Calculadora de Férias 2026 - CLT Atualizada</title>
-        <meta name="description" content="Simule o valor exato das suas férias 2026. Inclui venda de dias (abono), 1/3 constitucional e adiantamento de 13º salário." />
+        <title>Calculadora de Férias 2026 | Simule seu Recibo CLT</title>
+        <meta name="description" content="Simule o valor exato das suas férias 2026. Inclui venda de dias (abono), 1/3 constitucional e adiantamento de 13º salário. 100% atualizada e grátis." />
         <link rel="canonical" href="https://calculadorasalariobr.com.br/ferias" />
+        <meta property="og:title" content="Calculadora de Férias 2026 | Simule seu Recibo CLT" />
+        <meta property="og:description" content="Simulador completo de férias 2026 com abono e descontos oficiais." />
+        <meta property="og:url" content="https://calculadorasalariobr.com.br/ferias" />
      </Helmet>
+
+     <React.Suspense fallback={null}>
+        <Schema data={vacationSchema} />
+     </React.Suspense>
      {/* 1. CABEÇALHO */}
      <header className="mb-8 md:mb-12">
        <h2 className="text-3xl font-bold text-slate-800">Calculadora de Férias</h2>

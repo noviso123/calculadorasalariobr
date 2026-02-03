@@ -71,136 +71,209 @@ interface Props {
 }
 
 const SEOContent: React.FC<Props> = ({ view }) => {
+  const Schema = React.lazy(() => import('./Schema'));
+
+  // Generate FAQ Schema for current view
+  const getFaqSchema = () => {
+    const questions = {
+      salary: [
+        { q: "Como funciona o salário líquido em 2026?", a: "O salário líquido é o valor que o trabalhador recebe após descontos de INSS e IRPF, seguindo a nova tabela de isenção de 5k de 2026." },
+        { q: "Qual a isenção do IRPF 2026?", a: "Para 2026, rendimentos até o limite estipulado pela nova tabela (aprox. 5 mil reais considerando o desconto simplificado) são isentos de imposto de renda." }
+      ],
+      vacation: [
+        { q: "Qual o prazo para pagamento das férias?", a: "O pagamento das férias deve ser feito obrigatoriamente até 2 dias antes do início do descanso." },
+        { q: "Posso vender 10 dias de férias?", a: "Sim, o trabalhador tem o direito de converter até 1/3 do seu período de férias em abono pecuniário (venda de dias)." }
+      ],
+      thirteenth: [
+          { q: "Quando é paga a primeira parcela do 13º?", a: "A primeira parcela (adiantamento) deve ser paga obrigatoriamente entre 1º de fevereiro e 30 de novembro." }
+      ],
+      termination: [
+          { q: "Quanto tempo a empresa tem para pagar a rescisão?", a: "A empresa tem o prazo legal de 10 dias corridos após o término do contrato para realizar o pagamento integral." }
+      ]
+    };
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": (questions[view as keyof typeof questions] || questions.salary).map(item => ({
+        "@type": "Question",
+        "name": item.q,
+        "acceptedAnswer": { "@type": "Answer", "text": item.a }
+      }))
+    };
+  };
 
   const contentMap: Record<ViewType, React.ReactNode> = {
+    // ... rest of the map remains the same, but we ensure headings are H2 inside the components if needed,
+    // although they are wrapped here as sub-components.
     salary: (
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <AccordionItem title="Como Calcular o Salário Líquido em 2026?" icon={HelpCircle} defaultOpen={true}>
+        <h2 className="sr-only">Dúvidas sobre Salário Líquido 2026</h2>
+        <AccordionItem title="Como Funciona o Cálculo do Salário Líquido em 2026?" icon={HelpCircle} defaultOpen={true}>
           <p>
-            O <strong>Salário Líquido</strong> é o valor que efetivamente cai na sua conta após os descontos compulsórios.
-            É a base real para o seu planejamento financeiro mensal. Para uma análise completa, considere também suas <InternalLink to="/ferias" label="Férias" /> e <InternalLink to="/decimo-terceiro" label="13º Salário" />.
+            O <strong>Salário Líquido</strong> é o valor final que o trabalhador recebe após todos os descontos obrigatórios em folha de pagamento. Com as novas tabelas progressivas de 2026, entender cada rubrica é essencial para o planejamento financeiro.
+          </p>
+          <p className="mt-4">
+            Nosso simulador processa automaticamente as faixas de INSS e IRPF, considerando inclusive as mudanças no salário mínimo e as isenções vigentes. Para uma visão 360º, recomendamos também simular suas <InternalLink to="/ferias" label="Férias" /> e o impacto do <InternalLink to="/decimo-terceiro" label="13º Salário" /> no seu orçamento anual.
           </p>
         </AccordionItem>
 
-        <AccordionItem title="Desconto do INSS (Previdência Social)" icon={ShieldCheck}>
+        <AccordionItem title="Tabela Progressiva do INSS 2026" icon={ShieldCheck}>
           <p>
-            O primeiro desconto aplicado é o INSS, seguindo a tabela <strong>progressiva</strong> de 2026 (alíquotas de 7,5% a 14%):
+            A Previdência Social utiliza um sistema de alíquotas progressivas (7,5% a 14%), o que significa que o desconto é calculado "fatia por fatia" do seu salário bruto.
           </p>
-          <ul className="list-disc pl-4 space-y-1">
-            <li>Calculado por faixas salariais para maior justiça tributária.</li>
-            <li>Limitado ao "Teto da Previdência" estipulado por lei.</li>
-            <li>Essencial para garantir direitos como auxílio-doença e aposentadoria.</li>
-          </ul>
+          <div className="bg-blue-50/50 p-6 rounded-2xl my-4 border border-blue-100">
+            <h5 className="font-bold text-blue-800 text-sm mb-4 uppercase tracking-tighter">Entenda a Lógica:</h5>
+            <ul className="list-disc pl-4 space-y-3 text-sm leading-relaxed">
+              <li><strong>Alíquota Efetiva:</strong> Graças ao sistema progressivo, a porcentagem real descontada é sempre menor que a alíquota da sua faixa máxima.</li>
+              <li><strong>Teto Previdenciário:</strong> Existe um limite máximo para o desconto do INSS, garantindo que salários muito altos não paguem proporcionalmente mais do que o teto da aposentadoria.</li>
+              <li><strong>Garantias:</strong> Este desconto garante seu acesso ao auxílio-doença, auxílio-maternidade e aposentadoria futura.</li>
+            </ul>
+          </div>
         </AccordionItem>
 
-        <AccordionItem title="Imposto de Renda (IRPF) e Isenção" icon={FileText}>
+        <AccordionItem title="Imposto de Renda (IRPF) 2026: A Nova Isenção" icon={FileText}>
           <p>
-            O IRPF 2026 traz a nova faixa de isenção que beneficia quem ganha até R$ 5.000,00 (pelo desconto simplificado).
+            O IRPF 2026 traz uma das mudanças mais significativas dos últimos anos. Com a nova faixa de isenção que atinge até R$ 5.000,00 (considerando o desconto simplificado), milhões de brasileiros deixaram de pagar o imposto na fonte.
           </p>
-          <ul className="list-disc pl-4 space-y-1">
-            <li><strong>Dependentes:</strong> Reduzem a base de cálculo (R$ 189,59 por dependente).</li>
-            <li><strong>Modelos:</strong> O sistema opta automaticamente pelo menor imposto entre o Simplificado e as Deduções Legais.</li>
-          </ul>
+          <div className="grid md:grid-cols-2 gap-4 mt-6">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <span className="font-bold text-slate-800 text-xs block mb-2 uppercase tracking-widest">Modelo Simplificado</span>
+              <p className="text-xs">Usa um desconto padrão fixo. Ideal para quem tem poucas despesas dedutíveis.</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <span className="font-bold text-slate-800 text-xs block mb-2 uppercase tracking-widest">Deduções Legais</span>
+              <p className="text-xs">Considera gastos com dependentes (R$ 189,59/mês), saúde, educação e pensão alimentícia.</p>
+            </div>
+          </div>
         </AccordionItem>
 
-        <AccordionItem title="Vale Transporte e Outros Descontos" icon={Zap}>
+        <AccordionItem title="Vale Transporte e Descontos Facultativos" icon={Zap}>
           <p>
-            A empresa pode descontar até 6% do salário básico para o Vale Transporte.
-            Outros descontos permitidos incluem plano de saúde, faltas não justificadas e atrasos, que também refletem no Descanso Semanal Remunerado (DSR).
+            O Vale Transporte tem um teto de desconto de 6% sobre o salário base. Contudo, se o custo real gasto pela empresa com o seu transporte for inferior a esses 6%, o desconto deve ser limitado ao custo real.
           </p>
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-            <Info size={16} className="text-blue-500 shrink-0 mt-1" />
-            <p className="text-xs text-blue-800">
-               <strong>Dica:</strong> Se o custo real das suas passagens for menor que 6% do seu salário básico, a empresa deve descontar apenas o valor real gasto.
-            </p>
+          <div className="mt-4 p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex gap-4">
+             <AlertTriangle className="text-indigo-500 shrink-0 mt-1" size={18} />
+             <p className="text-xs text-indigo-900 leading-relaxed font-medium">
+                <strong>Importante:</strong> Outros descontos como plano de saúde, seguro de vida e vale alimentação (PAT) dependem de acordos coletivos e contratos individuais de trabalho, podendo variar significativamente entre empresas.
+             </p>
           </div>
         </AccordionItem>
       </div>
     ),
     vacation: (
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <AccordionItem title="Guia de Férias CLT e Prazos" icon={HelpCircle} defaultOpen={true}>
+        <AccordionItem title="Guia Completo de Férias: Prazos e Direitos" icon={HelpCircle} defaultOpen={true}>
           <p>
-            As férias são um direito anual de 30 dias de descanso remunerado após 12 meses de contrato (período aquisitivo).
-            O pagamento deve ocorrer obrigatoriamente até 2 dias antes do início do descanso escolhido.
+            As férias são o período de descanso anual remunerado concedido após cada 12 meses de vigência do contrato de trabalho (período aquisitivo). O empregador tem os 12 meses seguintes (período concessivo) para determinar a data do descanso.
+          </p>
+          <p className="mt-3">
+             Pela legislação vigente, o pagamento deve cair na conta do trabalhador até 2 dias antes do primeiro dia de férias.
           </p>
         </AccordionItem>
 
-        <AccordionItem title="Composição do Pagamento e Adicionais" icon={Info}>
-          <p>As férias são calculadas sobre o salário bruto somado ao <strong>Terço Constitucional</strong> (bônus obrigatório de 33,33%).</p>
-          <p>Verbas variáveis como horas extras, adicionais noturnos e comissões do último ano entram na média para aumentar o valor total.</p>
-        </AccordionItem>
-
-        <AccordionItem title="Abono Pecuniário (Venda de Férias)" icon={Zap}>
-          <p>
-            É a conversão de até 1/3 do período de férias (geralmente 10 dias) em dinheiro.
-          </p>
-          <ul className="list-disc pl-4 space-y-1">
-            <li>O valor do abono tem natureza indenizatória.</li>
-            <li><strong>Isenção:</strong> Não há incidência de INSS ou Imposto de Renda sobre os dias vendidos.</li>
-            <li>É uma estratégia comum para aumentar o fôlego financeiro em viagens ou quitação de dívidas.</li>
-          </ul>
-        </AccordionItem>
-      </div>
-    ),
-    thirteenth: (
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <AccordionItem title="Funcionamento do 13º Salário (Gratificação)" icon={HelpCircle} defaultOpen={true}>
-          <p>
-             O 13º salário representa o pagamento proporcional ao tempo trabalhado no ano. Se trabalhou 12 meses, recebe um salário extra integral.
-             Em caso de demissão antecipada, o valor proporcional é pago na <InternalLink to="/rescisao" label="Rescisão" />.
+        <AccordionItem title="O Terço Constitucional e Verbas Variáveis" icon={Info}>
+          <p>O cálculo básico das férias é: Salário Bruto + 1/3 Constitucional (33,33% do valor do salário).</p>
+          <p className="mt-4">
+             <strong>Atenção às Médias:</strong> Verbas variáveis como horas extras, comissões, adicional noturno e insalubridade recebidas nos últimos 12 meses são somadas e incluídas na base de cálculo para garantir que o trabalhador não tenha perda salarial no período de descanso.
           </p>
         </AccordionItem>
 
-        <AccordionItem title="Dinâmica da Primeira Parcela" icon={Zap}>
-          <p>Deve ser paga entre 1º de fevereiro e 30 de novembro. Corresponde a 50% do salário bruto atual sem qualquer desconto de impostos.</p>
-        </AccordionItem>
-
-        <AccordionItem title="Segunda Parcela e Descontos Fiscais" icon={ShieldCheck}>
-          <p>Ocorre até 20 de dezembro. Calcula-se o valor total do 13º, aplicam-se os descontos de INSS e IR sobre o total, e subtrai-se o que já foi pago na primeira parcela.</p>
-          <div className="mt-4 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
-             <p className="text-xs text-emerald-800 font-bold">
-               Nota: Como a tributação do 13º é exclusiva, ele não soma com o seu salário do mês para fins de cálculo de alíquota, protegendo sua renda.
+        <AccordionItem title="Venda de Férias (Abono Pecuniário)" icon={Zap}>
+          <p>
+            O trabalhador tem o direito facultativo de "vender" até 1/3 do seu período de férias (máximo 10 dias). Essa é uma opção exclusiva do empregado, e a empresa não pode obrigar a venda.
+          </p>
+          <div className="mt-6 p-6 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-inner">
+             <h5 className="text-emerald-900 font-black text-xs uppercase mb-3 tracking-widest leading-none">Vantagem Financeira:</h5>
+             <p className="text-emerald-800 text-sm leading-relaxed italic">
+                O Abono Pecuniário tem natureza indenizatória. Isso significa que **não há desconto de INSS nem de Imposto de Renda** sobre o valor recebido pelos dias vendidos, tornando-o excelente para reforço de caixa.
              </p>
           </div>
         </AccordionItem>
       </div>
     ),
+    thirteenth: (
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <AccordionItem title="Funcionamento da Gratificação Natalina (13º)" icon={HelpCircle} defaultOpen={true}>
+          <p>
+             Instituído pela Lei 4.090/62, o 13º salário é uma gratificação devida a todo trabalhador urbano ou rural que tenha trabalhado pelo menos 15 dias no mês corrente. Ele é calculado de forma proporcional (1/12 para cada mês trabalhado).
+          </p>
+          <p className="mt-4">
+             O valor base é o salário bruto de dezembro, ou caso haja aumento salarial no ano, o valor atualizado.
+          </p>
+        </AccordionItem>
+
+        <AccordionItem title="1ª Parcela (Adiantamento): Sem Impostos" icon={Zap}>
+          <p>
+            Deve ser paga obrigatoriamente entre 1º de fevereiro e 30 de novembro. Corresponde a 50% do salário bruto atual. Importante: nesta parcela **não incide nenhum desconto fiscal** (INSS/IRPF), o valor chega "limpo" ao trabalhador.
+          </p>
+        </AccordionItem>
+
+        <AccordionItem title="2ª Parcela: Ajuste e Tributação Final" icon={ShieldCheck}>
+          <p>Ocorre até dia 20 de dezembro. É o momento onde o governo aplica toda a carga tributária do ano sobre o valor total do 13º.</p>
+          <ul className="list-disc pl-4 space-y-3 text-sm mt-4 text-slate-500">
+            <li><strong>Tributação Exclusiva:</strong> O imposto do 13º não se soma ao seu salário mensal do mês, evitando que você suba de faixa de alíquota injustamente.</li>
+            <li><strong>Desconto da 1ª Parcela:</strong> O valor bruto da 2ª parcela é calculado, os impostos são retidos sobre este total, e então subtrai-se o adiantamento já pago.</li>
+          </ul>
+        </AccordionItem>
+      </div>
+    ),
     termination: (
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <AccordionItem title="Principais Verbas na Rescisão" icon={HelpCircle} defaultOpen={true}>
-          <p>Dependendo da modalidade (Pedido ou Demissão), você tem direito a Saldo de Salário, Férias Vencidas/Proporcionais (+1/3), 13º Proporcional e Aviso Prévio.</p>
+        <AccordionItem title="Entendendo as Modalidades de Rescisão" icon={HelpCircle} defaultOpen={true}>
+          <p>A rescisão do contrato de trabalho encerra o vínculo jurídico. As verbas devidas variam drasticamente conforme o motivo:</p>
+          <div className="space-y-4 mt-6">
+            <div className="p-4 bg-slate-50 rounded-xl border-l-4 border-blue-500">
+               <span className="font-bold text-slate-800 block text-sm">Sem Justa Causa</span>
+               <p className="text-xs text-slate-500 mt-1">Garante Saldo Salarial, Aviso Prévio, Férias + 1/3, 13º Proporcional, Saque do FGTS + Multa de 40% e Seguro Desemprego.</p>
+            </div>
+            <div className="p-4 bg-slate-50 rounded-xl border-l-4 border-orange-500">
+               <span className="font-bold text-slate-800 block text-sm">Pedido de Demissão</span>
+               <p className="text-xs text-slate-500 mt-1">O trabalhador perde o direito ao Aviso Prévio (se não trabalhado), saque do FGTS, Multa de 40% e Seguro Desemprego.</p>
+            </div>
+          </div>
         </AccordionItem>
 
-        <AccordionItem title="Regras do FGTS e Multa de 40%" icon={ShieldCheck}>
-          <p>Na demissão sem justa causa, o trabalhador saca o saldo do FGTS e recebe uma multa indenizatória de 40% paga pela empresa. Este valor é isento de impostos.</p>
-        </AccordionItem>
-
-        <AccordionItem title="Empréstimo Consignado e Retenção Legal" icon={AlertTriangle}>
+        <AccordionItem title="FGTS e a Multa Indenizatória" icon={ShieldCheck}>
           <p>
-            Muitos ignoram que a Lei 10.820 autoriza a retenção de até 35% das suas verbas rescisórias líquidas para quitar empréstimos consignados ativos.
+            Na demissão imotivada, a empresa é obrigada a pagar uma multa equivalente a 40% do total de depósitos feitos na conta do FGTS do trabalhador ao longo de todo o contrato.
           </p>
-          <p className="mt-2">Simule o impacto e sua margem na nossa <InternalLink to="/consignado" label="Calculadora de Consignado" /> para se planejar.</p>
+          <div className="mt-4 p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex gap-4">
+             <AlertTriangle className="text-blue-600 shrink-0 mt-1" size={18} />
+             <p className="text-xs text-blue-900 font-medium">
+               <strong>Fique Atento:</strong> Se você optou pelo Saque-Aniversário, a multa de 40% ainda é devida em dinheiro na rescisão, mas você não poderá sacar o saldo principal do FGTS imediatamente.
+             </p>
+          </div>
+        </AccordionItem>
+
+        <AccordionItem title="Prazos de Pagamento e Quitação" icon={Zap}>
+          <p>Independentemente do aviso prévio (trabalhado ou indenizado), a empresa tem o prazo legal de **10 dias corridos** após o último dia trabalhado para realizar o pagamento integral das verbas rescisórias.</p>
+          <p className="mt-3">O atraso neste pagamento gera uma multa em favor do empregado no valor de um salário nominal (Artigo 477 da CLT).</p>
         </AccordionItem>
       </div>
     ),
     consigned: (
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <AccordionItem title="Margem Consignável e a Lei dos 35%" icon={ShieldCheck} defaultOpen={true}>
+        <AccordionItem title="Margem Consignável: Conceito e Limites" icon={ShieldCheck} defaultOpen={true}>
           <p>
-            O crédito consignado é limitado a 35% da sua renda líquida mensal (margem livre). É a linha de crédito mais barata para funcionários CLT.
+            O empréstimo consignado é uma modalidade de crédito onde as parcelas são descontadas diretamente do seu holerite. Para proteção do trabalhador, existe a **Margem Consignável**, que é o limite máximo que a parcela pode ocupar da sua renda.
           </p>
+          <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+             <h5 className="font-bold text-slate-700 text-xs uppercase mb-3 tracking-widest">Divisão da Margem:</h5>
+             <ul className="space-y-2 text-sm">
+                <li className="flex justify-between"><span>Empréstimo Convencional:</span> <span className="font-bold">35%</span></li>
+                <li className="flex justify-between"><span>Cartão de Crédito Consignado:</span> <span className="font-bold">5%</span></li>
+                <li className="flex justify-between border-t border-slate-300 pt-2 mt-2"><span>Total Permitido:</span> <span className="font-bold text-blue-700">40%</span></li>
+             </ul>
+          </div>
         </AccordionItem>
 
-        <AccordionItem title="Antecipação do Saque-Aniversário FGTS" icon={Zap}>
+        <AccordionItem title="Antecipação FGTS (Saque-Aniversário)" icon={Zap}>
           <p>
-            Permite usar o saldo do fundo como garantia para obter crédito rápido sem comprometer sua renda mensal, já que o pagamento é descontado anualmente do próprio FGTS.
+            Esta modalidade permite que você use o saldo parado no seu FGTS como garantia para empréstimo. É uma das taxas mais baixas do mercado, pois o risco para o banco é praticamente zero.
           </p>
-        </AccordionItem>
-
-        <AccordionItem title="Diferença entre Taxa Nominal e CET" icon={Info}>
-          <p>
-            Sempre olhe o <strong>Custo Efetivo Total (CET)</strong>. Ele inclui juros, IOF, taxas administrativas e seguros, revelando o custo real do seu empréstimo.
+          <p className="mt-3 text-sm italic">
+             Vantagem principal: Não compromete sua renda mensal, pois o pagamento é feito anualmente pelo próprio fundo.
           </p>
         </AccordionItem>
       </div>
@@ -209,59 +282,54 @@ const SEOContent: React.FC<Props> = ({ view }) => {
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <AccordionItem title="Análise Estratégica: CLT ou PJ?" icon={HelpCircle} defaultOpen={true}>
           <p>
-             A escolha entre ser CLT ou PJ no Brasil de 2026 exige entender que na PJ você é seu próprio RH. Enquanto o CLT oferece segurança e benefícios fixos, o PJ entrega maior liquidez imediata.
+             A decisão entre CLT e PJ vai além do salário bruto. Trata-se de comparar pacotes de remuneração total versus autonomia e liquidez imediata.
           </p>
-
-          <div className="grid md:grid-cols-2 gap-4 mt-6">
-            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-              <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest block mb-3 border-b border-blue-200 pb-1">Segurança CLT</span>
-              <ul className="text-xs space-y-2">
-                <li className="flex gap-2"><Check size={12} className="text-blue-500 shrink-0" /> FGTS + Multa de 40%</li>
-                <li className="flex gap-2"><Check size={12} className="text-blue-500 shrink-0" /> Férias + 1/3 e 13º Salário</li>
-                <li className="flex gap-2"><Check size={12} className="text-blue-500 shrink-0" /> Seguro Desemprego e Aviso</li>
-              </ul>
+          <div className="grid md:grid-cols-2 gap-6 mt-8">
+            <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 ring-1 ring-blue-200">
+               <h5 className="text-blue-700 font-black text-xs uppercase mb-4 tracking-widest pl-2">Vantagens CLT</h5>
+               <ul className="text-xs space-y-3">
+                 <li className="flex gap-3"><Check size={14} className="text-blue-500 mt-0.5" /> Segurança previdenciária total</li>
+                 <li className="flex gap-3"><Check size={14} className="text-blue-500 mt-0.5" /> Férias remuneradas e 13º garantido</li>
+                 <li className="flex gap-3"><Check size={14} className="text-blue-500 mt-0.5" /> FGTS (8% ao mês) + Multa 40%</li>
+                 <li className="flex gap-3"><Check size={14} className="text-blue-500 mt-0.5" /> Seguro Desemprego</li>
+               </ul>
             </div>
-            <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
-              <span className="text-[10px] font-black uppercase text-indigo-600 tracking-widest block mb-3 border-b border-indigo-200 pb-1">Liquidez PJ</span>
-              <ul className="text-xs space-y-2">
-                <li className="flex gap-2"><Check size={12} className="text-indigo-500 shrink-0" /> Carga tributária reduzida</li>
-                <li className="flex gap-2"><Check size={12} className="text-indigo-500 shrink-0" /> Salário mensal muito maior</li>
-                <li className="flex gap-2"><Check size={12} className="text-indigo-500 shrink-0" /> Flexibilidade de contratos</li>
-              </ul>
+            <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 ring-1 ring-indigo-200">
+               <h5 className="text-indigo-700 font-black text-xs uppercase mb-4 tracking-widest pl-2">Vantagens PJ</h5>
+               <ul className="text-xs space-y-3">
+                 <li className="flex gap-3"><Check size={14} className="text-indigo-500 mt-0.5" /> Carga tributária reduzida (Simples)</li>
+                 <li className="flex gap-3"><Check size={14} className="text-indigo-500 mt-0.5" /> Maior poder de negociação</li>
+                 <li className="flex gap-3"><Check size={14} className="text-indigo-500 mt-0.5" /> Recebimento integral imediato</li>
+                 <li className="flex gap-3"><Check size={14} className="text-indigo-500 mt-0.5" /> Flexibilidade de horários</li>
+               </ul>
             </div>
           </div>
         </AccordionItem>
 
-        <AccordionItem title="A Regra de Ouro da Transição (Break-even)" icon={Lightbulb}>
+        <AccordionItem title="O Coeficiente de Conversão (Regra de Ouro)" icon={Lightbulb}>
           <p>
-            Especialistas financeiros recomendam que, para manter o mesmo padrão de vida, um contrato PJ deve faturar entre <strong>30% e 50% a mais</strong> do que o salário bruto CLT equivalente.
-            Isso cobre os custos com contador, INSS autônomo e provisões para o próprio período de descanso.
+            Para que um contrato PJ seja vantajoso, ele deve prever uma reserva para os meses em que você não emitirá nota (férias) e cobrir os benefícios que você deixa de ter (saúde, refeição).
           </p>
-          <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-xl flex gap-3">
-             <AlertTriangle size={16} className="text-orange-600 shrink-0 mt-1" />
-             <p className="text-xs text-orange-800">
-               <strong>Cuidado:</strong> PJ sem "Fator R" (em serviços intelectuais) pode ter imposto alto (15,5% no Simples Nacional). Fale com um contador.
-             </p>
+          <div className="mt-6 p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl">
+             <p className="text-center font-bold text-sm">DICA DE ESPECIALISTA</p>
+             <p className="text-center text-4xl font-black my-4 tracking-tighter text-blue-400">1.4x a 1.6x</p>
+             <p className="text-center text-xs text-slate-400">Este é o multiplicador recomendado. Se o CLT paga R$ 5k, o PJ deve pagar entre R$ 7k e R$ 8k para manter o mesmo padrão de vida real.</p>
           </div>
         </AccordionItem>
       </div>
     ),
     irpf: (
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <AccordionItem title="Mudanças no IRPF para 2026" icon={HelpCircle} defaultOpen={true}>
-          <p>Com a correção das tabelas, a faixa de isenção agora protege rendimentos de até R$ 5.000,00 por meio do desconto simplificado padrão da Receita Federal.</p>
+        <AccordionItem title="O que Mudou no IRPF para 2026?" icon={HelpCircle} defaultOpen={true}>
+          <p>O Imposto de Renda passou por uma correção focada na preservação da renda média brasileira. A grande novidade é a manutenção da isenção agressiva para quem ganha até R$ 5.000,00 beneficiando diretamente a classe trabalhadora.</p>
         </AccordionItem>
 
-        <AccordionItem title="Cálculo Legal vs Modelo Simplificado" icon={ShieldCheck}>
+        <AccordionItem title="Como Funciona a Alíquota Efetiva?" icon={Info}>
           <p>
-            O <strong>Modelo Legal</strong> é vantajoso para quem possui altas deduções (saúde, instrução, pensão ou dependentes).
-            O <strong>Modelo Simplificado</strong> substitui as deduções por um valor fixo (R$ 564,80), sendo a melhor opção para a maioria dos assalariados.
+            Muitas pessoas se assustam ao ver uma alíquota de 27,5% na tabela. Contudo, essa é a alíquota **nominal**.
           </p>
-        </AccordionItem>
-
-        <AccordionItem title="O que é a Alíquota Efetiva?" icon={Info}>
-          <p>
-            É a porcentagem real paga sobre o seu salário total. Graças à progressividade e às parcelas a deduzir de cada faixa, a alíquota efetiva será sempre menor que a alíquota máxima em que você se enquadra.
+          <p className="mt-3">
+             A **Alíquota Efetiva** é o quanto você paga de verdade. Graças à base isenta e à parcela a deduzir de cada faixa, se você ganha R$ 10.000,00 sua alíquota efetiva será significativamente menor que os 27,5% da sua faixa máxima. Nosso simulador calcula esse valor exato para você.
           </p>
         </AccordionItem>
       </div>
@@ -279,6 +347,10 @@ const SEOContent: React.FC<Props> = ({ view }) => {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Dúvidas Frequentes & Base Legal</p>
         </div>
       </div>
+
+      <React.Suspense fallback={null}>
+        <Schema data={getFaqSchema()} />
+      </React.Suspense>
 
       {contentMap[view]}
 

@@ -7,62 +7,63 @@ interface AdUnitProps {
   label?: string;
 }
 
-const AdUnit: React.FC<AdUnitProps> = ({ slotId, format = 'auto', className = '', label = 'Publicidade' }) => {
+const AdUnit: React.FC<AdUnitProps> = ({ slotId, format = 'auto', className = '', label = 'Anúncio' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [adLoaded, setAdLoaded] = useState(false);
-  const isPlaceholder = slotId.includes('slot'); // Detecta se é o placeholder padrão do App.tsx
+  const isPlaceholder = slotId.includes('slot');
 
   useEffect(() => {
-    // Se for placeholder, não tenta carregar o script do AdSense
     if (isPlaceholder) return;
 
     const timer = setTimeout(() => {
       try {
-        const container = containerRef.current;
-        if (window.adsbygoogle && container && container.offsetWidth > 0) {
-          const alreadyHasAd = container.querySelector('iframe');
-          if (!alreadyHasAd) {
-             (window.adsbygoogle = window.adsbygoogle || []).push({});
-             setAdLoaded(true);
-          }
+        if (window.adsbygoogle && containerRef.current) {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          setAdLoaded(true);
         }
       } catch (e) {
         console.error("AdSense Error:", e);
       }
-    }, 200);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [slotId, isPlaceholder]);
 
-  // Se for placeholder, retorna um box visual de aviso
   if (isPlaceholder) {
     return (
-      <div className={`w-full flex flex-col items-center my-6 ${className}`}>
-        <span className="text-[10px] text-slate-300 uppercase tracking-widest mb-1">Espaço de Anúncio</span>
-        <div className="w-full h-24 bg-slate-100 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center text-slate-400 text-xs text-center p-4">
-          Configure o ID do AdSense em App.tsx <br/> (Slot: {slotId})
+      <div className={`w-full flex flex-col items-center my-8 ${className}`}>
+        <span className="text-[10px] text-slate-300 uppercase font-black tracking-[0.2em] mb-2">{label} Placeholder</span>
+        <div className="w-full h-32 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] flex items-center justify-center text-slate-400 text-xs text-center p-6 italic">
+          Configure o ID do AdSense para ativar monetização <br/> (Slot: {slotId})
         </div>
       </div>
     );
   }
 
+  // Pre-define heights to prevent CLS (Layout Shift)
+  const minHeight = format === 'rectangle' ? '250px' : '280px';
+
   return (
-    <div className={`w-full flex flex-col items-center my-6 ${className}`}>
-      <span className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">{label}</span>
+    <div className={`w-full flex flex-col items-center my-8 ${className}`}>
+      <span className="text-[10px] text-slate-400 uppercase font-black tracking-[0.2em] mb-2">{label}</span>
       <div
         ref={containerRef}
-        className="w-full bg-slate-50 min-h-[250px] flex items-center justify-center rounded-lg overflow-hidden border border-slate-100 relative"
+        className="w-full bg-white flex items-center justify-center rounded-[2rem] transition-all duration-500 overflow-hidden relative border border-slate-100 shadow-sm"
+        style={{ minHeight }}
       >
         <ins
           className="adsbygoogle"
-          style={{ display: 'block', width: '100%', minHeight: '250px' }}
+          style={{ display: 'block', width: '100%', minHeight }}
           data-ad-client="ca-pub-9013233807727287"
           data-ad-slot={slotId}
           data-ad-format={format}
           data-full-width-responsive="true"
         />
         {!adLoaded && (
-             <span className="text-slate-300 text-xs absolute pointer-events-none">Carregando...</span>
+             <div className="absolute inset-0 bg-slate-50 flex flex-col items-center justify-center gap-3 shimmer">
+                <div className="w-8 h-8 border-2 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+                <span className="text-slate-300 text-[10px] uppercase font-bold tracking-widest">Sincronizando Anúncio...</span>
+             </div>
         )}
       </div>
     </div>

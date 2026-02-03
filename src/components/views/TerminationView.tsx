@@ -19,6 +19,16 @@ const initialConsigned: ConsignedInput = {
 
 const TerminationView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
+  const Schema = React.lazy(() => import('../Schema'));
+
+  const terminationSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Calculadora de Rescisão de Contrato 2026",
+    "operatingSystem": "Web",
+    "applicationCategory": "FinanceApplication",
+    "description": "Simulador completo de rescisão trabalhista 2026. Calcule FGTS, aviso prévio, férias e 13º proporcional."
+  };
 
   const [data, setData] = useState<TerminationInput>({
     grossSalary: 0, startDate: '', endDate: '', reason: 'dismissal_no_cause', noticeStatus: 'indemnified', hasExpiredVacation: false, thirteenthAdvancePaid: false, includeDependents: false, dependents: 0,
@@ -60,10 +70,17 @@ const TerminationView: React.FC = () => {
   return (
    <div className="w-full max-w-7xl mx-auto pb-24">
       <Helmet>
-        <title>Calculadora de Rescisão 2026 - Cálculo Trabalhista</title>
-        <meta name="description" content="Simulador de Rescisão de Contrato de Trabalho 2026. Calcule saldo de salário, aviso prévio, férias proporcionais e multa do FGTS." />
+        <title>Calculadora de Rescisão 2026 | Simulação de Contrato CLT</title>
+        <meta name="description" content="Simuladore de Rescisão 2026 (TRCT). Calcule saldo de salário, aviso prévio, férias proporcionais, multa de 40% do FGTS e seguro desemprego. Preciso e atualizado." />
         <link rel="canonical" href="https://calculadorasalariobr.com.br/rescisao" />
+        <meta property="og:title" content="Calculadora de Rescisão 2026 | Simulação de Contrato CLT" />
+        <meta property="og:description" content="Saiba o valor exato da sua rescisão trabalhista 2026 em segundos." />
+        <meta property="og:url" content="https://calculadorasalariobr.com.br/rescisao" />
       </Helmet>
+
+      <React.Suspense fallback={null}>
+        <Schema data={terminationSchema} />
+      </React.Suspense>
       {/* 1. CABEÇALHO */}
       <header className="mb-12 md:mb-16">
         <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">Rescisão de <span className="text-blue-600">Contrato</span></h2>
