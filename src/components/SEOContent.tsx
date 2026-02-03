@@ -1,7 +1,18 @@
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { ViewType } from '../types';
+import {
+  Check,
+  X,
+  HelpCircle,
+  Lightbulb,
+  ShieldCheck,
+  Zap,
+  Info,
+  ChevronRight,
+  AlertTriangle,
+  FileText
+} from 'lucide-react';
 
 
 // Componente auxiliar para link interno
@@ -11,7 +22,7 @@ const InternalLink = ({ to, label }: { to: string, label: string }) => (
     className="text-blue-600 font-bold hover:underline cursor-pointer inline-flex items-center gap-1"
   >
     {label}
-    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17l9.2-9.2M17 8v9"/></svg>
+    <ChevronRight size={12} strokeWidth={3} />
   </Link>
 );
 
@@ -33,11 +44,6 @@ interface Props {
 }
 
 const SEOContent: React.FC<Props> = ({ view }) => {
-
-  // Componente auxiliar para link interno
-
-
-
 
   const contentMap: Record<ViewType, React.ReactNode> = {
     salary: (
@@ -74,8 +80,8 @@ const SEOContent: React.FC<Props> = ({ view }) => {
           <h4 className="font-bold text-blue-900 mb-3">Dúvidas Frequentes</h4>
           <details className="mb-2 group">
             <summary className="cursor-pointer font-medium text-blue-800 hover:text-blue-600 transition-colors list-none flex items-center justify-between">
-              <span>O Vale Transporte é obrigatório descontar 6%?</span>
-              <span className="text-blue-400 group-open:rotate-180 transition-transform">▼</span>
+              <span className="flex items-center gap-2"><HelpCircle size={16} /> O Vale Transporte é obrigatório descontar 6%?</span>
+              <span className="text-blue-400 group-open:rotate-180 transition-transform text-[10px]">▼</span>
             </summary>
             <p className="mt-2 text-sm text-slate-600 pl-4 border-l-2 border-blue-200">
               Não. A lei diz que o desconto é de <strong>até 6%</strong> do salário básico. Se o custo real das passagens que você utiliza for menor que 6% do salário, o desconto deve ser limitado ao valor real do custo. A empresa não pode lucrar com este desconto.
@@ -83,8 +89,8 @@ const SEOContent: React.FC<Props> = ({ view }) => {
           </details>
           <details className="group">
             <summary className="cursor-pointer font-medium text-blue-800 hover:text-blue-600 transition-colors list-none flex items-center justify-between">
-              <span>Como o FGTS aparece no cálculo?</span>
-              <span className="text-blue-400 group-open:rotate-180 transition-transform">▼</span>
+              <span className="flex items-center gap-2"><Info size={16} /> Como o FGTS aparece no cálculo?</span>
+              <span className="text-blue-400 group-open:rotate-180 transition-transform text-[10px]">▼</span>
             </summary>
             <p className="mt-2 text-sm text-slate-600 pl-4 border-l-2 border-blue-200">
               O FGTS (8%) <strong>não é descontado</strong> do seu salário. Ele é um depósito extra e obrigatório feito pelo empregador em uma conta vinculada na Caixa Econômica Federal. Por isso, ele não reduz seu salário líquido mensal, mas é vital em caso de <InternalLink to="/rescisao" label="Rescisão de Contrato" />.
@@ -117,9 +123,10 @@ const SEOContent: React.FC<Props> = ({ view }) => {
           <strong>Vantagem Tributária:</strong> O abono pecuniário tem natureza indenizatória, ou seja, <strong>não há desconto de INSS ou Imposto de Renda</strong> sobre este valor específico, o que aumenta o ganho líquido.
         </p>
 
-        <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100 mt-6">
+        <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100 mt-6 flex gap-3 items-start">
+          <Zap className="text-yellow-600 shrink-0 mt-1" size={20} />
           <p className="text-sm text-yellow-800 font-bold">
-            ⚠️ Atenção ao Retorno: Ao receber o pagamento das férias adiantado, lembre-se que, ao voltar ao trabalho, você já terá recebido o salário daquele mês. É comum passar o mês seguinte ao retorno com o orçamento apertado. Use nossa <InternalLink to="/" label="Calculadora de Salário Líquido" /> para planejar seus meses seguintes.
+            Atenção ao Retorno: Ao receber o pagamento das férias adiantado, lembre-se que, ao voltar ao trabalho, você já terá recebido o salário daquele mês. É comum passar o mês seguinte ao retorno com o orçamento apertado. Use nossa <InternalLink to="/" label="Calculadora de Salário Líquido" /> para planejar seus meses seguintes.
           </p>
         </div>
         <MethodologyFooter />
@@ -136,13 +143,13 @@ const SEOContent: React.FC<Props> = ({ view }) => {
 
         <div className="grid md:grid-cols-2 gap-4 my-6">
           <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-            <h4 className="font-bold text-emerald-700 mb-2">1ª Parcela (Adiantamento)</h4>
+            <h4 className="font-bold text-emerald-700 mb-2 flex items-center gap-2 text-sm uppercase tracking-tighter"><Zap size={14} /> 1ª Parcela (Adiantamento)</h4>
             <p className="text-sm">
               Deve ser paga obrigatoriamente entre <strong>1º de fevereiro e 30 de novembro</strong>. Corresponde a 50% do salário do mês anterior. O grande diferencial é que, nesta parcela, <strong>não há descontos</strong> de impostos (INSS/IR).
             </p>
           </div>
           <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-            <h4 className="font-bold text-blue-700 mb-2">2ª Parcela (Quitação)</h4>
+            <h4 className="font-bold text-blue-700 mb-2 flex items-center gap-2 text-sm uppercase tracking-tighter"><ShieldCheck size={14} /> 2ª Parcela (Quitação)</h4>
             <p className="text-sm">
               Deve ser paga até <strong>20 de dezembro</strong>. Nesta etapa, calcula-se o valor total do 13º devido, descontam-se o INSS e o IR (sobre o valor total) e subtrai-se o adiantamento já recebido na primeira parcela.
             </p>
@@ -181,7 +188,7 @@ const SEOContent: React.FC<Props> = ({ view }) => {
 
         <div className="bg-red-50 p-6 rounded-xl border border-red-100 mt-6 shadow-sm">
            <h4 className="font-bold text-red-900 mb-3 flex items-center gap-2">
-             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+             <AlertTriangle size={20} />
              Risco Financeiro: Empréstimo Consignado na Rescisão
            </h4>
            <div className="text-sm text-red-800 space-y-2">
@@ -191,7 +198,7 @@ const SEOContent: React.FC<Props> = ({ view }) => {
                Recomendamos simular sua margem na nossa <InternalLink to="/consignado" label="Calculadora de Consignado" /> para evitar surpresas.
              </p>
              <p className="font-bold bg-red-100 p-2 rounded text-red-950 border border-red-200">
-               ⚠️ ATENÇÃO: Se o valor da rescisão não cobrir a dívida, alguns contratos bancários preveem a retenção da Multa de 40% do FGTS ou até mesmo do Saldo do FGTS (se houve garantia contratada).
+               ATENÇÃO: Se o valor da rescisão não cobrir a dívida, alguns contratos bancários preveem a retenção da Multa de 40% do FGTS ou até mesmo do Saldo do FGTS (se houve garantia contratada).
              </p>
            </div>
         </div>
@@ -220,11 +227,10 @@ const SEOContent: React.FC<Props> = ({ view }) => {
           Porém, atenção: ao optar por isso, parte do seu saldo FGTS fica bloqueado, o que pode impactar o valor disponível para saque em uma eventual <InternalLink to="/rescisao" label="Rescisão" />.
         </p>
 
-        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 mt-6">
-          <h4 className="font-bold text-blue-900 mb-2">Dica de Especialista: Olhe o CET</h4>
-          <p className="text-sm text-blue-800">
-            Muitos focam apenas na taxa de juros nominal, mas o indicador mais importante é o <strong>Custo Efetivo Total (CET)</strong>.
-            Ele soma os juros, taxas administrativas, seguros e impostos (IOF). Um juro baixo com taxas altas pode tornar o empréstimo caro. Sempre compare o CET antes de contratar.
+        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 mt-6 flex gap-3 items-start">
+          <ShieldCheck className="text-blue-600 shrink-0 mt-1" size={20} />
+          <p className="text-sm text-blue-800 font-bold">
+            Dica de Especialista: Olhe o CET. Muitos focam apenas na taxa de juros nominal, mas o indicador mais importante é o Custo Efetivo Total (CET). Ele soma os juros, taxas administrativas, seguros e impostos (IOF).
           </p>
         </div>
         <MethodologyFooter />
@@ -241,46 +247,45 @@ const SEOContent: React.FC<Props> = ({ view }) => {
         <div className="grid md:grid-cols-2 gap-6 my-6">
            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
               <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-                 <span className="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded">CLT</span>
+                 <span className="bg-blue-200 text-blue-800 text-[10px] px-2 py-0.5 rounded font-black tracking-widest uppercase">CLT</span>
                  Carteira Assinada
               </h4>
-              <ul className="text-sm space-y-2 text-slate-700">
-                 <li>✅ <strong>FGTS (8%):</strong> Depósito mensal extra e multa de 40% na demissão.</li>
-                 <li>✅ <strong>Férias + 1/3:</strong> 30 dias de descanso remunerado com bônus.</li>
-                 <li>✅ <strong>13º Salário:</strong> Um salário extra no fim do ano.</li>
-                 <li>✅ <strong>Seguro Desemprego:</strong> Proteção em demissão involuntária.</li>
-                 <li>✅ <strong>Benefícios:</strong> Vale transporte, refeição e plano de saúde (comuns).</li>
-                 <li>❌ <strong>Descontos Altos:</strong> INSS e IR retidos na fonte reduzem o líquido.</li>
-              </ul>
+              <ul className="text-sm space-y-3 text-slate-700 mt-4">
+                  <li className="flex items-start gap-2"><Check size={14} className="text-blue-500 mt-1 shrink-0" /> <span><strong>FGTS (8%):</strong> Depósito mensal extra e multa de 40% na demissão.</span></li>
+                  <li className="flex items-start gap-2"><Check size={14} className="text-blue-500 mt-1 shrink-0" /> <span><strong>Férias + 1/3:</strong> 30 dias de descanso remunerado com bônus.</span></li>
+                  <li className="flex items-start gap-2"><Check size={14} className="text-blue-500 mt-1 shrink-0" /> <span><strong>13º Salário:</strong> Um salário extra no fim do ano.</span></li>
+                  <li className="flex items-start gap-2"><Check size={14} className="text-blue-500 mt-1 shrink-0" /> <span><strong>Seguro Desemprego:</strong> Proteção em demissão involuntária.</span></li>
+                  <li className="flex items-start gap-2"><Check size={14} className="text-blue-500 mt-1 shrink-0" /> <span><strong>Benefícios:</strong> Vale transporte, refeição e plano de saúde (comuns).</span></li>
+                  <li className="flex items-start gap-2"><X size={14} className="text-red-500 mt-1 shrink-0" /> <span><strong>Descontos Altos:</strong> INSS e IR retidos na fonte reduzem o líquido.</span></li>
+               </ul>
            </div>
 
            <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
               <h4 className="font-bold text-indigo-800 mb-2 flex items-center gap-2">
-                 <span className="bg-indigo-200 text-indigo-800 text-xs px-2 py-0.5 rounded">PJ</span>
+                 <span className="bg-indigo-200 text-indigo-800 text-[10px] px-2 py-0.5 rounded font-black tracking-widest uppercase">PJ</span>
                  Prestador de Serviço
               </h4>
-               <ul className="text-sm space-y-2 text-slate-700">
-                 <li>✅ <strong>Maior Líquido:</strong> Impostos costumam ser menores (6% a 15%) que na CLT.</li>
-                 <li>✅ <strong>Liberdade:</strong> Maior flexibilidade de horário e clientes (teoricamente).</li>
-                 <li>❌ <strong>Sem Benefícios Legais:</strong> Não tem férias, 13º nem FGTS por lei.</li>
-                 <li>❌ <strong>Custos Extras:</strong> Contador mensal, abertura de empresa e taxas.</li>
-                 <li>❌ <strong>Risco:</strong> Rescisão imediata sem aviso prévio ou multa indenizatória.</li>
-                 <li>❌ <strong>Pejotização:</strong> É ilegal exigir subordinação e horário de "funcionário" para PJ.</li>
-              </ul>
+               <ul className="text-sm space-y-3 text-slate-700 mt-4">
+                  <li className="flex items-start gap-2"><Check size={14} className="text-indigo-500 mt-1 shrink-0" /> <span><strong>Maior Líquido:</strong> Impostos menores (6% a 15%) que na CLT.</span></li>
+                  <li className="flex items-start gap-2"><Check size={14} className="text-indigo-500 mt-1 shrink-0" /> <span><strong>Liberdade:</strong> Maior flexibilidade de horário e clientes.</span></li>
+                  <li className="flex items-start gap-2"><X size={14} className="text-red-400 mt-1 shrink-0" /> <span><strong>Sem Benefícios Legais:</strong> Não tem férias, 13º nem FGTS por lei.</span></li>
+                  <li className="flex items-start gap-2"><X size={14} className="text-red-400 mt-1 shrink-0" /> <span><strong>Custos Extras:</strong> Contador mensal e taxas de conta.</span></li>
+                  <li className="flex items-start gap-2"><X size={14} className="text-red-400 mt-1 shrink-0" /> <span><strong>Risco:</strong> Rescisão imediata sem aviso prévio.</span></li>
+                  <li className="flex items-start gap-2"><X size={14} className="text-red-400 mt-1 shrink-0" /> <span><strong>Pejotização:</strong> É ilegal exigir subordinação e horário de "funcionário".</span></li>
+               </ul>
            </div>
         </div>
 
         <h3 className="text-xl font-semibold text-slate-700 mt-6 mb-2">Fator R: O Segredo do Imposto PJ</h3>
         <p className="mb-4">
           Para profissionais de TI, engenharia e outras áreas intelectuais, o imposto no Simples Nacional pode ser de <strong>6% (Anexo III)</strong> ou pular para <strong>15,5% (Anexo V)</strong>.
-          Para garantir a alíquota menor de 6%, é necessário que a sua folha de pagamento (Pró-labore) seja igual ou superior a 28% do seu faturamento mensal. Isso se chama "Fator R".
-          Na nossa simulação, consideramos o cenário padrão onde o imposto incide sobre o bruto.
+          Para garantir a alíquota menor de 6%, é necessário que a sua folha de pagamento (Pró-labore) seja igual ou superior a 28% do seu faturamento mensal.
         </p>
 
-        <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100 mt-6">
-          <p className="text-sm text-yellow-800 font-bold">
-            💡 Regra de Ouro: Para compensar a perda dos benefícios da CLT (Férias, 13º, FGTS, VR, VA), o salário PJ deve ser, no mínimo, 30% a 50% maior que o salário Bruto CLT equivalente.
-            Se a proposta PJ for igual ao valor CLT, você estará perdendo dinheiro.
+        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 mt-6 flex gap-3 items-start">
+          <Lightbulb className="text-blue-600 shrink-0 mt-1" size={20} />
+          <p className="text-sm text-blue-800 font-bold leading-relaxed">
+            Regra de Ouro: Para compensar a perda dos benefícios da CLT (Férias, 13º, FGTS, VR, VA), o salário PJ deve ser, no mínimo, 30% a 50% maior que o salário Bruto CLT equivalente.
           </p>
         </div>
 
@@ -302,15 +307,10 @@ const SEOContent: React.FC<Props> = ({ view }) => {
            <li><strong>Cálculo Legal:</strong> Considera todas as suas deduções comprovadas (INSS pago, dependentes R$ 189,59 cada, pensão alimentícia, etc).</li>
            <li><strong>Cálculo Simplificado:</strong> Substitui todas as deduções legais por um desconto padrão de R$ 564,80 direto na base de cálculo.</li>
         </ul>
-        <p className="mb-4">
-           Se você ganha até aprox. R$ 5.000,00 e tem poucos dependentes, o Simplificado geralmente garante a isenção. Se você tem muitos dependentes ou paga pensão alta, o Legal pode ser melhor.
-        </p>
 
         <h3 className="text-xl font-semibold text-slate-700 mt-6 mb-2">Alíquota Efetiva: O que é?</h3>
         <p className="mb-4">
-           É a porcentagem real do seu salário que fica com o Leão. Por exemplo, mesmo que você esteja na faixa de 27,5% (Alíquota Nominal), você nunca paga 27,5% do salário total.
-           Graças à "Parcela a Deduzir" e à progressividade (as primeiras faixas de renda pagam menos), sua alíquota efetiva será sempre menor.
-           Este simulador mostra exatamente essa porcentagem real.
+           É a porcentagem real do seu salário que fica com o Leão. Graças à "Parcela a Deduzir" e à progressividade, sua alíquota efetiva será sempre menor que a alíquota nominal da faixa.
         </p>
         <MethodologyFooter />
       </article>
@@ -320,9 +320,7 @@ const SEOContent: React.FC<Props> = ({ view }) => {
   return (
     <div className="mt-12 max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-slate-100 animate-fade-in">
       <div className="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <FileText className="text-blue-600" size={20} />
         <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Guia Oficial & Base Legal</span>
       </div>
       {contentMap[view]}
