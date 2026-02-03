@@ -41,7 +41,7 @@ const ConsignedView: React.FC = () => {
      <Helmet>
         <title>Simulador Margem Consignável 2026 - Cálculo Exato</title>
         <meta name="description" content="Descubra sua margem consignável (35% da renda líquida) de acordo com a regra de 2026. Evite endividamento excessivo." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/consignado" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/consignado" />
      </Helmet>
      <header>
        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Simulador de Margem Consignável</h2>

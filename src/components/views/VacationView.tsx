@@ -62,7 +62,7 @@ const VacationView: React.FC = () => {
      <Helmet>
         <title>Calculadora de Férias 2026 - CLT Atualizada</title>
         <meta name="description" content="Simule o valor exato das suas férias 2026. Inclui venda de dias (abono), 1/3 constitucional e adiantamento de 13º salário." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/ferias" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/ferias" />
      </Helmet>
      {/* 1. CABEÇALHO */}
      <header className="mb-8 md:mb-12">

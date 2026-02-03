@@ -8,7 +8,7 @@ const TermsView: React.FC = () => {
       <Helmet>
         <title>Termos de Uso - Calculadora Salário 2026</title>
         <meta name="description" content="Termos de Uso e Condições do site Calculadora Salário 2026. Leia sobre nossas isenções legais." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/termos" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/termos" />
       </Helmet>
 
       <header className="mb-12 md:mb-16">

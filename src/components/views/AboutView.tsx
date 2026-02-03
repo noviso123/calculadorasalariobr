@@ -8,7 +8,7 @@ const AboutView: React.FC = () => {
        <Helmet>
         <title>Sobre Nós - Calculadora Salário 2026</title>
         <meta name="description" content="Conheça a missão do Calculadora Salário 2026. Transparência, dados oficiais e educação financeira gratuita para todos os brasileiros." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/sobre" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/sobre" />
       </Helmet>
 
       <header className="mb-12 md:mb-16">

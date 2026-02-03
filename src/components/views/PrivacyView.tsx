@@ -8,7 +8,7 @@ const PrivacyView: React.FC = () => {
       <Helmet>
         <title>Privacidade - Calculadora Salário 2026</title>
         <meta name="description" content="Política de Privacidade do Calculadora Salário 2026. Saiba como protegemos seus dados." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/politica-privacidade" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/politica-privacidade" />
       </Helmet>
 
       <header className="mb-12 md:mb-16">

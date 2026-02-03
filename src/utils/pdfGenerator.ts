@@ -20,7 +20,7 @@ export const generatePayslipPdf = (result: CalculationResult) => {
 
   doc.setFontSize(10);
   doc.setTextColor(255, 255, 255);
-  doc.text("CalculadoraSalario2026.com.br", 105, 27, { align: 'center' });
+  doc.text("calculadorasalariobr.com.br", 105, 27, { align: 'center' });
 
   // -- INFO DO FUNCIONÁRIO (SIMULADO) --
   doc.setTextColor(0, 0, 0);

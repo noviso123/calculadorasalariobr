@@ -64,7 +64,7 @@ const ThirteenthView: React.FC = () => {
       <Helmet>
         <title>Calculadora Décimo Terceiro 2026 - 1ª e 2ª Parcela</title>
         <meta name="description" content="Saiba quanto vai receber de 13º Salário em 2026. Cálculo exato da primeira e segunda parcela com descontos atualizados." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/decimo-terceiro" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/decimo-terceiro" />
       </Helmet>
       {/* 1. CABEÇALHO */}
       <header className="mb-12 md:mb-16">

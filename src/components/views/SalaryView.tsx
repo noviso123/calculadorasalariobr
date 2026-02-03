@@ -67,7 +67,7 @@ const SalaryView: React.FC = () => {
       <Helmet>
         <title>Calculadora Salário Líquido 2026 - Oficial e Atualizada</title>
         <meta name="description" content="Calcule seu salário líquido 2026 com as novas tabelas de INSS e IRRF. Simule descontos, horas extras e benefícios. Grátis e preciso." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/" />
       </Helmet>
 
       {/* 1. CABEÇALHO */}

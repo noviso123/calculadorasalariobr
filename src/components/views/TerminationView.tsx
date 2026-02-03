@@ -62,7 +62,7 @@ const TerminationView: React.FC = () => {
       <Helmet>
         <title>Calculadora de Rescisão 2026 - Cálculo Trabalhista</title>
         <meta name="description" content="Simulador de Rescisão de Contrato de Trabalho 2026. Calcule saldo de salário, aviso prévio, férias proporcionais e multa do FGTS." />
-        <link rel="canonical" href="https://calculadorasalario2026.com.br/rescisao" />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/rescisao" />
       </Helmet>
       {/* 1. CABEÇALHO */}
       <header className="mb-12 md:mb-16">
