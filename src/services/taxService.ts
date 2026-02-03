@@ -13,34 +13,45 @@ const roundHelper = (value: number): number => {
 // NOTA: A base recebida JÁ DEVE TER O INSS DESCONTADO.
 // Implementa a lógica do Desconto Simplificado (R$ 564,80) automaticamente se for mais benéfico.
 const calculateIrpfOnly = (baseAfterInss: number, startBaseForSimplified: number): number => {
-  // 1. Cálculo Legal (Deduções Legais: INSS já foi deduzido da base, agora só falta dependentes e pensão se houver)
-  // Como 'baseAfterInss' já vem com (Bruto - INSS - Dependentes), usamos ela direto para o cálculo legal.
+  // 1. Regra "Novo IR 2026" (Isenção até 5.000 e Escalonamento até 7.350)
+  // Conforme solicitação do usuário e Simulação da Lei 15.270:
+  // - Até R$ 5.000,00 (Bruto): Isento.
+  // - Entre R$ 5.000,01 e R$ 7.350,00: Tributação Linear de Transição.
+  //   Baseado no ponto de dados: 5200 Bruto -> 71.62 Imposto.
+  //   Formula: (Bruto - 5000) * 0.3581.
+  // - Acima de R$ 7.350,00: Tabela Progressiva Padrão.
 
+  // Caso 1: Isenção Total
+  if (startBaseForSimplified <= 5000.00) {
+      return 0;
+  }
+
+  // Caso 2: Faixa de Transição (5k - 7.35k)
+  if (startBaseForSimplified <= 7350.00) {
+      const excess = startBaseForSimplified - 5000.00;
+      const taxTransition = excess * 0.3581;
+      return roundHelper(Math.max(0, taxTransition));
+  }
+
+  // Caso 3: Padrão (Acima de 7.35k) -> Cálculo "Melhor Entre Legal e Simplificado"
+
+  // 3a. Cálculo Legal (Inss já deduzido da base)
   let taxLegal = 0;
   for (const bracket of IRPF_BRACKETS) {
       if (baseAfterInss <= bracket.limit) {
           taxLegal = (baseAfterInss * bracket.rate) - bracket.deduction;
           break;
       }
-      // Se for a última faixa (Infinity), cai aqui também
       if (bracket.limit === Infinity) {
            taxLegal = (baseAfterInss * bracket.rate) - bracket.deduction;
       }
   }
   taxLegal = Math.max(0, taxLegal);
 
-
-  // 2. Cálculo Simplificado (Desconto de R$ 564,80 direto da Base Bruta sem deduções legais)
-  // A 'startBaseForSimplified' deve ser o (Bruto - INSS_Oficial) ? NÃO.
-  // A regra do simplificado é: Base de Cálculo = (Rendimentos Tributáveis - Desconto Simplificado).
-  // O Desconto Simplificado substitui TODAS as deduções legais (INSS, Dependentes, Pensão).
-  // PORÉM, na prática da folha, verifica-se qual base é menor: (Bruto - Deduções Legais) OU (Bruto - 564,80).
-  // Se (Bruto - 564,80) for MENOR que (Bruto - INSS - Dep), usa-se o simplificado.
-  // Caso contrário, usa-se o Legal.
-
-  // O parâmetro 'startBaseForSimplified' DEVE SER O TOTAL BRUTO TRIBUTÁVEL.
+  // 3b. Cálculo Simplificado (Desconto Padrão)
+  // Mas atenção: Para incomes > 7350, o "simplificado" atual ainda vale?
+  // Sim, a regra padrão se aplica acima do teto da transição.
   const baseSimplified = Math.max(0, startBaseForSimplified - SIMPLIFIED_DISCOUNT_VALUE);
-
   let taxSimplified = 0;
    for (const bracket of IRPF_BRACKETS) {
       if (baseSimplified <= bracket.limit) {
@@ -53,7 +64,6 @@ const calculateIrpfOnly = (baseAfterInss: number, startBaseForSimplified: number
   }
   taxSimplified = Math.max(0, taxSimplified);
 
-  // Retorna o menor imposto (Benéfico ao contribuinte)
   return roundHelper(Math.min(taxLegal, taxSimplified));
 };
 
