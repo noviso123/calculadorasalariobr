@@ -27,14 +27,18 @@ const TerminationView: React.FC = () => {
 
   const [result, setResult] = useState<TerminationResult | null>(null);
 
-
+  // Real-time calculation
+  React.useEffect(() => {
+    if (data.grossSalary > 0 && data.startDate && data.endDate) {
+        setResult(calculateTermination(data));
+    } else {
+        setResult(null);
+    }
+  }, [data]);
 
   const handleCalc = (e: React.FormEvent) => {
     e.preventDefault();
-    if(data.startDate && data.endDate) {
-      setResult(calculateTermination(data));
-      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-    }
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const formatCurrency = (val: number) =>
@@ -210,7 +214,7 @@ const TerminationView: React.FC = () => {
                 </label>
                </div>
 
-               <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform active:scale-[0.98] text-lg mt-4">Simular Rescisão</button>
+               {/* <button type="submit" ... /> */}
             </form>
          </section>
 

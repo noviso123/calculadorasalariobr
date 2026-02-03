@@ -28,11 +28,20 @@ const ThirteenthView: React.FC = () => {
 
   const [result, setResult] = useState<ThirteenthResult | null>(null);
 
+  // Real-time calculation
+  React.useEffect(() => {
+    if (data.grossSalary > 0) {
+        setResult(calculateThirteenth(data));
+    } else {
+        setResult(null);
+    }
+  }, [data]);
+
   const handleCalc = (e: React.FormEvent) => {
     e.preventDefault();
-    setResult(calculateThirteenth(data));
-    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -98,7 +107,7 @@ const ThirteenthView: React.FC = () => {
                 onChange={(d) => setData({...data, consigned: d})}
               />
 
-               <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-2 active:scale-[0.98] text-lg">Simular Parcelas</button>
+               {/* <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg transition-all mt-2 active:scale-[0.98] text-lg">Simular Parcelas</button> */}
             </form>
          </section>
 

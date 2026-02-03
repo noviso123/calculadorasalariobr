@@ -9,20 +9,28 @@ const ConsignedView: React.FC = () => {
   const [grossSalary, setGrossSalary] = useState(0);
   const [result, setResult] = useState<{margin: number, maxInstallment: number} | null>(null);
 
+  // Real-time calculation
+  React.useEffect(() => {
+    if (grossSalary > 0) {
+      // Simula cálculo de salário básico para obter a margem
+      const simResult = calculateSalary({
+        grossSalary,
+        includeDependents: false, dependents: 0, otherDiscounts: 0, healthInsurance: 0, transportVoucherPercent: 0, includeTransportVoucher: false,
+        includeExtras: false, extras: { workload: 220, hours50: 0, hours100: 0, hoursNight: 0, hoursStandby: 0, hoursInterjornada: 0, includeDsr: false },
+        includeConsigned: true, consigned: { monthlyInstallment: 9999999, outstandingBalance: 0, hasFgtsWarranty: false, fgtsBalance: 0 } // Força o cálculo da margem máxima
+      });
+      setResult({
+        margin: simResult.maxConsignableMargin,
+        maxInstallment: simResult.maxConsignableMargin
+      });
+    } else {
+        setResult(null);
+    }
+  }, [grossSalary]);
+
   const handleCalc = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simula cálculo de salário básico para obter a margem
-    const simResult = calculateSalary({
-      grossSalary,
-      includeDependents: false, dependents: 0, otherDiscounts: 0, healthInsurance: 0, transportVoucherPercent: 0, includeTransportVoucher: false,
-      includeExtras: false, extras: { workload: 220, hours50: 0, hours100: 0, hoursNight: 0, hoursStandby: 0, hoursInterjornada: 0, includeDsr: false },
-      includeConsigned: true, consigned: { monthlyInstallment: 9999999, outstandingBalance: 0, hasFgtsWarranty: false, fgtsBalance: 0 } // Força o cálculo da margem máxima
-    });
-    setResult({
-      margin: simResult.maxConsignableMargin,
-      maxInstallment: simResult.maxConsignableMargin
-    });
-    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const formatCurrency = (val: number) =>
@@ -49,7 +57,7 @@ const ConsignedView: React.FC = () => {
              </p>
              <InputGroup label="Seu Salário Bruto" value={grossSalary} onChange={(v) => setGrossSalary(Number(v))} required />
            </div>
-           <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-lg">Calcular Margem</button>
+             {/* <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-lg">Calcular Margem</button> */}
         </form>
 
         {result && (

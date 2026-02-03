@@ -28,11 +28,21 @@ const SalaryView: React.FC = () => {
 
   const [result, setResult] = useState<CalculationResult | null>(null);
 
+  // Real-time calculation
+  React.useEffect(() => {
+    if (data.grossSalary > 0) {
+        setResult(calculateSalary(data));
+    } else {
+        setResult(null);
+    }
+  }, [data]);
+
   const handleCalc = (e: React.FormEvent) => {
     e.preventDefault();
-    setResult(calculateSalary(data));
-    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+    // Optional: Scroll to results if needed, or just do nothing as it's auto-calc
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
 
   const aiContext: AIContext | null = React.useMemo(() => {
     if (!result) return null;
@@ -115,9 +125,8 @@ const SalaryView: React.FC = () => {
               <InputGroup label="Plano de Saúde" value={data.healthInsurance} onChange={(v) => setData({...data, healthInsurance: Number(v)})} />
               <InputGroup label="Outros Descontos" value={data.otherDiscounts} onChange={(v) => setData({...data, otherDiscounts: Number(v)})} />
 
-              <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform active:scale-[0.98] text-lg mt-2">
-                Calcular Líquido
-              </button>
+              {/* Botão removido para UX Dinâmica (Cálculo em Tempo Real) */}
+              {/* <button type="submit" ... /> */}
            </form>
         </section>
 
