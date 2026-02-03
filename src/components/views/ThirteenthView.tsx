@@ -72,8 +72,8 @@ const ThirteenthView: React.FC = () => {
   return (
    <div className="w-full max-w-5xl mx-auto pb-24">
       <Helmet>
-        <title>Calculadora Décimo Terceiro 2026 | Simular 1ª e 2ª Parcela</title>
-        <meta name="description" content="Saiba quanto vai receber de 13º Salário em 2026. Cálculo exato da primeira e segunda parcela com descontos de fim de ano atualizados. Grátis e online." />
+        <title>Calculadora de 13º Salário 2026 | Simule Suas Parcelas</title>
+        <meta name="description" content="Calcule seu décimo terceiro salário para 2026. Simule a 1ª e 2ª parcela com descontos de INSS e IRPF atualizados. Grátis e preciso." />
         <link rel="canonical" href="https://calculadorasalariobr.com.br/decimo-terceiro" />
         <meta property="og:title" content="Calculadora Décimo Terceiro 2026 | Simular Parcelas" />
         <meta property="og:description" content="Veja o valor da sua 1ª e 2ª parcela do 13º 2026 em segundos." />
@@ -181,6 +181,17 @@ const ThirteenthView: React.FC = () => {
                          {formatCurrency(result.finalTotalNet)}
                      </p>
                   </div>
+
+                {/* BOTÃO PDF */}
+                <div className="flex justify-center mt-6">
+                    <button
+                      onClick={() => import('../../utils/pdfGenerator').then(mod => mod.generateThirteenthPdf(result))}
+                      className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 group"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="group-hover:translate-y-0.5 transition-transform" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                      Baixar Resumo 13º (PDF)
+                    </button>
+                </div>
                </div>
             )}
          </section>

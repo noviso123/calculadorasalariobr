@@ -372,9 +372,20 @@ const TerminationView: React.FC = () => {
                               </div>
                           )}
                         </div>
-                      </div>
-                  </div>
-               </div>
+                   </div>
+
+                   {/* BOTÃO PDF */}
+                   <div className="flex justify-center mt-8">
+                        <button
+                          onClick={() => import('../../utils/pdfGenerator').then(mod => mod.generateTerminationPdf(result))}
+                          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 px-10 rounded-full shadow-2xl shadow-slate-900/20 transition-all active:scale-95 group"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="group-hover:translate-y-0.5 transition-transform" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                          Baixar Simulação Rescisória (PDF)
+                        </button>
+                   </div>
+                </div>
+              </div>
             )}
          </section>
       </div>

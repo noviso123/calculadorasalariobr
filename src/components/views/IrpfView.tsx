@@ -39,8 +39,9 @@ const IrpfView: React.FC = () => {
   return (
     <div className="w-full max-w-5xl mx-auto pb-24">
        <Helmet>
-        <title>Simulador de Alíquota Efetiva IRPF 2026</title>
-        <meta name="description" content="Simulador oficial de Imposto de Renda 2026. Compare o desconto simplificado x legal e descubra sua alíquota efetiva real." />
+        <title>Simulador IRPF 2026 | Alíquota Efetiva e Cálculo de Imposto</title>
+        <meta name="description" content="Simulador oficial de Imposto de Renda 2026 com a nova isenção de 5k. Compare o desconto simplificado x legal e descubra sua alíquota efetiva real." />
+        <link rel="canonical" href="https://calculadorasalariobr.com.br/irpf-simulador" />
       </Helmet>
 
       <header className="mb-12 md:mb-16">
@@ -146,11 +147,18 @@ const IrpfView: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-sm text-yellow-800 flex gap-3">
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                   <p>
-                     <strong>Dica:</strong> Embora a alíquota nominal possa chegar a 27.5%, sua alíquota efetiva é de apenas <strong>{result.effectiveRate}%</strong> devido à progressividade da tabela e à parcela a deduzir.
-                   </p>
+                    </p>
+                </div>
+
+                {/* BOTÃO PDF */}
+                <div className="flex justify-center mt-6">
+                    <button
+                      onClick={() => import('../../utils/pdfGenerator').then(mod => mod.generateIrpfPdf(result))}
+                      className="flex items-center gap-2 bg-[#003673] hover:bg-[#002855] text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 group"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="group-hover:translate-y-0.5 transition-transform" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                      Baixar Simulação IRPF (PDF)
+                    </button>
                 </div>
 
                 {/* AI ADVISOR INTEGRATION */}

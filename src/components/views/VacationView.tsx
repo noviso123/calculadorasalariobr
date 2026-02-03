@@ -71,8 +71,8 @@ const VacationView: React.FC = () => {
   return (
    <div className="w-full max-w-5xl mx-auto pb-24">
      <Helmet>
-        <title>Calculadora de Férias 2026 | Simule seu Recibo CLT</title>
-        <meta name="description" content="Simule o valor exato das suas férias 2026. Inclui venda de dias (abono), 1/3 constitucional e adiantamento de 13º salário. 100% atualizada e grátis." />
+        <title>Calculadora de Férias 2026 | Simulação CLT Completa</title>
+        <meta name="description" content="Calcule o valor exato das suas férias em 2026. Simule abono pecuniário, 1/3 constitucional e adiantamento do 13º com as novas regras de 2026." />
         <link rel="canonical" href="https://calculadorasalariobr.com.br/ferias" />
         <meta property="og:title" content="Calculadora de Férias 2026 | Simule seu Recibo CLT" />
         <meta property="og:description" content="Simulador completo de férias 2026 com abono e descontos oficiais." />
@@ -197,8 +197,19 @@ const VacationView: React.FC = () => {
                        <span>Total Descontos</span>
                        <span className="text-red-600">{formatCurrency(result.totalDiscounts + result.consignedDiscount)}</span>
                      </div>
-                  </div>
-               </div>
+
+                   {/* BOTÃO PDF */}
+                   <div className="flex justify-center mt-6">
+                        <button
+                          onClick={() => import('../../utils/pdfGenerator').then(mod => mod.generateVacationPdf(result))}
+                          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all active:scale-95 group"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="group-hover:translate-y-0.5 transition-transform" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                          Baixar Resumo Férias (PDF)
+                        </button>
+                   </div>
+                </div>
+              </div>
             )}
         </section>
      </div>
