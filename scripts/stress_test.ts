@@ -73,6 +73,22 @@ const salaryScenarios = [
         } as SalaryInput,
         expectedInss: 977.45,
         expectedFamilySalary: 0
+    },
+    {
+        name: "Cenário 4: Reportado pelo Usuário (R$ 5.200,00)",
+        input: {
+            grossSalary: 5200.00,
+            otherDiscounts: 0,
+            dependents: 0,
+            includeTransportVoucher: false,
+            transportVoucherPercent: 6,
+            workDays: 22,
+            includeExtras: false,
+            includeConsigned: false,
+            includeDependents: false
+        } as SalaryInput,
+        expectedInss: 518.87,
+        expectedFamilySalary: 0
     }
 ];
 

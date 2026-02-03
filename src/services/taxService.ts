@@ -1,5 +1,5 @@
 import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput } from '../types';
-import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE } from '../config/taxConstants';
+import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE, IRPF_BRACKETS, SIMPLIFIED_DISCOUNT_VALUE } from '../config/taxConstants';
 
 
 const roundHelper = (value: number): number => {
@@ -10,38 +10,51 @@ const roundHelper = (value: number): number => {
 
 // Função auxiliar para cálculo de IRPF isolado
 // Recebe flag hasDependents para aplicar regra de corte específica
-const calculateIrpfOnly = (base: number, hasDependents: boolean): number => {
-  // 1. Proteção inicial: Base não pode ser negativa
-  const safeBase = Math.max(0, base);
+// NOTA: A base recebida JÁ DEVE TER O INSS DESCONTADO.
+// Implementa a lógica do Desconto Simplificado (R$ 564,80) automaticamente se for mais benéfico.
+const calculateIrpfOnly = (baseAfterInss: number, startBaseForSimplified: number): number => {
+  // 1. Cálculo Legal (Deduções Legais: INSS já foi deduzido da base, agora só falta dependentes e pensão se houver)
+  // Como 'baseAfterInss' já vem com (Bruto - INSS - Dependentes), usamos ela direto para o cálculo legal.
 
-  // 2. Regra de Isenção Estrita (Até 5000.00)
-  if (safeBase <= 5000.00) return 0;
-
-  let tax = 0;
-
-  // Faixa 2: 5.000,01 até 7.500,00 (15%)
-  if (safeBase <= 7500.00) {
-    tax = (safeBase * 0.15) - 750.00;
-  }
-  // Faixa 3: Acima de 7.500,00 (27.5%)
-  else {
-    tax = (safeBase * 0.275) - 1687.50;
-  }
-
-  // 3. Garante que o valor não seja negativo antes de qualquer arredondamento
-  const finalTax = Math.max(0, tax);
-
-  // 4. Arredonda para 2 casas decimais usando helper robusto
-  const roundedTax = roundHelper(finalTax);
-
-  // 5. Regra de Corte Mínimo (Específica para Dependentes)
-  if (hasDependents) {
-      if (roundedTax < 0.10) {
-        return 0;
+  let taxLegal = 0;
+  for (const bracket of IRPF_BRACKETS) {
+      if (baseAfterInss <= bracket.limit) {
+          taxLegal = (baseAfterInss * bracket.rate) - bracket.deduction;
+          break;
+      }
+      // Se for a última faixa (Infinity), cai aqui também
+      if (bracket.limit === Infinity) {
+           taxLegal = (baseAfterInss * bracket.rate) - bracket.deduction;
       }
   }
+  taxLegal = Math.max(0, taxLegal);
 
-  return roundedTax;
+
+  // 2. Cálculo Simplificado (Desconto de R$ 564,80 direto da Base Bruta sem deduções legais)
+  // A 'startBaseForSimplified' deve ser o (Bruto - INSS_Oficial) ? NÃO.
+  // A regra do simplificado é: Base de Cálculo = (Rendimentos Tributáveis - Desconto Simplificado).
+  // O Desconto Simplificado substitui TODAS as deduções legais (INSS, Dependentes, Pensão).
+  // PORÉM, na prática da folha, verifica-se qual base é menor: (Bruto - Deduções Legais) OU (Bruto - 564,80).
+  // Se (Bruto - 564,80) for MENOR que (Bruto - INSS - Dep), usa-se o simplificado.
+  // Caso contrário, usa-se o Legal.
+
+  // O parâmetro 'startBaseForSimplified' DEVE SER O TOTAL BRUTO TRIBUTÁVEL.
+  const baseSimplified = Math.max(0, startBaseForSimplified - SIMPLIFIED_DISCOUNT_VALUE);
+
+  let taxSimplified = 0;
+   for (const bracket of IRPF_BRACKETS) {
+      if (baseSimplified <= bracket.limit) {
+          taxSimplified = (baseSimplified * bracket.rate) - bracket.deduction;
+          break;
+      }
+      if (bracket.limit === Infinity) {
+           taxSimplified = (baseSimplified * bracket.rate) - bracket.deduction;
+      }
+  }
+  taxSimplified = Math.max(0, taxSimplified);
+
+  // Retorna o menor imposto (Benéfico ao contribuinte)
+  return roundHelper(Math.min(taxLegal, taxSimplified));
 };
 
 // Função auxiliar para cálculo de INSS isolado
@@ -150,7 +163,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const deductionVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
   const irBase = Math.max(0, totalGrossForTax - deductionVal);
 
-  const irpf = calculateIrpfOnly(irBase, includeDependents);
+  const irpf = calculateIrpfOnly(irBase, totalGrossForTax);
 
   let transportVoucher = 0;
   if (includeTransportVoucher) {
@@ -223,7 +236,7 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
   const irBase = Math.max(0, fullValue - deductionVal);
 
-  const irpf = calculateIrpfOnly(irBase, data.includeDependents);
+  const irpf = calculateIrpfOnly(irBase, fullValue);
 
   const secondInstallmentNetBase = fullValue - inss - irpf - firstInstallmentValue;
   const secondInstallmentNetFixed = Math.max(0, Number(secondInstallmentNetBase.toFixed(2)));
@@ -420,7 +433,7 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const irUnifiedBase = Math.max(0, totalGross - deductionVal);
 
   // Aplica a tabela progressiva sobre o montante total
-  const unifiedIrpf = calculateIrpfOnly(irUnifiedBase, data.includeDependents);
+  const unifiedIrpf = calculateIrpfOnly(irUnifiedBase, totalGross);
   const discountIr = unifiedIrpf;
 
   // Outras deduções
@@ -578,7 +591,7 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
   const irBase = Math.max(0, taxableBase - deductionVal);
 
-  const discountIr = calculateIrpfOnly(irBase, data.includeDependents);
+  const discountIr = calculateIrpfOnly(irBase, totalGross);
 
   const totalDiscounts = discountInss + discountIr;
 
