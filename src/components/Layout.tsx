@@ -58,8 +58,8 @@ const Layout: React.FC = () => {
                 <Link to="/" className="font-bold text-lg flex items-center gap-3">
                     <CalculatorIcon />
                     <div className="flex flex-col leading-tight">
-                        <span className="text-sm font-black uppercase tracking-tighter">Calculadora Salario BR</span>
-                        <span className="text-indigo-300 font-bold text-xs">2026</span>
+                        <span className="text-xs font-black uppercase tracking-tighter text-white">Calculadora</span>
+                        <span className="text-indigo-300 font-black text-[10px] uppercase whitespace-nowrap">Salario BR 2026</span>
                     </div>
                 </Link>
                 <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
@@ -86,9 +86,9 @@ const Layout: React.FC = () => {
                     <div className="bg-white/10 p-2.5 rounded-2xl hidden md:block backdrop-blur-xl ring-1 ring-white/20 group-hover:bg-white/20 transition-colors">
                         <CalculatorIcon />
                     </div>
-                    <div className="flex flex-col leading-none">
-                        <h1 className="text-lg font-black tracking-tighter uppercase whitespace-nowrap">Calculadora Salario <span className="text-blue-400">BR</span></h1>
-                        <span className="text-blue-300/60 font-bold text-xs mt-1 tracking-[0.3em]">2026</span>
+                    <div className="flex flex-col leading-tight">
+                        <h1 className="text-sm font-black tracking-tight uppercase text-white">Calculadora</h1>
+                        <span className="text-blue-300 font-black text-xs uppercase tracking-widest whitespace-nowrap">Salario BR 2026</span>
                     </div>
                 </Link>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-white/60 hover:text-white transition-colors p-2"><CloseIcon /></button>
