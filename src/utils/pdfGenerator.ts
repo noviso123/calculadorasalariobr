@@ -4,9 +4,9 @@ import autoTable from 'jspdf-autotable';
 import { CalculationResult, ThirteenthResult, TerminationResult, VacationResult, IrpfResult } from '../types';
 
 // -- CONFIGURAÇÕES GLOBAIS DE MARCA --
-const BRAND_PRIMARY = [30, 58, 138]; // #1e3a8a (Blue 900)
-const BRAND_ACCENT = [30, 64, 175];   // #1e40af (Blue 800)
-const TEXT_SLATE = [71, 85, 105];    // #475569
+const BRAND_PRIMARY: [number, number, number] = [30, 58, 138]; // #1e3a8a (Blue 900)
+const BRAND_ACCENT: [number, number, number] = [30, 64, 175];   // #1e40af (Blue 800)
+const TEXT_SLATE: [number, number, number] = [71, 85, 105];    // #475569
 
 const drawHeader = (doc: jsPDF, title: string) => {
   doc.setFillColor(BRAND_PRIMARY[0], BRAND_PRIMARY[1], BRAND_PRIMARY[2]);
