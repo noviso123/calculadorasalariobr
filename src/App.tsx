@@ -13,6 +13,7 @@ const ThirteenthView = React.lazy(() => import('./components/views/ThirteenthVie
 const TerminationView = React.lazy(() => import('./components/views/TerminationView'));
 const ConsignedView = React.lazy(() => import('./components/views/ConsignedView'));
 const CompareView = React.lazy(() => import('./components/views/CompareView'));
+const IrpfView = React.lazy(() => import('./components/views/IrpfView'));
 const PrivacyView = React.lazy(() => import('./components/views/PrivacyView'));
 const TermsView = React.lazy(() => import('./components/views/TermsView'));
 const AboutView = React.lazy(() => import('./components/views/AboutView'));
@@ -66,6 +67,12 @@ const App: React.FC = () => {
               <>
                 <div className="flex-1"><CompareView /></div>
                 <SEOContent view="compare" />
+              </>
+            } />
+            <Route path="irpf-simulador" element={
+              <>
+                <div className="flex-1"><IrpfView /></div>
+                <SEOContent view="irpf" />
               </>
             } />
             {/* Legal Pages */}

@@ -106,9 +106,9 @@ const CompareView: React.FC = () => {
                     </div>
                 </div>
 
-                {/* <button type="submit" className="w-full bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98]">
+                <button type="submit" className="w-full bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98]">
                     Comparar Cenários
-                </button> */}
+                </button>
             </form>
         </section>
 

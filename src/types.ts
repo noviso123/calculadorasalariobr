@@ -1,5 +1,5 @@
 
-export type ViewType = 'salary' | 'thirteenth' | 'termination' | 'vacation' | 'consigned' | 'compare';
+export type ViewType = 'salary' | 'thirteenth' | 'termination' | 'vacation' | 'consigned' | 'compare' | 'irpf';
 export type NoticeStatus = 'worked' | 'indemnified' | 'not_fulfilled' | 'waived';
 
 export interface ExtrasInput {
@@ -210,7 +210,7 @@ export enum CalculationStatus {
 
 // --- NEW AI CONTEXT INTERFACE ---
 export interface AIContext {
-  type: 'salary' | 'vacation' | 'thirteenth' | 'termination';
+  type: 'salary' | 'vacation' | 'thirteenth' | 'termination' | 'irpf';
   gross: number;
   net: number;
   discounts: number;
@@ -220,4 +220,35 @@ export interface AIContext {
   monthsWorked?: number; // 13th
   daysTaken?: number; // Vacation
   terminationReason?: string; // Termination
+}
+
+// --- IRPF SIMULATOR INTERFACES ---
+export interface IrpfInput {
+  grossIncome: number;
+  dependents: number;
+  alimony: number; // Pensão Alimentícia
+  otherDeductions: number; // Previdência Privada, etc
+  officialPension: number; // INSS Oficial (se calculado a parte)
+}
+
+export interface IrpfResult {
+  baseSalary: number;
+  inssDeduction: number;
+  dependentsDeduction: number;
+  standardDeduction: number; // Simplificado
+  legalBase: number; // Base Legal (Com todas deduções)
+  simplifiedBase: number; // Base Simplificada
+
+  // Best Option
+  appliedBase: number;
+  isSimplifiedBest: boolean;
+
+  taxValue: number;
+  effectiveRate: number;
+
+  brackets: {
+    limit: number;
+    rate: number;
+    tax: number;
+  }[];
 }

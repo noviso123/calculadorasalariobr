@@ -57,7 +57,7 @@ const ConsignedView: React.FC = () => {
              </p>
              <InputGroup label="Seu Salário Bruto" value={grossSalary} onChange={(v) => setGrossSalary(Number(v))} required />
            </div>
-             {/* <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-lg">Calcular Margem</button> */}
+           <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all text-lg">Calcular Margem</button>
         </form>
 
         {result && (

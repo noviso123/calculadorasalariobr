@@ -1,5 +1,5 @@
-// Advisor Lógico 2026 - Baseado em Legislação Oficial (Gov.br)
-// Atualizado em Fev/2026 com Lei 14.431 e Tabela INSS/IR vigentes.
+// Smart Advisor 2026 - Estratégias de Mercado e Planejamento Financeiro
+// Implementa Regra 50-30-20, Reserva de Emergência e Alocação de Ativos
 
 import { AIContext } from '../types';
 
@@ -7,52 +7,55 @@ export const getFinancialAdvice = async (context: AIContext): Promise<string> =>
   // Simula processamento para UX
   await new Promise(resolve => setTimeout(resolve, 800));
 
-  let advice = '';
-  const currentYear = 2026;
-  const inssCeiling = 977.45;
+  const { net, gross, type } = context;
+  if (!net || net <= 0) return 'Aguardando dados para realizar a análise...';
 
-  // 1. Contexto Geral (Renda e Descontos)
-  const discountRate = context.gross > 0 ? (context.discounts / context.gross) * 100 : 0;
-  advice += `### 🏛️ Análise Oficial (Base Legal ${currentYear})\n\n`;
-  advice += `Sua simulação considera as regras vigentes do Ministério do Trabalho e Receita Federal. A carga tributária e de benefícios somada representa **${discountRate.toFixed(1)}%** da sua renda bruta. `;
+  let advice = `### 💹 Planejamento Financeiro Inteligente\n\n`;
 
-  if (context.inss >= inssCeiling) {
-      advice += `\n\n> **Nota sobre o INSS**: Você contribui pelo **Teto Máximo (R$ 8.475,55)**. Isso significa que seu desconto travou em **R$ ${inssCeiling.toString().replace('.', ',')}**, independentemente de quanto seu salário aumente. Isso é relevante para sua futura aposentadoria.`;
+  // 1. REGRA 50-30-20 (Orçamento Base)
+  const needs = net * 0.5;
+  const wants = net * 0.3;
+  const invest = net * 0.2;
+
+  advice += `Para o seu líquido de **${formatCurrency(net)}**, a estratégia ideal de orçamento é:\n\n`;
+  advice += `- 🏠 **Essencial (50%):** ${formatCurrency(needs)} (Aluguel, Contas, Alimentação)\n`;
+  advice += `- 🎡 **Lazer/Desejos (30%):** ${formatCurrency(wants)} (Sair, Assinaturas, Hobbies)\n`;
+  advice += `- 📈 **Futuro/Investimento (20%):** **${formatCurrency(invest)}** (Otimização de Patrimônio)\n\n`;
+
+  // 2. ESTRATÉGIA DE RESERVA DE EMERGÊNCIA
+  const reserveGoal = needs * 6; // 6 meses de gastos essenciais
+  advice += `#### 🛡️ Sua Proteção Financeira\n`;
+  advice += `Sua meta de **Reserva de Emergência** deve ser de **${formatCurrency(reserveGoal)}**. `;
+  advice += `Este valor deve estar em ativos de **liquidez imediata** (você pode sacar hoje se precisar) e baixo risco.\n\n`;
+
+  // 3. ESTRATÉGIA DE INVESTIMENTO (PERSONALIZADA POR RENDA OU CENÁRIO)
+  advice += `#### 🚀 Estratégia de Alocação (Mercado 2026)\n`;
+
+  if (net < 3000) {
+      advice += `Foco total em **Reserva de Oportunidade**. Utilize **CDBs de Liquidez Diária** que rendam pelo menos 100% do CDI. Evite Taxas de Administração em corretoras.\n`;
+  } else if (net < 8000) {
+      advice += `- **60% em Renda Fixa Social:** Tesouro Selic ou CDBs de bancos médios.\n`;
+      advice += `- **30% em IPCA+:** Proteja seu poder de compra contra a inflação de 2026.\n`;
+      advice += `- **10% em Fundos Imobiliários (FIIs):** Comece a gerar renda passiva isenta de IR.\n`;
+  } else {
+      advice += `- **Renda Fixa (40%):** Diversifique entre Selic e Prefixado para travar taxas altas.\n`;
+      advice += `- **Renda Variável (40%):** Explore ETFs de baixo custo (BOVA11, IVVB11 para dolarizar parte do patrimônio).\n`;
+      advice += `- **Investimento Global (20%):** Com sua renda, vale a pena abrir conta internacional para fugir do risco Brasil.\n`;
   }
 
-  // 2. Análise Específica por Cenário
-  if (context.type === 'salary') {
-      advice += `\n\n#### 💰 Salário Líquido Mensal\n`;
-      if (context.net <= 5000 * 0.9) { // Margem de segurança
-          advice += `Você se beneficia da **Isenção Ampliada do IRPF** (até R$ 5.000,00). Isso representa uma economia significativa comparada aos anos anteriores.\n`;
-      }
-      advice += `- **Dica Financeira**: Com um líquido de **R$ ${formatCurrency(context.net)}**, especialistas recomendam destinar 20% (R$ ${formatCurrency(context.net * 0.2)}) para Reserva de Emergência (Tesouro Selic ou CDB).\n`;
+  // 4. INSIGHTS ESPECÍFICOS POR FERRAMENTA
+  if (type === 'vacation') {
+      advice += `\n> **⚠️ Alerta de Férias:** Seu "extra" de ${formatCurrency(net/4)} (1/3 constitucional) não deve ser gasto impulsivamente. Use-o para quitar dívidas de juros altos ou aportar na Reserva.\n`;
+  } else if (type === 'thirteenth') {
+      advice += `\n> **🎁 Dica de 13º:** É o melhor momento para fazer aportes em **Previdência Privada (PGBL)** se você faz declaração completa, reduzindo seu IR em até 12%.\n`;
+  } else if (type === 'termination') {
+      advice += `\n> **💼 Gestão de Rescisão:** Mantenha este montante em um **Tesouro Selic**. Não invista em ativos bloqueados ou de risco (Ações) enquanto não tiver uma nova fonte de renda garantida.\n`;
+  } else if (type === 'irpf') {
+      advice += `\n> **⚖️ Otimização Fiscal:** Sua base de cálculo foi otimizada pelo modelo **${context.gross > context.net ? 'Simplificado' : 'Legal'}**. `;
+      advice += `Se você tiver planos de previdência complementar (PGBL) ou mais dependentes no futuro, lembre-se de conferir se o modelo Legal passa a compensar mais.`;
   }
 
-  else if (context.type === 'termination') {
-      advice += `\n\n#### ⚠️ Rescisão e Consignado (Lei 14.431)\n`;
-      advice += `Seu cálculo segue rigorosamente a **Lei nº 14.431/2022**, que regula o Crédito Consignado:\n`;
-      advice += `1. **Proteção Salarial**: O desconto no TRCT (Termo de Rescisão) foi limitado a **35%** do seu saldo líquido final.\n`;
-      advice += `2. **Garantia FGTS**: Se houve desconto do FGTS, ele seguiu a regra de 10% do saldo total disponível + 100% da multa rescisória.\n`;
-
-      advice += `\n**Atenção**: O saldo restante do empréstimo (se houver) não é perdoado. Você deve negociar diretamente com o banco para evitar juros sobre o remanescente.`;
-  }
-
-  else if (context.type === 'vacation') {
-      advice += `\n\n#### 🏖️ Férias e Abono Pecuniário\n`;
-      advice += `Lembre-se que o pagamento de férias é apenas um **adiantamento**. O "terço constitucional" (1/3) é o único valor "extra" real.\n`;
-      advice += `- **Cuidado**: No mês de retorno, você receberá apenas pelos dias trabalhados (saldo de salário). Guarde parte deste dinheiro para não ficar "zerado" no mês seguinte.`;
-  }
-
-  else if (context.type === 'thirteenth') {
-      advice += `\n\n#### 🎁 Gratificação Natalina (Lei 4.090/62)\n`;
-      advice += `O 13º Salário é tributado exclusivamente na fonte (não compensa na declaração anual).\n`;
-      advice += `- A primeira parcela (recebida até Nov) **não tem descontos**.\n`;
-      advice += `- O INSS e IR incidem integralmente sobre o valor total na segunda parcela (Dez), o que faz ela parecer menor. Isso é normal e previsto em lei.`;
-  }
-
-  // 3. Rodapé Legal
-  advice += `\n\n---\n*Fontes: Decreto nº 5.452 (CLT), Lei nº 14.431 (Consignado) e Instruções Normativas RFB 2026. Este simulador tem caráter educativo.*`;
+  advice += `\n---\n*Análise autônoma baseada em princípios de educação financeira. Consulte um assessor para decisões específicas.*`;
 
   return advice;
 };

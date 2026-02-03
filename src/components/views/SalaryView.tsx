@@ -125,8 +125,9 @@ const SalaryView: React.FC = () => {
               <InputGroup label="Plano de Saúde" value={data.healthInsurance} onChange={(v) => setData({...data, healthInsurance: Number(v)})} />
               <InputGroup label="Outros Descontos" value={data.otherDiscounts} onChange={(v) => setData({...data, otherDiscounts: Number(v)})} />
 
-              {/* Botão removido para UX Dinâmica (Cálculo em Tempo Real) */}
-              {/* <button type="submit" ... /> */}
+              <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform active:scale-[0.98] text-lg mt-2">
+                Calcular Líquido
+              </button>
            </form>
         </section>
 

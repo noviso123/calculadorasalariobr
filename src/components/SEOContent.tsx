@@ -286,6 +286,34 @@ const SEOContent: React.FC<Props> = ({ view }) => {
 
         <MethodologyFooter />
       </article>
+    ),
+    irpf: (
+      <article className="prose prose-blue max-w-none text-slate-600">
+        <h2 className="text-2xl font-bold text-slate-800 mb-4">Como funciona o cálculo do IRPF 2026?</h2>
+        <p className="mb-4">
+          O Imposto de Renda Retido na Fonte (IRRF) é um tributo que incide sobre seus rendimentos mensais. Em 2026, com a atualização da faixa de isenção para R$ 5.000,00, a forma de calcular mudou para beneficiar a classe média.
+        </p>
+
+        <h3 className="text-xl font-semibold text-slate-700 mt-6 mb-2">Desconto Simplificado vs Deduções Legais</h3>
+        <p className="mb-4">
+          A Receita Federal calcula o seu imposto de duas formas simultaneamente e aplica a que for mais benéfica para você (menor imposto):
+        </p>
+        <ul className="list-disc list-inside mb-4 space-y-2">
+           <li><strong>Cálculo Legal:</strong> Considera todas as suas deduções comprovadas (INSS pago, dependentes R$ 189,59 cada, pensão alimentícia, etc).</li>
+           <li><strong>Cálculo Simplificado:</strong> Substitui todas as deduções legais por um desconto padrão de R$ 564,80 direto na base de cálculo.</li>
+        </ul>
+        <p className="mb-4">
+           Se você ganha até aprox. R$ 5.000,00 e tem poucos dependentes, o Simplificado geralmente garante a isenção. Se você tem muitos dependentes ou paga pensão alta, o Legal pode ser melhor.
+        </p>
+
+        <h3 className="text-xl font-semibold text-slate-700 mt-6 mb-2">Alíquota Efetiva: O que é?</h3>
+        <p className="mb-4">
+           É a porcentagem real do seu salário que fica com o Leão. Por exemplo, mesmo que você esteja na faixa de 27,5% (Alíquota Nominal), você nunca paga 27,5% do salário total.
+           Graças à "Parcela a Deduzir" e à progressividade (as primeiras faixas de renda pagam menos), sua alíquota efetiva será sempre menor.
+           Este simulador mostra exatamente essa porcentagem real.
+        </p>
+        <MethodologyFooter />
+      </article>
     )
   };
 

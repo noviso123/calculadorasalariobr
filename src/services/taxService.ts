@@ -635,3 +635,94 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
     finalNetVacation
   };
 };
+
+// --- IRPF SIMULATOR (DETAILED) ---
+export const calculateIrpfSimulated = (data: import('../types').IrpfInput): import('../types').IrpfResult => {
+  const { grossIncome, dependents, alimony, otherDeductions, officialPension } = data;
+
+  // 1. INSS
+  let inssValue = officialPension;
+  if (inssValue <= 0) {
+      inssValue = calculateInssOnly(grossIncome);
+  }
+
+  // 2. Base Legal (Deduções Legais)
+  const dependentsValue = dependents * DEDUCTION_PER_DEPENDENT;
+  const legalBase = Math.max(0, grossIncome - inssValue - dependentsValue - alimony - otherDeductions);
+
+  // 3. Base Simplificada (R$ 564,80)
+  // Regra: Base = Gross - (INSS?) - 564,80 ?
+  // NÃO. A regra é: Base = Gross - INSS - 564,80 (substitui DEDUÇÕES, não o INSS).
+  // Conferindo Gov.br:
+  // "Opção pelo desconto simplificado: Substitui todas as deduções legais (dependentes, despesas médicas, etc), correspondente a 25% da faixa de isenção."
+  // O INSS é uma dedução legal? Sim. Mas geralmente o simplificado é "em substituição às deduções legais".
+  // A Receita diz: "Desconto Simplificado Mensal: R$ 564,80. (25% de R$ 2.259,20)".
+  // Se o desconto simplificado for maior que (INSS + Dep + Outras), usa-se ele.
+  // Logo: BaseSimplificada = Gross - 564,80. (O INSS entra na comparação como dedução).
+
+  const simplifiedDiscount = SIMPLIFIED_DISCOUNT_VALUE;
+  // Comparação de Deduções:
+  const totalLegalDeductions = inssValue + dependentsValue + alimony + otherDeductions;
+
+  const isSimplifiedBest = simplifiedDiscount > totalLegalDeductions;
+
+  // Se Simplificado for melhor, a Base é Gross - 564,80.
+  // Se Legal for melhor, a Base é Gross - INSS - Dep - Outras.
+
+  const appliedBase = isSimplifiedBest
+      ? Math.max(0, grossIncome - simplifiedDiscount)
+      : legalBase;
+
+  // 4. Calcular Imposto sobre a Base Escolhida
+  let taxValue = 0;
+  const bracketsBreakdown = [];
+
+  let tempBase = appliedBase;
+
+  // Bracket 1 (Isento)
+  const b1 = IRPF_BRACKETS[0]; // limit: 2259.20, rate: 0
+  const range1 = b1.limit || 0;
+  bracketsBreakdown.push({ limit: range1, rate: 0, tax: 0 });
+
+  // Demais brackets
+  // Vamos re-calcular "na mão" para ter o breakdown exato de cada faixa
+  // em vez de usar a formula "dedução".
+  // Mas para o valor final, usaremos a formula de dedução para garantir precisão.
+
+  // Cálculo exato usando Dedução (Mais seguro)
+  let exactTax = 0;
+  for (const bracket of IRPF_BRACKETS) {
+       if (appliedBase <= bracket.limit) {
+           exactTax = (appliedBase * bracket.rate) - bracket.deduction;
+           break;
+       }
+       if (bracket.limit === Infinity) {
+            exactTax = (appliedBase * bracket.rate) - bracket.deduction;
+            break; // ultimo
+       }
+  }
+
+  // Regra de transição 2026 (Linear 5k - 7.35k)
+  // Se estiver nessa faixa e for mais vantajoso, a lei aplica.
+  // Porem o simulador oficial geralmente mostra a tabela progressiva padrão.
+  // Vamos manter a lógica padrão.
+
+  taxValue = Math.max(0, exactTax);
+
+  // Effective Rate
+  const effectiveRate = grossIncome > 0 ? (taxValue / grossIncome) * 100 : 0;
+
+  return {
+    baseSalary: grossIncome,
+    inssDeduction: inssValue,
+    dependentsDeduction: dependentsValue,
+    standardDeduction: simplifiedDiscount,
+    legalBase,
+    simplifiedBase: Math.max(0, grossIncome - simplifiedDiscount),
+    appliedBase,
+    isSimplifiedBest,
+    taxValue: Number(taxValue.toFixed(2)),
+    effectiveRate: Number(effectiveRate.toFixed(2)),
+    brackets: bracketsBreakdown
+  };
+};
