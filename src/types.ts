@@ -231,6 +231,24 @@ export interface IrpfInput {
   officialPension: number; // INSS Oficial (se calculado a parte)
 }
 
+export type PjRegime = 'mei' | 'simples_nacional_3' | 'simples_nacional_5' | 'lucro_presumido';
+
+export interface PjInput {
+  grossMonthly: number;
+  regime: PjRegime;
+  accountantCost: number;
+  taxRate?: number; // Optional override
+}
+
+export interface PjResult {
+  net: number;
+  taxValue: number;
+  taxRate: number;
+  regimeLabel: string;
+}
+
+
+
 export interface IrpfResult {
   baseSalary: number;
   inssDeduction: number;

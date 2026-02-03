@@ -1,4 +1,4 @@
-import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput } from '../types';
+import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, PjInput, PjResult, PjRegime, IrpfInput, IrpfResult } from '../types';
 import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE, IRPF_BRACKETS, SIMPLIFIED_DISCOUNT_VALUE } from '../config/taxConstants';
 
 
@@ -200,8 +200,9 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const netSalary = Math.max(0, Number(netSalaryBase.toFixed(2)));
 
   // 3. Consignado
-  // Margem 35% sobre o Líquido
-  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(netSalary, consigned, includeConsigned);
+  // A margem consignável (35%) é calculada sobre a Remuneração Líquida (Bruto - INSS - IRPF)
+  const netForConsigned = totalGrossForTax - inss - irpf;
+  const { maxMargin, discount: consignedDiscount } = calculateConsignedValues(netForConsigned, consigned, includeConsigned);
 
   const finalNetSalaryBase = netSalary - consignedDiscount;
   const finalNetSalary = Math.max(0, Number(finalNetSalaryBase.toFixed(2)));
@@ -637,7 +638,7 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
 };
 
 // --- IRPF SIMULATOR (DETAILED) ---
-export const calculateIrpfSimulated = (data: import('../types').IrpfInput): import('../types').IrpfResult => {
+export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
   const { grossIncome, dependents, alimony, otherDeductions, officialPension } = data;
 
   // 1. INSS
@@ -724,5 +725,52 @@ export const calculateIrpfSimulated = (data: import('../types').IrpfInput): impo
     taxValue: Number(taxValue.toFixed(2)),
     effectiveRate: Number(effectiveRate.toFixed(2)),
     brackets: bracketsBreakdown
+  };
+};
+
+// --- PJ CALCULATOR (AUTOMATIC TAX) ---
+export const calculatePjTax = (data: PjInput): PjResult => {
+  const { grossMonthly, regime, accountantCost } = data;
+
+  let taxRate = 0;
+  let regimeLabel = '';
+
+  switch (regime) {
+    case 'mei':
+      taxRate = 0;
+      regimeLabel = 'MEI (Microempreendedor Individual)';
+      break;
+
+    case 'simples_nacional_3':
+      taxRate = 6;
+      regimeLabel = 'Simples Nacional (Anexo III)';
+      break;
+
+    case 'simples_nacional_5':
+      taxRate = 15.5;
+      regimeLabel = 'Simples Nacional (Anexo V)';
+      break;
+
+    case 'lucro_presumido':
+      taxRate = 14.33;
+      regimeLabel = 'Lucro Presumido';
+      break;
+  }
+
+  let taxValue = 0;
+  if (regime === 'mei') {
+      taxValue = 82.50;
+      taxRate = (taxValue / (grossMonthly || 1)) * 100;
+  } else {
+      taxValue = grossMonthly * (taxRate / 100);
+  }
+
+  const net = Math.max(0, grossMonthly - taxValue - accountantCost);
+
+  return {
+    net: Number(net.toFixed(2)),
+    taxValue: Number(taxValue.toFixed(2)),
+    taxRate: Number(taxRate.toFixed(2)),
+    regimeLabel
   };
 };
