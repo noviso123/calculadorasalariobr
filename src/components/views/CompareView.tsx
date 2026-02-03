@@ -43,12 +43,12 @@ const CompareView: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto pb-24">
        <Helmet>
-        <title>Comparador CLT x PJ 2026 - Qual vale mais a pena?</title>
+        <title>Comparador CLT x PJ 2026 - Mensal vs Mensal</title>
       </Helmet>
 
       <header className="mb-8 md:mb-12">
         <h2 className="text-3xl font-bold text-slate-800 text-center md:text-left">Comparador CLT vs PJ</h2>
-        <p className="text-slate-500 text-center md:text-left text-lg">Análise profunda da diferença real entre regimes tributários.</p>
+        <p className="text-slate-500 text-center md:text-left text-lg">Qual o seu rendimento real **mensal** em cada regime?</p>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -92,22 +92,22 @@ const CompareView: React.FC = () => {
             </form>
         </section>
 
-        {/* LADO DIREITO: ANALISE DETALHADA */}
+        {/* LADO DIREITO: ANALISE MENSAL DETALHADA */}
         <section className="w-full lg:w-8/12 relative z-10">
             {resultClt && resultPj ? (
              <div className="animate-fade-in-up space-y-6">
 
-                {/* ANALISE DE IMPACTO ANUAL */}
+                {/* ANALISE DE IMPACTO MENSAL MÉDIO */}
                 <div className="bg-white p-1 rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
                     <div className="bg-slate-800 text-white p-5 flex justify-between items-center">
                          <div>
-                            <h4 className="text-lg font-bold">Resumo Total Anual</h4>
-                            <p className="text-xs opacity-60">Considerando todos os proventos extras (13º, Férias, FGTS)</p>
+                            <h4 className="text-lg font-bold">Rendimento Líquido Mensal</h4>
+                            <p className="text-xs opacity-60">Considerando provisões de 13º, Férias e FGTS</p>
                          </div>
                          <div className="text-right">
-                             <span className="text-xs uppercase font-medium opacity-50 block">Diferença Anual</span>
-                             <span className={`text-2xl font-black ${ (resultPj.net * 12) > ((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12) ? 'text-emerald-400' : 'text-blue-400'}`}>
-                                {formatCurrency(Math.abs((resultPj.net * 12) - ((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12)))}
+                             <span className="text-xs uppercase font-medium opacity-50 block">Diferença Mensal</span>
+                             <span className={`text-2xl font-black ${ (resultPj.net) > (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly) ? 'text-emerald-400' : 'text-blue-400'}`}>
+                                {formatCurrency(Math.abs((resultPj.net) - (resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary/12) + (resultClt.grossSalary/3/12) + resultClt.fgtsMonthly)))}
                              </span>
                          </div>
                     </div>
@@ -117,43 +117,43 @@ const CompareView: React.FC = () => {
                             <thead>
                                 <tr className="bg-slate-50 text-slate-400 uppercase text-[10px] font-bold tracking-widest border-b border-slate-100">
                                     <th className="px-6 py-4 text-left">Item / Provento</th>
-                                    <th className="px-6 py-4 text-center">CLT (Anual)</th>
-                                    <th className="px-6 py-4 text-center">PJ (Anual)</th>
+                                    <th className="px-6 py-4 text-center">CLT (Média Mensal)</th>
+                                    <th className="px-6 py-4 text-center">PJ (Líquido Mensal)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                                 <tr>
-                                    <td className="px-6 py-4">Salários / Notas Fiscais (x12)</td>
-                                    <td className="px-6 py-4 text-center">{formatCurrency(resultClt.finalNetSalary * 12)}</td>
-                                    <td className="px-6 py-4 text-center">{formatCurrency(resultPj.net * 12)}</td>
+                                    <td className="px-6 py-4">Salário Líquido / Nota Fiscal (- Impostos)</td>
+                                    <td className="px-6 py-4 text-center">{formatCurrency(resultClt.finalNetSalary)}</td>
+                                    <td className="px-6 py-4 text-center">{formatCurrency(resultPj.net)}</td>
                                 </tr>
                                 <tr>
                                     <td className="px-6 py-4">Benefícios (VR/VA/Auxílios)</td>
-                                    <td className="px-6 py-4 text-center">{formatCurrency(resultClt.otherDiscounts * 12)}</td>
+                                    <td className="px-6 py-4 text-center">{formatCurrency(resultClt.otherDiscounts)}</td>
                                     <td className="px-6 py-4 text-center">—</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-4">13º Salário Líquido (Estimado)</td>
-                                    <td className="px-6 py-4 text-center text-blue-600">+{formatCurrency(resultClt.finalNetSalary)}</td>
+                                    <td className="px-6 py-4">Provisão Mensal 13º (Salário / 12)</td>
+                                    <td className="px-6 py-4 text-center text-blue-600">+{formatCurrency(resultClt.finalNetSalary / 12)}</td>
                                     <td className="px-6 py-4 text-center">—</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-4">Férias (+ 1/3 Constitucional)</td>
-                                    <td className="px-6 py-4 text-center text-blue-600">+{formatCurrency(resultClt.grossSalary / 3)}</td>
-                                    <td className="px-6 py-4 text-center font-normal italic opacity-50">(Dias não faturados?)</td>
+                                    <td className="px-6 py-4">Provisão Mensal Férias (+1/3 / 12)</td>
+                                    <td className="px-6 py-4 text-center text-blue-600">+{formatCurrency((resultClt.grossSalary / 3) / 12)}</td>
+                                    <td className="px-6 py-4 text-center font-normal italic opacity-50">—</td>
                                 </tr>
                                 <tr>
-                                    <td className="px-6 py-4">Depósito FGTS Anual (8%)</td>
-                                    <td className="px-6 py-4 text-center text-emerald-600 font-bold">+{formatCurrency(resultClt.fgtsMonthly * 12)}</td>
+                                    <td className="px-6 py-4">Depósito FGTS (8% Mensal)</td>
+                                    <td className="px-6 py-4 text-center text-emerald-600 font-bold">+{formatCurrency(resultClt.fgtsMonthly)}</td>
                                     <td className="px-6 py-4 text-center">—</td>
                                 </tr>
                                 <tr className="bg-slate-50 font-black text-lg text-slate-900	">
-                                    <td className="px-6 py-5">Valor Total Real Anual</td>
+                                    <td className="px-6 py-5">Rendimento Real Mensal</td>
                                     <td className="px-6 py-5 text-center text-blue-700">
-                                        {formatCurrency((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12)}
+                                        {formatCurrency(resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary / 12) + (resultClt.grossSalary / 3 / 12) + resultClt.fgtsMonthly)}
                                     </td>
                                     <td className="px-6 py-5 text-center text-indigo-700">
-                                        {formatCurrency(resultPj.net * 12)}
+                                        {formatCurrency(resultPj.net)}
                                     </td>
                                 </tr>
                             </tbody>
@@ -162,45 +162,51 @@ const CompareView: React.FC = () => {
                 </div>
 
                 {/* VEREDITO PERSONALIZADO */}
-                <div className={`p-8 rounded-3xl border-2 shadow-lg transition-all ${resultPj.net*12 > ((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12) ? 'bg-emerald-50 border-emerald-200' : 'bg-blue-50 border-blue-200'}`}>
-                    <div className="flex flex-col md:flex-row gap-6 items-center">
-                        <div className={`h-20 w-20 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${resultPj.net*12 > ((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12) ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white'}`}>
-                            {resultPj.net*12 > ((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12) ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            ) : (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
-                            )}
-                        </div>
-                        <div className="flex-1 text-center md:text-left">
-                            <h3 className="text-2xl font-black text-slate-800 mb-2">
-                                {resultPj.net*12 > ((resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12) ? 'O regime PJ é financeiramente vantajoso!' : 'O regime CLT ainda é mais seguro e lucrativo!'}
-                            </h3>
-                            {(() => {
-                                const cltAnnualTotal = (resultClt.finalNetSalary + resultClt.otherDiscounts) * 12 + resultClt.grossSalary + resultClt.grossSalary/3 + resultClt.fgtsMonthly * 12;
-                                const breakEvenMonthly = (cltAnnualTotal / 12 + pjData.accountantCost) / (1 - (resultPj.taxRate / 100));
+                {(() => {
+                    const cltMonthlyReal = resultClt.finalNetSalary + resultClt.otherDiscounts + (resultClt.finalNetSalary / 12) + (resultClt.grossSalary / 3 / 12) + resultClt.fgtsMonthly;
+                    const pjIsBetter = resultPj.net > cltMonthlyReal;
+                    const breakEvenMonthly = (cltMonthlyReal + pjData.accountantCost) / (1 - (resultPj.taxRate / 100));
 
-                                return (
+                    return (
+                        <div className={`p-8 rounded-3xl border-2 shadow-lg transition-all ${pjIsBetter ? 'bg-emerald-50 border-emerald-200' : 'bg-blue-50 border-blue-200'}`}>
+                            <div className="flex flex-col md:flex-row gap-6 items-center">
+                                <div className={`h-20 w-20 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${pjIsBetter ? 'bg-emerald-500 text-white' : 'bg-blue-500 text-white'}`}>
+                                    {pjIsBetter ? (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
+                                    )}
+                                </div>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h3 className="text-2xl font-black text-slate-800 mb-2">
+                                        {pjIsBetter ? 'O modelo PJ entrega mais dinheiro mensal!' : 'O modelo CLT ainda é mais lucrativo no mês!'}
+                                    </h3>
                                     <div className="space-y-4">
                                         <p className="text-slate-600 leading-relaxed">
-                                            Considerando todos os direitos CLT (como FGTS e 13º), seu ganho anual atual equivale a um faturamento PJ de
-                                            <strong className="text-xl mx-2 text-slate-800 underline decoration-indigo-400 decoration-4 underline-offset-4">{formatCurrency(breakEvenMonthly)}/mês</strong>.
+                                            Considerando todos os direitos (FGTS, 13º, Férias), o CLT equivale a ter
+                                            <strong className="text-xl mx-2 text-slate-800 underline decoration-indigo-400 decoration-4 underline-offset-4">{formatCurrency(cltMonthlyReal)}</strong>
+                                            disponíveis todo mês.
                                         </p>
-                                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                            <span className="px-3 py-1 bg-white/60 rounded-full border border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-widest">Diferença Real: {formatCurrency(Math.abs(resultPj.net * 12 - cltAnnualTotal) / 12)} /mês</span>
+                                        <div className="p-4 bg-white/60 rounded-2xl border border-slate-200">
+                                            <p className="text-xs font-bold text-slate-400 uppercase mb-1">Para valer a pena mudar:</p>
+                                            <p className="text-slate-700">
+                                                Deveria pedir um faturamento PJ de no mínimo
+                                                <strong className="text-indigo-600 ml-1">{formatCurrency(breakEvenMonthly)}</strong>.
+                                            </p>
                                         </div>
                                     </div>
-                                );
-                            })()}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    );
+                })()}
 
              </div>
             ) : (
                 <div className="flex flex-col items-center justify-center p-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-20"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
                     <p className="font-bold text-lg">Aguardando dados para análise...</p>
-                    <p className="text-sm">Insira o bruto pretendido em ambos os campos para comparar.</p>
+                    <p className="text-sm">Insira os valores mensais para comparar os regimes.</p>
                 </div>
             )}
         </section>
