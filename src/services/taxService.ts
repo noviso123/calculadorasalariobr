@@ -1,16 +1,6 @@
 import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput } from '../types';
+import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE } from '../config/taxConstants';
 
-// INSS Progressivo 2026 (Teto R$ 8.475,55 - Reajuste 3,9%)
-const INSS_BRACKETS = [
-  { limit: 1621.00, rate: 0.075 },
-  { limit: 3080.28, rate: 0.09 },
-  { limit: 4620.43, rate: 0.12 },
-  { limit: 8475.55, rate: 0.14 },
-];
-
-const DEDUCTION_PER_DEPENDENT = 189.59;
-const FAMILY_SALARY_THRESHOLD = 1980.38;
-const FAMILY_SALARY_VALUE = 67.54;
 
 const roundHelper = (value: number): number => {
   // Adiciona um viés pequeno (1e-9) para corrigir erros de ponto flutuante (ex: 121.5749999999 -> 121.575)

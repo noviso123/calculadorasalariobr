@@ -1,6 +1,6 @@
 
-import { calculateSalary, calculateTermination, calculateThirteenth, calculateVacation } from '../services/taxService';
-import { ExtrasInput, ConsignedInput } from '../types';
+import { calculateSalary, calculateTermination, calculateThirteenth, calculateVacation } from '../src/services/taxService';
+import { ExtrasInput, ConsignedInput } from '../src/types';
 
 const assert = (condition: boolean, message: string) => {
     if (!condition) {

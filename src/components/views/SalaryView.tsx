@@ -34,7 +34,7 @@ const SalaryView: React.FC = () => {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
-  const aiContext = React.useMemo(() => {
+  const aiContext: AIContext | null = React.useMemo(() => {
     if (!result) return null;
     return {
       type: 'salary' as const,

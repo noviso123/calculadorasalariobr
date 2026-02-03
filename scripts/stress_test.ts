@@ -1,6 +1,6 @@
 
-import { calculateSalary, calculateTermination, calculateVacation, calculateThirteenth } from '../services/taxService';
-import { SalaryInput, TerminationInput, VacationInput, ThirteenthInput } from '../types';
+import { calculateSalary, calculateTermination, calculateVacation, calculateThirteenth } from '../src/services/taxService';
+import { SalaryInput, TerminationInput, VacationInput, ThirteenthInput } from '../src/types';
 
 console.log("=== INICIANDO STRESS TEST MATEMÁTICO (2026) - MASSIVO ===");
 

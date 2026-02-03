@@ -13,9 +13,8 @@ export const getFinancialAdvice = async (context: AIContext): Promise<string> =>
 
   // 1. Contexto Geral (Renda e Descontos)
   const discountRate = context.gross > 0 ? (context.discounts / context.gross) * 100 : 0;
-
   advice += `### 🏛️ Análise Oficial (Base Legal ${currentYear})\n\n`;
-  advice += `Sua simulação considera as regras vigentes do Ministério do Trabalho e Receita Federal. `;
+  advice += `Sua simulação considera as regras vigentes do Ministério do Trabalho e Receita Federal. A carga tributária e de benefícios somada representa **${discountRate.toFixed(1)}%** da sua renda bruta. `;
 
   if (context.inss >= inssCeiling) {
       advice += `\n\n> **Nota sobre o INSS**: Você contribui pelo **Teto Máximo (R$ 8.475,55)**. Isso significa que seu desconto travou em **R$ ${inssCeiling.toString().replace('.', ',')}**, independentemente de quanto seu salário aumente. Isso é relevante para sua futura aposentadoria.`;

@@ -8,7 +8,7 @@ interface Props {
 }
 
 
-const CustomTooltip = ({ active, payload, totalGross }: { active?: boolean, payload?: any[], totalGross: number }) => {
+const CustomTooltip = ({ active, payload, totalGross }: { active?: boolean, payload?: { payload: { name: string; value: number; color: string } }[], totalGross: number }) => {
   if (active && payload && payload.length) {
     const item = payload[0].payload;
     // Helper para formatar moeda dentro do tooltip (já que não tem acesso direto à função interna)

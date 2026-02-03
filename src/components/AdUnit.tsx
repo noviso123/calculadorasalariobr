@@ -49,7 +49,7 @@ const AdUnit: React.FC<AdUnitProps> = ({ slotId, format = 'auto', className = ''
   return (
     <div className={`w-full flex flex-col items-center my-6 ${className}`}>
       <span className="text-[10px] text-slate-400 uppercase tracking-widest mb-1">{label}</span>
-      <div 
+      <div
         ref={containerRef}
         className="w-full bg-slate-50 min-h-[100px] flex items-center justify-center rounded-lg overflow-hidden border border-slate-100 relative"
       >
@@ -71,7 +71,7 @@ const AdUnit: React.FC<AdUnitProps> = ({ slotId, format = 'auto', className = ''
 
 declare global {
   interface Window {
-    adsbygoogle: any[];
+    adsbygoogle: object[];
   }
 }
 
