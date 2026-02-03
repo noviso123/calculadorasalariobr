@@ -145,9 +145,15 @@ const IrpfView: React.FC = () => {
                             <p className="text-[10px] text-slate-400 leading-tight mt-1">Peso real sobre o bruto.</p>
                         </div>
                     </div>
-                </div>
 
-                    </p>
+                    <div className="px-6 pb-6">
+                        <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-sm text-yellow-800 flex gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <p>
+                                <strong>Dica:</strong> Embora a alíquota nominal possa chegar a 27.5%, sua alíquota efetiva é de apenas <strong>{result.effectiveRate}%</strong> devido à progressividade da tabela e à parcela a deduzir.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* BOTÃO PDF */}
