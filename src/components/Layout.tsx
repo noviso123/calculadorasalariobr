@@ -83,6 +83,7 @@ const Layout: React.FC = () => {
                     <NavItem to="/decimo-terceiro" icon={<CoinsIcon />} label="Décimo Terceiro" currentPath={location.pathname} />
                     <NavItem to="/rescisao" icon={<BriefcaseIcon />} label="Rescisão" currentPath={location.pathname} />
                     <NavItem to="/consignado" icon={<BankIcon />} label="Simular Consignado" currentPath={location.pathname} />
+                    <NavItem to="/comparar" icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5"/><path d="M21 3 9 15"/><path d="M21 13v8h-8"/><path d="M13 21 3 9"/></svg>} label="CLT vs PJ" currentPath={location.pathname} />
                 </nav>
 
                 <div className="p-4">

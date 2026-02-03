@@ -12,6 +12,7 @@ const VacationView = React.lazy(() => import('./components/views/VacationView'))
 const ThirteenthView = React.lazy(() => import('./components/views/ThirteenthView'));
 const TerminationView = React.lazy(() => import('./components/views/TerminationView'));
 const ConsignedView = React.lazy(() => import('./components/views/ConsignedView'));
+const CompareView = React.lazy(() => import('./components/views/CompareView'));
 const PrivacyView = React.lazy(() => import('./components/views/PrivacyView'));
 const TermsView = React.lazy(() => import('./components/views/TermsView'));
 const AboutView = React.lazy(() => import('./components/views/AboutView'));
@@ -59,6 +60,12 @@ const App: React.FC = () => {
               <>
                 <div className="flex-1"><ConsignedView /></div>
                 <SEOContent view="consigned" />
+              </>
+            } />
+            <Route path="comparar" element={
+              <>
+                <div className="flex-1"><CompareView /></div>
+                <SEOContent view="compare" />
               </>
             } />
             {/* Legal Pages */}

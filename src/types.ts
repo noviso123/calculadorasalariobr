@@ -1,5 +1,5 @@
 
-export type ViewType = 'salary' | 'thirteenth' | 'termination' | 'vacation' | 'consigned';
+export type ViewType = 'salary' | 'thirteenth' | 'termination' | 'vacation' | 'consigned' | 'compare';
 export type NoticeStatus = 'worked' | 'indemnified' | 'not_fulfilled' | 'waived';
 
 export interface ExtrasInput {

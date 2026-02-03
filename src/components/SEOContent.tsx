@@ -229,6 +229,63 @@ const SEOContent: React.FC<Props> = ({ view }) => {
         </div>
         <MethodologyFooter />
       </article>
+    ),
+    compare: (
+      <article className="prose prose-blue max-w-none text-slate-600">
+        <h2 className="text-2xl font-bold text-slate-800 mb-4">CLT ou PJ: Qual Contratação Vale a Pena?</h2>
+        <p className="mb-4">
+          A escolha entre ser contratado como CLT (Carteira Assinada) ou PJ (Pessoa Jurídica) envolve mais do que apenas comparar o valor líquido mensal.
+          Cada regime tem proteções, benefícios e custos diferentes que impactam sua segurança financeira a longo prazo.
+        </p>
+
+        <div className="grid md:grid-cols-2 gap-6 my-6">
+           <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
+              <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                 <span className="bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded">CLT</span>
+                 Carteira Assinada
+              </h4>
+              <ul className="text-sm space-y-2 text-slate-700">
+                 <li>✅ <strong>FGTS (8%):</strong> Depósito mensal extra e multa de 40% na demissão.</li>
+                 <li>✅ <strong>Férias + 1/3:</strong> 30 dias de descanso remunerado com bônus.</li>
+                 <li>✅ <strong>13º Salário:</strong> Um salário extra no fim do ano.</li>
+                 <li>✅ <strong>Seguro Desemprego:</strong> Proteção em demissão involuntária.</li>
+                 <li>✅ <strong>Benefícios:</strong> Vale transporte, refeição e plano de saúde (comuns).</li>
+                 <li>❌ <strong>Descontos Altos:</strong> INSS e IR retidos na fonte reduzem o líquido.</li>
+              </ul>
+           </div>
+
+           <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+              <h4 className="font-bold text-indigo-800 mb-2 flex items-center gap-2">
+                 <span className="bg-indigo-200 text-indigo-800 text-xs px-2 py-0.5 rounded">PJ</span>
+                 Prestador de Serviço
+              </h4>
+               <ul className="text-sm space-y-2 text-slate-700">
+                 <li>✅ <strong>Maior Líquido:</strong> Impostos costumam ser menores (6% a 15%) que na CLT.</li>
+                 <li>✅ <strong>Liberdade:</strong> Maior flexibilidade de horário e clientes (teoricamente).</li>
+                 <li>❌ <strong>Sem Benefícios Legais:</strong> Não tem férias, 13º nem FGTS por lei.</li>
+                 <li>❌ <strong>Custos Extras:</strong> Contador mensal, abertura de empresa e taxas.</li>
+                 <li>❌ <strong>Risco:</strong> Rescisão imediata sem aviso prévio ou multa indenizatória.</li>
+                 <li>❌ <strong>Pejotização:</strong> É ilegal exigir subordinação e horário de "funcionário" para PJ.</li>
+              </ul>
+           </div>
+        </div>
+
+        <h3 className="text-xl font-semibold text-slate-700 mt-6 mb-2">Fator R: O Segredo do Imposto PJ</h3>
+        <p className="mb-4">
+          Para profissionais de TI, engenharia e outras áreas intelectuais, o imposto no Simples Nacional pode ser de <strong>6% (Anexo III)</strong> ou pular para <strong>15,5% (Anexo V)</strong>.
+          Para garantir a alíquota menor de 6%, é necessário que a sua folha de pagamento (Pró-labore) seja igual ou superior a 28% do seu faturamento mensal. Isso se chama "Fator R".
+          Na nossa simulação, consideramos o cenário padrão onde o imposto incide sobre o bruto.
+        </p>
+
+        <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100 mt-6">
+          <p className="text-sm text-yellow-800 font-bold">
+            💡 Regra de Ouro: Para compensar a perda dos benefícios da CLT (Férias, 13º, FGTS, VR, VA), o salário PJ deve ser, no mínimo, 30% a 50% maior que o salário Bruto CLT equivalente.
+            Se a proposta PJ for igual ao valor CLT, você estará perdendo dinheiro.
+          </p>
+        </div>
+
+        <MethodologyFooter />
+      </article>
     )
   };
 
