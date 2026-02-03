@@ -158,10 +158,9 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const inss = calculateInssOnly(totalGrossForTax);
   const fgtsMonthly = Number((totalGrossForTax * 0.08).toFixed(2));
 
-  // Base IR: Bruto - Dependentes (INSS não deduzido aqui para manter limite de 5000 no bruto conforme solicitação)
-  // Nota: A dedução de dependentes é aplicada aqui para formar a Base de Cálculo
+  // Base IR: Bruto - INSS - Dependentes
   const deductionVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = Math.max(0, totalGrossForTax - deductionVal);
+  const irBase = Math.max(0, totalGrossForTax - inss - deductionVal);
 
   const irpf = calculateIrpfOnly(irBase, totalGrossForTax);
 
@@ -232,9 +231,9 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
 
   const inss = calculateInssOnly(fullValue);
 
-  // Base IR 13º: Bruto - Dependentes
+  // Base IR 13º: Bruto - INSS - Dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = Math.max(0, fullValue - deductionVal);
+  const irBase = Math.max(0, fullValue - inss - deductionVal);
 
   const irpf = calculateIrpfOnly(irBase, fullValue);
 
@@ -426,11 +425,11 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   // SOMA DE TODOS OS POSITIVOS:
   const totalGross = balanceSalary + extrasBreakdown.total + noticeWarning + vacationTotal + thirteenthProportional;
 
-  // Base de Cálculo = Total Bruto - Dependentes (INSS removido)
+  // Base de Cálculo = Total Bruto - INSS - Dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
 
   // IRPF Base Unificada
-  const irUnifiedBase = Math.max(0, totalGross - deductionVal);
+  const irUnifiedBase = Math.max(0, totalGross - totalInss - deductionVal);
 
   // Aplica a tabela progressiva sobre o montante total
   const unifiedIrpf = calculateIrpfOnly(irUnifiedBase, totalGross);
@@ -587,9 +586,9 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
 
   const discountInss = calculateInssOnly(taxableBase);
 
-  // Base IR Férias: Bruto - Dependentes
+  // Base IR Férias: Bruto - INSS - Dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
-  const irBase = Math.max(0, taxableBase - deductionVal);
+  const irBase = Math.max(0, taxableBase - discountInss - deductionVal);
 
   const discountIr = calculateIrpfOnly(irBase, totalGross);
 
