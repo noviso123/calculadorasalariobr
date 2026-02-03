@@ -91,6 +91,6 @@ const PayslipTable: React.FC<PayslipProps> = React.memo(({ earnings, discounts, 
       </div>
     </div>
   );
-};
+});
 
 export default PayslipTable;

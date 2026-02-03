@@ -127,6 +127,6 @@ const PieChartVisual: React.FC<Props> = React.memo(({ data }) => {
       </div>
     </div>
   );
-};
+});
 
 export default PieChartVisual;
