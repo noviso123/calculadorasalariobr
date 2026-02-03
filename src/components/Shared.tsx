@@ -95,7 +95,7 @@ export const ResultCard: React.FC<ResultCardProps> = memo(({ label, value, isMai
   return (
     <div className={`p-8 rounded-[2rem] border backdrop-blur-xl flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-2xl duration-500 animate-scale-in ${bgClass} will-change-transform`}>
       <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${labelClass}`}>{label}</span>
-      <span className={`text-3xl md:text-5xl font-black break-words tracking-tighter ${valueClass}`}>
+      <span className={`text-2xl md:text-4xl font-black break-words tracking-tighter ${valueClass}`}>
         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
       </span>
     </div>
