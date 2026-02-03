@@ -68,7 +68,8 @@ const SalaryView: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
 
         {/* CONTAINER A: FORMULÁRIO */}
-        <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
+        {/* CONTAINER A: FORMULÁRIO */}
+        <section className="w-full lg:w-5/12 glass-card p-6 md:p-8 rounded-3xl relative z-10 animate-fade-in-up">
            <form onSubmit={handleCalc} className="space-y-5">
               <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
 
@@ -114,7 +115,7 @@ const SalaryView: React.FC = () => {
               <InputGroup label="Plano de Saúde" value={data.healthInsurance} onChange={(v) => setData({...data, healthInsurance: Number(v)})} />
               <InputGroup label="Outros Descontos" value={data.otherDiscounts} onChange={(v) => setData({...data, otherDiscounts: Number(v)})} />
 
-              <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98] text-lg">
+              <button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform active:scale-[0.98] text-lg mt-2">
                 Calcular Líquido
               </button>
            </form>
@@ -123,7 +124,7 @@ const SalaryView: React.FC = () => {
         {/* CONTAINER B: RESULTADOS FINANCEIROS */}
         <section className="w-full lg:w-7/12 relative z-10">
            {result && (
-             <div ref={resultsRef} className="space-y-6 animate-fade-in scroll-mt-6">
+             <div ref={resultsRef} className="space-y-6 animate-fade-in-up scroll-mt-6">
 
                 {/* Cards Principais */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

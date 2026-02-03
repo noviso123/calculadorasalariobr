@@ -15,15 +15,15 @@ interface InputGroupProps {
 
 export const InputGroup: React.FC<InputGroupProps> = ({ label, value, onChange, placeholder, required, isSmall }) => (
   <div className="w-full">
-    <label className={`block text-xs font-bold text-slate-500 uppercase mb-1`}>{label}</label>
+    <label className={`block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 ml-1`}>{label}</label>
     <div className="relative group">
-      {!isSmall && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium pointer-events-none group-focus-within:text-blue-500 transition-colors">R$</span>}
+      {!isSmall && <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium pointer-events-none group-focus-within:text-blue-600 transition-colors">R$</span>}
       <input
         type="number"
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder || '0,00'}
-        className={`w-full ${isSmall ? 'px-3 py-2 text-sm' : 'pl-10 pr-4 py-3.5 text-base md:text-lg'} rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none text-slate-800 font-bold transition-all shadow-sm`}
+        className={`w-full ${isSmall ? 'px-4 py-2.5 text-sm' : 'pl-11 pr-4 py-4 text-lg'} rounded-2xl glass-input outline-none text-slate-800 font-bold placeholder:text-slate-300`}
         required={required}
       />
     </div>
@@ -98,14 +98,34 @@ interface ResultCardProps {
   isConsigned?: boolean;
 }
 
-export const ResultCard: React.FC<ResultCardProps> = ({ label, value, isMain, isDanger, isConsigned }) => (
-  <div className={`p-6 rounded-2xl border shadow-sm flex flex-col justify-between ${isMain ? 'bg-blue-600 text-white border-blue-600' : isDanger ? 'bg-white border-red-100' : isConsigned ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-100'}`}>
-    <span className={`text-xs font-bold uppercase tracking-wider mb-2 ${isMain ? 'text-blue-200' : isDanger ? 'text-red-400' : isConsigned ? 'text-indigo-200' : 'text-slate-400'}`}>{label}</span>
-    <span className={`text-2xl md:text-3xl font-extrabold break-words ${isMain ? 'text-white' : isDanger ? 'text-red-600' : isConsigned ? 'text-white' : 'text-slate-800'}`}>
-      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
-    </span>
-  </div>
-);
+export const ResultCard: React.FC<ResultCardProps> = ({ label, value, isMain, isDanger, isConsigned }) => {
+  let bgClass = "bg-white/80 border-slate-100 text-slate-800";
+  let labelClass = "text-slate-500";
+  let valueClass = "text-slate-900";
+
+  if (isMain) {
+    bgClass = "bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-transparent shadow-blue-900/20";
+    labelClass = "text-blue-100/80";
+    valueClass = "text-white drop-shadow-sm";
+  } else if (isDanger) {
+    bgClass = "bg-white/90 border-red-100/50 shadow-red-900/5";
+    labelClass = "text-red-400";
+    valueClass = "text-red-600";
+  } else if (isConsigned) {
+    bgClass = "bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-transparent shadow-indigo-900/20";
+    labelClass = "text-indigo-100/80";
+    valueClass = "text-white";
+  }
+
+  return (
+    <div className={`p-6 rounded-3xl border shadow-lg backdrop-blur-md flex flex-col justify-between transition-all hover:scale-[1.02] duration-300 ${bgClass}`}>
+      <span className={`text-xs font-bold uppercase tracking-widest mb-3 ${labelClass}`}>{label}</span>
+      <span className={`text-3xl md:text-4xl font-extrabold break-words tracking-tight ${valueClass}`}>
+        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
+      </span>
+    </div>
+  );
+};
 
 // --- ROW ---
 interface RowProps {
