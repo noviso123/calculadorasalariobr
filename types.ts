@@ -51,7 +51,7 @@ export interface ThirteenthInput {
   includeDependents: boolean;
   dependents: number;
   includeExtras: boolean;
-  extras: ExtrasInput; 
+  extras: ExtrasInput;
   includeConsigned: boolean;
   consigned: ConsignedInput;
 }
@@ -63,7 +63,7 @@ export interface TerminationInput {
   reason: 'dismissal_no_cause' | 'dismissal_cause' | 'resignation' | 'agreement';
   noticeStatus: NoticeStatus;
   hasExpiredVacation: boolean;
-  thirteenthAdvancePaid: boolean; 
+  thirteenthAdvancePaid: boolean;
   includeDependents: boolean;
   dependents: number;
   includeExtras: boolean;
@@ -76,10 +76,10 @@ export interface VacationInput {
   grossSalary: number;
   includeDependents: boolean;
   dependents: number;
-  daysTaken: number; 
-  sellDays: boolean; 
-  daysSold: number;  
-  advanceThirteenth: boolean; 
+  daysTaken: number;
+  sellDays: boolean;
+  daysSold: number;
+  advanceThirteenth: boolean;
   includeExtras: boolean;
   extras: ExtrasInput;
   includeConsigned: boolean;
@@ -101,14 +101,15 @@ export interface IrBreakdown {
 
 export interface CalculationResult {
   grossSalary: number;
-  totalExtras: number; 
-  extrasBreakdown: ExtrasBreakdown; 
+  totalExtras: number;
+  extrasBreakdown: ExtrasBreakdown;
   inss: number;
   irpf: number;
   dependentsDeduction: number;
   transportVoucher: number;
   healthInsurance: number;
   otherDiscounts: number;
+  familySalary: number; // Novo 2026
   netSalary: number; // Líquido Base (Antes do Consignado)
   totalDiscounts: number;
   effectiveRate: number;
@@ -121,18 +122,18 @@ export interface CalculationResult {
 
 export interface ThirteenthResult {
   totalGross: number;
-  totalExtrasAverage: number; 
-  extrasBreakdown: ExtrasBreakdown; 
+  totalExtrasAverage: number;
+  extrasBreakdown: ExtrasBreakdown;
   totalNet: number; // Líquido Base
   parcel1: {
-    value: number; 
+    value: number;
   };
   parcel2: {
-    grossReference: number; 
+    grossReference: number;
     inss: number;
     irpf: number;
-    discountAdvance: number; 
-    value: number; 
+    discountAdvance: number;
+    value: number;
     // Consignado geralmente desconta na 2ª parcela
     maxMargin: number;
     consignedDiscount: number;
@@ -142,52 +143,52 @@ export interface ThirteenthResult {
 }
 
 export interface TerminationResult {
-  balanceSalary: number; 
-  noticeWarning: number; 
-  noticeDeduction: number; 
-  vacationProportional: number; 
-  vacationMonths: number; 
-  vacationPeriodLabel: string; 
-  vacationExpired: number; 
-  vacationThird: number; 
-  thirteenthProportional: number; 
-  thirteenthMonths: number; 
-  thirteenthPeriodLabel: string; 
-  thirteenthAdvanceDeduction: number; 
-  fgtsFine: number; 
-  estimatedFgtsBalance: number; 
-  totalFgts: number; 
+  balanceSalary: number;
+  noticeWarning: number;
+  noticeDeduction: number;
+  vacationProportional: number;
+  vacationMonths: number;
+  vacationPeriodLabel: string;
+  vacationExpired: number;
+  vacationThird: number;
+  thirteenthProportional: number;
+  thirteenthMonths: number;
+  thirteenthPeriodLabel: string;
+  thirteenthAdvanceDeduction: number;
+  fgtsFine: number;
+  estimatedFgtsBalance: number;
+  totalFgts: number;
   totalGross: number;
-  totalExtrasAverage: number; 
-  extrasBreakdown: ExtrasBreakdown; 
-  discountInss: number; 
-  discountIr: number;   
+  totalExtrasAverage: number;
+  extrasBreakdown: ExtrasBreakdown;
+  discountInss: number;
+  discountIr: number;
   irBreakdown: IrBreakdown; // Detalhamento do IR (Salário, 13º, Férias)
-  totalDiscounts: number; 
+  totalDiscounts: number;
   totalNet: number; // Líquido Base da Rescisão (TRCT)
-  
+
   // Consigned Fields for Termination
   maxConsignableMargin: number; // 35% das verbas rescisórias líquidas
   consignedDiscount: number;    // Valor abatido na rescisão (TRCT)
-  
+
   remainingLoanBalance: number; // Saldo devedor restante (após TRCT e FGTS)
-  
+
   // Detailed FGTS Execution
   warrantyUsed: number;         // Valor da Garantia (10%) usado
   fineUsed: number;             // Valor da Multa (40%) usado
   totalFgtsDeduction: number;   // Total abatido do FGTS
-  
+
   finalFgtsToWithdraw: number;  // Valor final de FGTS para sacar
   finalNetTermination: number;  // Valor a receber em mãos (TRCT Líquido Final)
 }
 
 export interface VacationResult {
   baseSalary: number;
-  vacationGross: number; 
-  vacationThird: number; 
-  allowanceGross: number; 
-  allowanceThird: number; 
-  advanceThirteenth: number; 
+  vacationGross: number;
+  vacationThird: number;
+  allowanceGross: number;
+  allowanceThird: number;
+  advanceThirteenth: number;
   totalGross: number;
   extrasBreakdown: ExtrasBreakdown;
   discountInss: number;
@@ -212,6 +213,7 @@ export interface AIContext {
   gross: number;
   net: number;
   discounts: number;
+  inss: number;
   extras?: number;
   // Specific fields
   monthsWorked?: number; // 13th

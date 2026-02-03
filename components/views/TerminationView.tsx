@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { TerminationInput, TerminationResult, ExtrasInput, ConsignedInput, AIContext } from '../../types';
 import { calculateTermination } from '../../services/taxService';
 import { InputGroup, ExtrasSection, Row } from '../Shared';
@@ -30,7 +31,7 @@ const TerminationView: React.FC = () => {
   useEffect(() => {
     if (data.endDate) {
       const end = new Date(data.endDate + 'T12:00:00');
-      const month = end.getMonth(); 
+      const month = end.getMonth();
       if (month === 11) {
          setData(prev => ({ ...prev, thirteenthAdvancePaid: true }));
       }
@@ -48,7 +49,7 @@ const TerminationView: React.FC = () => {
     }
   };
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   const getAIContext = (): AIContext | null => {
@@ -58,12 +59,18 @@ const TerminationView: React.FC = () => {
       gross: result.totalGross,
       net: result.finalNetTermination,
       discounts: result.totalDiscounts + result.consignedDiscount,
+      inss: result.discountInss,
       terminationReason: data.reason
     };
   };
 
   return (
    <div className="w-full max-w-7xl mx-auto pb-24">
+      <Helmet>
+        <title>Calculadora de Rescisão 2026 - Cálculo Trabalhista</title>
+        <meta name="description" content="Simulador de Rescisão de Contrato de Trabalho 2026. Calcule saldo de salário, aviso prévio, férias proporcionais e multa do FGTS." />
+        <link rel="canonical" href="https://calculadorasalario2026.com.br/rescisao" />
+      </Helmet>
       {/* 1. CABEÇALHO */}
       <header className="mb-8 md:mb-12">
         <h2 className="text-3xl font-bold text-slate-800">Rescisão de Contrato</h2>
@@ -72,7 +79,7 @@ const TerminationView: React.FC = () => {
 
       {/* 2. ÁREA DE CÁLCULO */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
-         
+
          {/* CONTAINER A: FORMULÁRIO */}
          <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
             <form onSubmit={handleCalc} className="space-y-4">
@@ -87,11 +94,11 @@ const TerminationView: React.FC = () => {
                     <input type="date" value={data.endDate} onChange={(e) => setData({...data, endDate: e.target.value})} className="w-full p-3 border rounded-lg text-slate-700 bg-slate-50 outline-none" required />
                   </div>
                </div>
-               
+
                <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Motivo do Desligamento</label>
-                  <select 
-                    value={data.reason} 
+                  <select
+                    value={data.reason}
                     onChange={(e) => {
                       const r = e.target.value as any;
                       let ns = data.noticeStatus;
@@ -125,8 +132,8 @@ const TerminationView: React.FC = () => {
               {data.reason !== 'dismissal_cause' && (
                  <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Aviso Prévio</label>
-                    <select 
-                      value={data.noticeStatus} 
+                    <select
+                      value={data.noticeStatus}
                       onChange={(e) => setData({...data, noticeStatus: e.target.value as any})}
                       className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none"
                     >
@@ -153,15 +160,15 @@ const TerminationView: React.FC = () => {
                  </div>
                )}
 
-               <ExtrasSection 
-                 isActive={data.includeExtras} 
+               <ExtrasSection
+                 isActive={data.includeExtras}
                  onToggle={(v) => setData({...data, includeExtras: v})}
                  data={data.extras}
                  onChange={(d) => setData({...data, extras: d})}
                  labelOverride="Incluir Extras / Base"
                />
-               
-               <ConsignedSection 
+
+               <ConsignedSection
                 isActive={data.includeConsigned}
                 onToggle={(v) => setData({...data, includeConsigned: v})}
                 data={data.consigned}
@@ -174,7 +181,7 @@ const TerminationView: React.FC = () => {
                     <input type="checkbox" checked={data.hasExpiredVacation} onChange={(e) => setData({...data, hasExpiredVacation: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
                     <span className="text-sm font-semibold text-slate-700">Possui Férias Vencidas?</span>
                 </label>
-                
+
                 <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${data.thirteenthAdvancePaid ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent'}`}>
                     <input type="checkbox" checked={data.thirteenthAdvancePaid} onChange={(e) => setData({...data, thirteenthAdvancePaid: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
                     <div className="flex flex-col">
@@ -201,7 +208,7 @@ const TerminationView: React.FC = () => {
                           {result.finalNetTermination === 0 ? 'Deduções superiores aos ganhos (Zerado)' : 'Valor depositado em conta'}
                         </p>
                       </div>
-                      
+
                       {/* CARD 2: SAQUE FGTS */}
                       <div className="bg-emerald-600 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
                         <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider">Líquido FGTS a Sacar</p>
@@ -214,19 +221,19 @@ const TerminationView: React.FC = () => {
 
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mt-4">
                       <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">Detalhamento TRCT</h4>
-                      
+
                       <Row label="Saldo de Salário" value={result.balanceSalary} />
                       {result.noticeWarning > 0 && <Row label="Aviso Prévio Indenizado" value={result.noticeWarning} />}
                       <Row label={`Férias Proporcionais (${result.vacationMonths}/12)`} value={result.vacationProportional} />
                       <Row label="1/3 Férias" value={result.vacationThird} />
                       <Row label={`13º Proporcional (${result.thirteenthMonths}/12)`} value={result.thirteenthProportional} />
                       {result.vacationExpired > 0 && <Row label="Férias Vencidas" value={result.vacationExpired} />}
-                      
+
                       <div className="my-2 border-t border-slate-50"></div>
-                      
+
                       <Row label="INSS (Total)" value={-result.discountInss} />
                       <Row label="IRPF (Base Unificada)" value={-result.discountIr} highlight />
-                      
+
                       {result.noticeDeduction > 0 && <Row label="Desconto Aviso Prévio" value={-result.noticeDeduction} />}
                       {result.thirteenthAdvanceDeduction > 0 && <Row label="Adiantamento 13º" value={-result.thirteenthAdvanceDeduction} />}
                       {result.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-result.consignedDiscount} highlight />}
@@ -249,7 +256,7 @@ const TerminationView: React.FC = () => {
                           <div className="bg-indigo-600 text-white p-1 rounded"><BankIcon /></div>
                           <h5 className="text-sm font-bold text-indigo-800 uppercase">Fluxo de Quitação do Empréstimo</h5>
                         </div>
-                        
+
                         <div className="space-y-2 text-xs md:text-sm text-indigo-900">
                           <div className="flex justify-between border-b border-indigo-200 pb-1">
                               <span>Dívida Inicial Declarada:</span>
@@ -257,7 +264,7 @@ const TerminationView: React.FC = () => {
                           </div>
 
                           <Row label="1. Abatido na Rescisão (TRCT 35%)" value={-result.consignedDiscount} />
-                          
+
                           {result.totalFgtsDeduction > 0 && (
                               <div className="bg-white/60 p-2 rounded border border-indigo-200 mt-2">
                                 <p className="text-[10px] font-bold text-indigo-500 uppercase mb-1">Garantia FGTS Executada</p>
@@ -301,9 +308,9 @@ const TerminationView: React.FC = () => {
                         <div className="space-y-2 text-sm text-emerald-900">
                           <Row label="Saldo de Depósitos" value={result.estimatedFgtsBalance} />
                           <Row label="Multa Rescisória (40%)" value={result.fgtsFine} />
-                          
+
                           <div className="border-t border-emerald-200/60 my-2"></div>
-                          
+
                           <div className="flex justify-between items-center">
                               <span className="text-emerald-700 font-medium">Total Bruto</span>
                               <span className="font-bold text-emerald-900 text-lg">{formatCurrency(result.totalFgts)}</span>

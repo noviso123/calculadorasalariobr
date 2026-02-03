@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { VacationInput, VacationResult, ExtrasInput, ConsignedInput, AIContext } from '../../types';
 import { calculateVacation } from '../../services/taxService';
 import { InputGroup, ExtrasSection, Row } from '../Shared';
@@ -21,7 +22,7 @@ const VacationView: React.FC = () => {
     includeExtras: false, extras: initialExtras,
     includeConsigned: false, consigned: initialConsigned
   });
-  
+
   const [result, setResult] = useState<VacationResult | null>(null);
 
   const handleCalc = (e: React.FormEvent) => {
@@ -30,7 +31,7 @@ const VacationView: React.FC = () => {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   const getAIContext = (): AIContext | null => {
@@ -40,6 +41,7 @@ const VacationView: React.FC = () => {
       gross: result.totalGross,
       net: result.finalNetVacation,
       discounts: result.totalDiscounts + result.consignedDiscount,
+      inss: result.discountInss,
       extras: result.extrasBreakdown.total,
       daysTaken: data.daysTaken
     };
@@ -47,6 +49,11 @@ const VacationView: React.FC = () => {
 
   return (
    <div className="w-full max-w-5xl mx-auto pb-24">
+     <Helmet>
+        <title>Calculadora de Férias 2026 - CLT Atualizada</title>
+        <meta name="description" content="Simule o valor exato das suas férias 2026. Inclui venda de dias (abono), 1/3 constitucional e adiantamento de 13º salário." />
+        <link rel="canonical" href="https://calculadorasalario2026.com.br/ferias" />
+     </Helmet>
      {/* 1. CABEÇALHO */}
      <header className="mb-8 md:mb-12">
        <h2 className="text-3xl font-bold text-slate-800">Calculadora de Férias</h2>
@@ -55,12 +62,12 @@ const VacationView: React.FC = () => {
 
      {/* 2. ÁREA DE CÁLCULO */}
      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
-        
+
         {/* CONTAINER A: FORMULÁRIO */}
         <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
           <form onSubmit={handleCalc} className="space-y-5">
              <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
-             
+
              <div className={`p-4 rounded-xl border transition-all ${data.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                <label className="flex items-center gap-3 cursor-pointer select-none">
                  <input type="checkbox" checked={data.includeDependents} onChange={(e) => setData({...data, includeDependents: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
@@ -75,7 +82,7 @@ const VacationView: React.FC = () => {
 
              <div>
                 <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">Dias de Descanso</label>
-                <select 
+                <select
                   value={data.daysTaken}
                   onChange={(e) => setData({...data, daysTaken: Number(e.target.value)})}
                   className="w-full p-3 border rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-600 transition-all cursor-pointer"
@@ -105,15 +112,15 @@ const VacationView: React.FC = () => {
                 <span className="text-sm font-semibold text-slate-700">Adiantar 1ª Parcela 13º?</span>
              </label>
 
-             <ExtrasSection 
-               isActive={data.includeExtras} 
+             <ExtrasSection
+               isActive={data.includeExtras}
                onToggle={(v) => setData({...data, includeExtras: v})}
                data={data.extras}
                onChange={(d) => setData({...data, extras: d})}
                labelOverride="Incluir Média de Extras"
              />
-             
-             <ConsignedSection 
+
+             <ConsignedSection
               isActive={data.includeConsigned}
               onToggle={(v) => setData({...data, includeConsigned: v})}
               data={data.consigned}
@@ -137,21 +144,21 @@ const VacationView: React.FC = () => {
 
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mt-4">
                      <h4 className="font-bold text-slate-800 mb-4 pb-2 border-b border-slate-100">Detalhamento</h4>
-                     
+
                      <Row label="Férias (Bruto)" value={result.vacationGross} />
                      <Row label="1/3 Constitucional" value={result.vacationThird} />
                      {result.allowanceGross > 0 && <Row label="Abono Pecuniário" value={result.allowanceGross} />}
                      {result.allowanceThird > 0 && <Row label="1/3 Abono" value={result.allowanceThird} />}
                      {result.advanceThirteenth > 0 && <Row label="Adiantamento 13º" value={result.advanceThirteenth} />}
-                     
+
                      <Row label="Média de Extras" value={result.extrasBreakdown.total} />
-                     
+
                      <div className="my-2 border-t border-slate-50"></div>
-                     
+
                      <Row label="INSS" value={-result.discountInss} />
                      <Row label="IRPF" value={-result.discountIr} />
                      {result.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-result.consignedDiscount} highlight />}
-                     
+
                      <div className="border-t border-slate-100 my-3"></div>
                      <div className="flex justify-between font-bold text-lg text-slate-700">
                        <span>Total Descontos</span>

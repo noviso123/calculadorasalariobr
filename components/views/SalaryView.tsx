@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { CalculationResult, SalaryInput, ExtrasInput, ConsignedInput, AIContext } from '../../types';
 import { calculateSalary } from '../../services/taxService';
 import { InputGroup, ExtrasSection, ResultCard } from '../Shared';
@@ -17,14 +18,14 @@ const initialConsigned: ConsignedInput = {
 
 const SalaryView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
-  
+
   const [data, setData] = useState<SalaryInput>({
     grossSalary: 0, includeDependents: false, dependents: 0, otherDiscounts: 0, healthInsurance: 0,
     transportVoucherPercent: 6, includeTransportVoucher: false, transportDailyCost: 0, workDays: 22,
     includeExtras: false, extras: initialExtras,
     includeConsigned: false, consigned: initialConsigned
   });
-  
+
   const [result, setResult] = useState<CalculationResult | null>(null);
 
   const handleCalc = (e: React.FormEvent) => {
@@ -40,30 +41,37 @@ const SalaryView: React.FC = () => {
       gross: result.grossSalary,
       net: result.finalNetSalary,
       discounts: result.totalDiscounts + result.consignedDiscount,
+      inss: result.inss,
       extras: result.totalExtras
     };
   };
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
     <div className="w-full max-w-7xl mx-auto pb-24">
+      <Helmet>
+        <title>Calculadora Salário Líquido 2026 - Oficial e Atualizada</title>
+        <meta name="description" content="Calcule seu salário líquido 2026 com as novas tabelas de INSS e IRRF. Simule descontos, horas extras e benefícios. Grátis e preciso." />
+        <link rel="canonical" href="https://calculadorasalario2026.com.br/" />
+      </Helmet>
+
       {/* 1. CABEÇALHO */}
       <header className="mb-8 md:mb-12">
         <h2 className="text-3xl font-bold text-slate-800">Salário Líquido 2026</h2>
         <p className="text-slate-500">Simule seus ganhos reais, descontos oficiais e impostos atualizados.</p>
       </header>
-      
+
       {/* 2. ÁREA DE CÁLCULO E RESULTADOS */}
       {/* Container flex para Desktop, mas bloco normal para Mobile para evitar sobreposição */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
-        
+
         {/* CONTAINER A: FORMULÁRIO */}
         <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
            <form onSubmit={handleCalc} className="space-y-5">
               <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
-              
+
               <div className={`p-4 rounded-xl border transition-all ${data.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                 <label className="flex items-center gap-3 cursor-pointer select-none">
                   <input type="checkbox" checked={data.includeDependents} onChange={(e) => setData({...data, includeDependents: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
@@ -76,14 +84,14 @@ const SalaryView: React.FC = () => {
                 )}
               </div>
 
-              <ExtrasSection 
-                isActive={data.includeExtras} 
+              <ExtrasSection
+                isActive={data.includeExtras}
                 onToggle={(v) => setData({...data, includeExtras: v})}
                 data={data.extras}
                 onChange={(d) => setData({...data, extras: d})}
               />
 
-              <ConsignedSection 
+              <ConsignedSection
                 isActive={data.includeConsigned}
                 onToggle={(v) => setData({...data, includeConsigned: v})}
                 data={data.consigned}
@@ -105,7 +113,7 @@ const SalaryView: React.FC = () => {
 
               <InputGroup label="Plano de Saúde" value={data.healthInsurance} onChange={(v) => setData({...data, healthInsurance: Number(v)})} />
               <InputGroup label="Outros Descontos" value={data.otherDiscounts} onChange={(v) => setData({...data, otherDiscounts: Number(v)})} />
-              
+
               <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98] text-lg">
                 Calcular Líquido
               </button>
@@ -116,12 +124,12 @@ const SalaryView: React.FC = () => {
         <section className="w-full lg:w-7/12 relative z-10">
            {result && (
              <div ref={resultsRef} className="space-y-6 animate-fade-in scroll-mt-6">
-                
+
                 {/* Cards Principais */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                    <ResultCard label="Salário Bruto" value={result.grossSalary} />
                    <ResultCard label="Salário Líquido" value={result.finalNetSalary} isMain />
-                   
+
                    {result.consignedDiscount > 0 ? (
                       <ResultCard label="Empréstimo (Desc.)" value={result.consignedDiscount} isConsigned />
                    ) : (
@@ -129,12 +137,13 @@ const SalaryView: React.FC = () => {
                    )}
                    <ResultCard label="Total Descontos" value={result.totalDiscounts + result.consignedDiscount} isDanger />
                 </div>
-                
+
                 {/* Tabela de Holerite */}
                 <div className="mt-4">
-                   <PayslipTable 
+                   <PayslipTable
                      earnings={[
                        { label: 'Salário Base', value: result.grossSalary, type: 'earning' },
+                       ...(result.familySalary > 0 ? [{ label: 'Salário Família', value: result.familySalary, type: 'earning' } as any] : []),
                        ...(result.extrasBreakdown.value50 > 0 ? [{ label: 'Hora Extra 50%', value: result.extrasBreakdown.value50, type: 'earning' } as any] : []),
                        ...(result.extrasBreakdown.value100 > 0 ? [{ label: 'Hora Extra 100%', value: result.extrasBreakdown.value100, type: 'earning' } as any] : []),
                        ...(result.extrasBreakdown.valueNight > 0 ? [{ label: 'Adicional Noturno', value: result.extrasBreakdown.valueNight, type: 'earning' } as any] : []),
@@ -150,7 +159,7 @@ const SalaryView: React.FC = () => {
                        ...(result.otherDiscounts > 0 ? [{ label: 'Outros Descontos', value: result.otherDiscounts, type: 'discount' } as any] : []),
                        ...(result.consignedDiscount > 0 ? [{ label: 'Empréstimo Consignado', value: result.consignedDiscount, type: 'discount' } as any] : []),
                      ]}
-                     totalGross={result.grossSalary + result.totalExtras}
+                     totalGross={result.grossSalary + result.totalExtras + result.familySalary}
                      totalDiscounts={result.totalDiscounts + result.consignedDiscount}
                      netValue={result.finalNetSalary}
                      footerNote={
@@ -162,7 +171,7 @@ const SalaryView: React.FC = () => {
                      }
                    />
                 </div>
-                
+
                 {/* Gráfico */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-center h-fit">
                     <PieChartVisual data={result} />

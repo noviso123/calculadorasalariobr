@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
-interface Props {
-  onOpenPrivacy: () => void;
-}
-
-const CookieConsent: React.FC<Props> = ({ onOpenPrivacy }) => {
+const CookieConsent: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -27,11 +24,11 @@ const CookieConsent: React.FC<Props> = ({ onOpenPrivacy }) => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex-1">
           <p className="text-sm text-slate-300 text-center md:text-left leading-relaxed">
-            <strong className="text-white">Aviso de Cookies:</strong> Utilizamos cookies e tecnologias semelhantes para personalizar anúncios (Google AdSense), 
-            melhorar sua experiência e analisar nosso tráfego. Ao continuar navegando, você concorda com nossa 
-            <button onClick={onOpenPrivacy} className="text-blue-400 hover:text-blue-300 underline ml-1 font-medium focus:outline-none">
+            <strong className="text-white">Aviso de Cookies:</strong> Utilizamos cookies e tecnologias semelhantes para personalizar anúncios (Google AdSense),
+            melhorar sua experiência e analisar nosso tráfego. Ao continuar navegando, você concorda com nossa
+            <Link to="/politica-privacidade" className="text-blue-400 hover:text-blue-300 underline ml-1 font-medium focus:outline-none">
               Política de Privacidade
-            </button>.
+            </Link>.
           </p>
         </div>
         <div className="flex gap-3">

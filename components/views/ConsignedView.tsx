@@ -1,5 +1,6 @@
 
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { calculateSalary } from '../../services/taxService';
 import { InputGroup } from '../Shared';
 
@@ -24,11 +25,16 @@ const ConsignedView: React.FC = () => {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   return (
    <div className="max-w-4xl mx-auto animate-fade-in space-y-6 md:space-y-8">
+     <Helmet>
+        <title>Simulador Margem Consignável 2026 - Cálculo Exato</title>
+        <meta name="description" content="Descubra sua margem consignável (35% da renda líquida) de acordo com a regra de 2026. Evite endividamento excessivo." />
+        <link rel="canonical" href="https://calculadorasalario2026.com.br/consignado" />
+     </Helmet>
      <header>
        <h2 className="text-2xl md:text-3xl font-bold text-slate-800">Simulador de Margem Consignável</h2>
        <p className="text-slate-500 text-sm md:text-base mt-1">Descubra quanto você pode comprometer do seu salário.</p>

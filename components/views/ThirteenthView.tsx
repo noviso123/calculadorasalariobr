@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { ThirteenthInput, ThirteenthResult, ExtrasInput, ConsignedInput, AIContext } from '../../types';
 import { calculateThirteenth } from '../../services/taxService';
 import { InputGroup, ExtrasSection, Row } from '../Shared';
@@ -18,7 +19,7 @@ const initialConsigned: ConsignedInput = {
 
 const ThirteenthView: React.FC = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
-  
+
   const [data, setData] = useState<ThirteenthInput>({
     grossSalary: 0, monthsWorked: 12, includeDependents: false, dependents: 0,
     includeExtras: false, extras: initialExtras,
@@ -33,7 +34,7 @@ const ThirteenthView: React.FC = () => {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
   };
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
 
   const getAIContext = (): AIContext | null => {
@@ -43,12 +44,18 @@ const ThirteenthView: React.FC = () => {
       gross: result.totalGross,
       net: result.finalTotalNet,
       discounts: result.parcel2.inss + result.parcel2.irpf + result.parcel2.consignedDiscount,
+      inss: result.parcel2.inss,
       monthsWorked: data.monthsWorked
     };
   };
 
   return (
    <div className="w-full max-w-5xl mx-auto pb-24">
+      <Helmet>
+        <title>Calculadora Décimo Terceiro 2026 - 1ª e 2ª Parcela</title>
+        <meta name="description" content="Saiba quanto vai receber de 13º Salário em 2026. Cálculo exato da primeira e segunda parcela com descontos atualizados." />
+        <link rel="canonical" href="https://calculadorasalario2026.com.br/decimo-terceiro" />
+      </Helmet>
       {/* 1. CABEÇALHO */}
       <header className="mb-8 md:mb-12">
         <h2 className="text-3xl font-bold text-slate-800">Décimo Terceiro 2026</h2>
@@ -57,13 +64,13 @@ const ThirteenthView: React.FC = () => {
 
       {/* 2. ÁREA DE CÁLCULO */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
-         
+
          {/* CONTAINER A: FORMULÁRIO */}
          <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
             <form onSubmit={handleCalc} className="space-y-5">
                <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
                <InputGroup label="Meses Trabalhados" value={data.monthsWorked} onChange={(v) => setData({...data, monthsWorked: Math.min(12, Number(v))})} isSmall />
-               
+
                <div className={`p-4 rounded-xl border transition-all ${data.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                  <label className="flex items-center gap-3 cursor-pointer select-none">
                    <input type="checkbox" checked={data.includeDependents} onChange={(e) => setData({...data, includeDependents: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
@@ -76,15 +83,15 @@ const ThirteenthView: React.FC = () => {
                  )}
                </div>
 
-               <ExtrasSection 
-                 isActive={data.includeExtras} 
+               <ExtrasSection
+                 isActive={data.includeExtras}
                  onToggle={(v) => setData({...data, includeExtras: v})}
                  data={data.extras}
                  onChange={(d) => setData({...data, extras: d})}
                  labelOverride="Incluir Média de Extras"
                />
-               
-               <ConsignedSection 
+
+               <ConsignedSection
                 isActive={data.includeConsigned}
                 onToggle={(v) => setData({...data, includeConsigned: v})}
                 data={data.consigned}
@@ -100,7 +107,7 @@ const ThirteenthView: React.FC = () => {
             {result && (
                <div ref={resultsRef} className="space-y-6 animate-fade-in scroll-mt-6">
                   <h3 className="font-bold text-slate-700 md:text-lg">Fluxo de Recebimento</h3>
-                  
+
                   {/* CARD 1a PARCELA */}
                   <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl relative overflow-hidden shadow-sm">
                      <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-2 mb-2">
@@ -122,20 +129,20 @@ const ThirteenthView: React.FC = () => {
                                <p className="text-3xl md:text-4xl font-extrabold text-slate-800 mt-1">{formatCurrency(result.parcel2.finalValue)}</p>
                            </div>
                       </div>
-                      
+
                       <div className="mt-4 pt-4 border-t border-slate-100">
                          <Row label="13º Salário Integral" value={result.totalGross} />
                          <Row label="Média de Extras" value={result.extrasBreakdown.total} />
-                         
+
                          <div className="my-2 border-t border-slate-50"></div>
-                         
+
                          <Row label="INSS" value={-result.parcel2.inss} />
                          <Row label="IRPF" value={-result.parcel2.irpf} />
                          <Row label="Desc. Adiantamento" value={-result.parcel2.discountAdvance} />
                          {result.parcel2.consignedDiscount > 0 && <Row label="Empréstimo Consignado" value={-result.parcel2.consignedDiscount} highlight />}
                       </div>
                   </div>
-                  
+
                   <div className="mt-6 bg-gradient-to-r from-blue-700 to-indigo-800 text-white p-6 md:p-8 rounded-2xl shadow-xl border-t-4 border-blue-400 flex flex-col items-center justify-center transform hover:scale-[1.01] transition-transform">
                      <p className="text-blue-200 text-xs font-bold uppercase tracking-widest text-center mb-1">Total Líquido (Soma)</p>
                      <p className="text-4xl md:text-5xl font-black text-center tracking-tight drop-shadow-sm">
