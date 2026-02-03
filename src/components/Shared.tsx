@@ -99,28 +99,28 @@ interface ResultCardProps {
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({ label, value, isMain, isDanger, isConsigned }) => {
-  let bgClass = "bg-white/80 border-slate-100 text-slate-800";
-  let labelClass = "text-slate-500";
+  let bgClass = "bg-white/70 border-white/50 premium-shadow";
+  let labelClass = "text-slate-400";
   let valueClass = "text-slate-900";
 
   if (isMain) {
-    bgClass = "bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-transparent shadow-blue-900/20";
-    labelClass = "text-blue-100/80";
-    valueClass = "text-white drop-shadow-sm";
+    bgClass = "bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-transparent shadow-xl shadow-blue-500/20";
+    labelClass = "text-blue-100/70";
+    valueClass = "text-white drop-shadow-md";
   } else if (isDanger) {
-    bgClass = "bg-white/90 border-red-100/50 shadow-red-900/5";
+    bgClass = "bg-white/70 border-red-100/50 shadow-red-900/5";
     labelClass = "text-red-400";
     valueClass = "text-red-600";
   } else if (isConsigned) {
-    bgClass = "bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-transparent shadow-indigo-900/20";
-    labelClass = "text-indigo-100/80";
+    bgClass = "bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-transparent shadow-lg shadow-indigo-500/20";
+    labelClass = "text-indigo-100/70";
     valueClass = "text-white";
   }
 
   return (
-    <div className={`p-6 rounded-3xl border shadow-lg backdrop-blur-md flex flex-col justify-between transition-all hover:scale-[1.02] duration-300 ${bgClass}`}>
-      <span className={`text-xs font-bold uppercase tracking-widest mb-3 ${labelClass}`}>{label}</span>
-      <span className={`text-3xl md:text-4xl font-extrabold break-words tracking-tight ${valueClass}`}>
+    <div className={`p-8 rounded-[2rem] border backdrop-blur-xl flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-2xl duration-500 animate-scale-in ${bgClass}`}>
+      <span className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${labelClass}`}>{label}</span>
+      <span className={`text-3xl md:text-5xl font-black break-words tracking-tighter ${valueClass}`}>
         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}
       </span>
     </div>

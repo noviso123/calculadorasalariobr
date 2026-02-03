@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { CalculationResult, SalaryInput, ExtrasInput, ConsignedInput, AIContext } from '../../types';
 import { calculateSalary } from '../../services/taxService';
 import { InputGroup, ExtrasSection, ResultCard } from '../Shared';
+import { Check } from 'lucide-react';
 import ConsignedSection from '../ConsignedSection';
 import PieChartVisual from '../PieChartVisual';
 import AIAdvisor from '../AIAdvisor';
@@ -68,9 +69,9 @@ const SalaryView: React.FC = () => {
       </Helmet>
 
       {/* 1. CABEÇALHO */}
-      <header className="mb-8 md:mb-12">
-        <h2 className="text-3xl font-bold text-slate-800">Salário Líquido 2026</h2>
-        <p className="text-slate-500">Simule seus ganhos reais, descontos oficiais e impostos atualizados.</p>
+      <header className="mb-12 md:mb-16">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">Salário Líquido <span className="text-blue-600">2026</span></h2>
+        <p className="text-slate-500 text-lg md:text-xl mt-3 max-w-2xl leading-relaxed">Simule seus ganhos reais, descontos oficiais e impostos atualizados com precisão cirúrgica.</p>
       </header>
 
       {/* 2. ÁREA DE CÁLCULO E RESULTADOS */}
@@ -79,18 +80,26 @@ const SalaryView: React.FC = () => {
 
         {/* CONTAINER A: FORMULÁRIO */}
         {/* CONTAINER A: FORMULÁRIO */}
-        <section className="w-full lg:w-5/12 glass-card p-6 md:p-8 rounded-3xl relative z-10 animate-fade-in-up">
-           <form onSubmit={handleCalc} className="space-y-5">
-              <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
+        <section className="w-full lg:w-5/12 glass-card p-6 md:p-10 rounded-[2.5rem] relative z-10 animate-fade-in-up border-none shadow-2xl">
+           <div className="mb-8 pl-1">
+              <h3 className="text-xl font-black text-slate-800">Configuração de Ganhos</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Dados oficiais CLT</p>
+           </div>
 
-              <div className={`p-4 rounded-xl border transition-all ${data.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input type="checkbox" checked={data.includeDependents} onChange={(e) => setData({...data, includeDependents: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
-                  <span className="text-sm font-semibold text-slate-700">Incluir Dependentes (IRPF)</span>
+           <form onSubmit={handleCalc} className="space-y-6">
+              <InputGroup label="Salário Bruto Mensal" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
+
+              <div className={`p-5 rounded-3xl border-2 transition-all ${data.includeDependents ? 'bg-blue-50/50 border-blue-100' : 'bg-slate-50/50 border-slate-100'}`}>
+                <label className="flex items-center gap-4 cursor-pointer select-none">
+                  <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${data.includeDependents ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-slate-200'}`}>
+                    {data.includeDependents && <Check size={14} strokeWidth={3} />}
+                  </div>
+                  <input type="checkbox" className="hidden" checked={data.includeDependents} onChange={(e) => setData({...data, includeDependents: e.target.checked})} />
+                  <span className="text-sm font-bold text-slate-700">Dependentes para IRPF</span>
                 </label>
                 {data.includeDependents && (
-                  <div className="mt-4 animate-fade-in">
-                    <InputGroup label="Número de Dependentes" value={data.dependents} onChange={(v) => setData({...data, dependents: Number(v)})} isSmall placeholder="0" />
+                  <div className="mt-4 animate-scale-in">
+                    <InputGroup label="Quantidade de Dependentes" value={data.dependents} onChange={(v) => setData({...data, dependents: Number(v)})} isSmall placeholder="0" />
                   </div>
                 )}
               </div>

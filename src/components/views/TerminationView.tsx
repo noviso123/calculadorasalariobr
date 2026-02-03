@@ -64,18 +64,23 @@ const TerminationView: React.FC = () => {
         <link rel="canonical" href="https://calculadorasalario2026.com.br/rescisao" />
       </Helmet>
       {/* 1. CABEÇALHO */}
-      <header className="mb-8 md:mb-12">
-        <h2 className="text-3xl font-bold text-slate-800">Rescisão de Contrato</h2>
-        <p className="text-slate-500">Estimativa completa de valores para desligamento trabalhista.</p>
+      <header className="mb-12 md:mb-16">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">Rescisão de <span className="text-blue-600">Contrato</span></h2>
+        <p className="text-slate-500 text-lg md:text-xl mt-3 max-w-2xl leading-relaxed">Simulação completa de valores para desligamento trabalhista com base nas regras de 2026.</p>
       </header>
 
       {/* 2. ÁREA DE CÁLCULO */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
 
          {/* CONTAINER A: FORMULÁRIO */}
-         <section className="w-full lg:w-5/12 glass-card p-6 md:p-8 rounded-3xl relative z-10 animate-fade-in-up">
-            <form onSubmit={handleCalc} className="space-y-4">
-               <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
+         <section className="w-full lg:w-5/12 glass-card p-6 md:p-10 rounded-[2.5rem] relative z-10 animate-fade-in-up border-none shadow-2xl">
+            <div className="mb-8 pl-1">
+              <h3 className="text-xl font-black text-slate-800">Dados do Contrato</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Simulação Rescisória</p>
+            </div>
+
+            <form onSubmit={handleCalc} className="space-y-5">
+               <InputGroup label="Último Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1">Data Admissão</label>
@@ -223,22 +228,22 @@ const TerminationView: React.FC = () => {
             {result && (
                <div ref={resultsRef} className="space-y-6 animate-fade-in scroll-mt-6">
                   {/* CARDS DE RESULTADO: RESCISÃO + FGTS */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {/* CARD 1: RESCISÃO LÍQUIDA (DINHEIRO NA MÃO) */}
-                      <div className={`text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between ${result.finalNetTermination === 0 ? 'bg-red-900' : 'bg-slate-800'}`}>
-                        <p className={`${result.finalNetTermination === 0 ? 'text-red-200' : 'text-slate-300'} text-xs font-bold uppercase tracking-wider`}>Líquido Rescisório (TRCT)</p>
-                        <p className="text-3xl font-extrabold mt-2 break-words">{formatCurrency(result.finalNetTermination)}</p>
-                        <p className={`${result.finalNetTermination === 0 ? 'text-red-300' : 'text-slate-400'} text-xs mt-2`}>
-                          {result.finalNetTermination === 0 ? 'Deduções superiores aos ganhos (Zerado)' : 'Valor depositado em conta'}
+                      <div className={`p-8 rounded-[2rem] border shadow-2xl backdrop-blur-xl flex flex-col justify-between transition-all animate-scale-in duration-500 ${result.finalNetTermination === 0 ? 'bg-slate-900 text-white' : 'bg-gradient-to-br from-slate-800 to-slate-950 text-white'}`}>
+                        <p className={`${result.finalNetTermination === 0 ? 'text-slate-400' : 'text-blue-100/70'} text-[10px] font-black uppercase tracking-[0.2em] mb-4`}>Líquido Rescisório (TRCT)</p>
+                        <p className="text-4xl font-black tracking-tighter break-words">{formatCurrency(result.finalNetTermination)}</p>
+                        <p className="text-[10px] text-slate-400 mt-4 leading-relaxed">
+                          {result.finalNetTermination === 0 ? 'Deduções superiores aos ganhos (Zerado)' : 'Valor aproximado a ser creditado em conta.'}
                         </p>
                       </div>
 
                       {/* CARD 2: SAQUE FGTS */}
-                      <div className="bg-emerald-600 text-white p-6 rounded-2xl shadow-lg flex flex-col justify-between">
-                        <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider">Líquido FGTS a Sacar</p>
-                        <p className="text-3xl font-extrabold mt-2 break-words">{formatCurrency(result.finalFgtsToWithdraw)}</p>
-                        <div className="flex justify-between items-center mt-2">
-                            <p className="text-xs text-emerald-200">Saldo Disponível no App FGTS</p>
+                      <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-8 rounded-[2rem] shadow-2xl shadow-emerald-500/20 flex flex-col justify-between transition-all animate-scale-in duration-500">
+                        <p className="text-emerald-100/70 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Líquido FGTS a Sacar</p>
+                        <p className="text-4xl font-black tracking-tighter break-words">{formatCurrency(result.finalFgtsToWithdraw)}</p>
+                        <div className="flex justify-between items-center mt-4">
+                            <p className="text-[10px] text-emerald-200">Saldo Disponível no Aplicativo FGTS</p>
                         </div>
                       </div>
                   </div>

@@ -66,19 +66,24 @@ const ThirteenthView: React.FC = () => {
         <link rel="canonical" href="https://calculadorasalario2026.com.br/decimo-terceiro" />
       </Helmet>
       {/* 1. CABEÇALHO */}
-      <header className="mb-8 md:mb-12">
-        <h2 className="text-3xl font-bold text-slate-800">Décimo Terceiro 2026</h2>
-        <p className="text-slate-500">Simule o recebimento da 1ª e 2ª parcela com precisão.</p>
+      <header className="mb-12 md:mb-16">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">Décimo Terceiro <span className="text-blue-600">2026</span></h2>
+        <p className="text-slate-500 text-lg md:text-xl mt-3 max-w-2xl leading-relaxed">Simule a Gratificação Natalina com o cálculo exato das parcelas e descontos de fim de ano.</p>
       </header>
 
       {/* 2. ÁREA DE CÁLCULO */}
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
 
          {/* CONTAINER A: FORMULÁRIO */}
-         <section className="w-full lg:w-5/12 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 relative z-10">
-            <form onSubmit={handleCalc} className="space-y-5">
+         <section className="w-full lg:w-5/12 glass-card p-6 md:p-10 rounded-[2.5rem] relative z-10 animate-fade-in-up border-none shadow-2xl">
+            <div className="mb-8 pl-1">
+              <h3 className="text-xl font-black text-slate-800">Configurar Gratificação</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Base oficial 2026</p>
+            </div>
+
+            <form onSubmit={handleCalc} className="space-y-6">
                <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
-               <InputGroup label="Meses Trabalhados" value={data.monthsWorked} onChange={(v) => setData({...data, monthsWorked: Math.min(12, Number(v))})} isSmall />
+               <InputGroup label="Meses Trabalhados no Ano" value={data.monthsWorked} onChange={(v) => setData({...data, monthsWorked: Math.min(12, Number(v))})} isSmall />
 
                <div className={`p-4 rounded-xl border transition-all ${data.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                  <label className="flex items-center gap-3 cursor-pointer select-none">

@@ -73,9 +73,14 @@ const VacationView: React.FC = () => {
      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start w-full relative">
 
         {/* CONTAINER A: FORMULÁRIO */}
-        <section className="w-full lg:w-5/12 glass-card p-6 md:p-8 rounded-3xl relative z-10 animate-fade-in-up">
-          <form onSubmit={handleCalc} className="space-y-5">
-             <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
+        <section className="w-full lg:w-5/12 glass-card p-6 md:p-10 rounded-[2.5rem] relative z-10 animate-fade-in-up border-none shadow-2xl">
+           <div className="mb-8 pl-1">
+              <h3 className="text-xl font-black text-slate-800">Parâmetros das Férias</h3>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Regras oficiais 2026</p>
+           </div>
+
+           <form onSubmit={handleCalc} className="space-y-6">
+              <InputGroup label="Salário Bruto" value={data.grossSalary} onChange={(v) => setData({...data, grossSalary: Number(v)})} required />
 
              <div className={`p-4 rounded-xl border transition-all ${data.includeDependents ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200'}`}>
                <label className="flex items-center gap-3 cursor-pointer select-none">

@@ -42,9 +42,9 @@ const IrpfView: React.FC = () => {
         <meta name="description" content="Simulador oficial de Imposto de Renda 2026. Compare o desconto simplificado x legal e descubra sua alíquota efetiva real." />
       </Helmet>
 
-      <header className="mb-8 md:mb-12">
-        <h2 className="text-3xl font-bold text-slate-800">Simulador de IRPF 2026</h2>
-        <p className="text-slate-500">Compare o Modelo Completo vs Simplificado e descubra sua alíquota real.</p>
+      <header className="mb-12 md:mb-16">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">Simulador de <span className="text-blue-600">IRPF 2026</span></h2>
+        <p className="text-slate-500 text-lg md:text-xl mt-3 max-w-2xl leading-relaxed">Compare o Modelo Completo vs Simplificado e descubra o peso real do Imposto de Renda na sua folha.</p>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">

@@ -46,9 +46,9 @@ const CompareView: React.FC = () => {
         <title>Comparador CLT x PJ 2026 - Mensal vs Mensal</title>
       </Helmet>
 
-      <header className="mb-8 md:mb-12">
-        <h2 className="text-3xl font-bold text-slate-800 text-center md:text-left">Comparador CLT vs PJ</h2>
-        <p className="text-slate-500 text-center md:text-left text-lg">Qual o seu rendimento real **mensal** em cada regime?</p>
+      <header className="mb-12 md:mb-16">
+        <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight leading-tight">CLT vs <span className="text-indigo-600">PJ 2026</span></h2>
+        <p className="text-slate-500 text-lg md:text-xl mt-3 max-w-2xl leading-relaxed">Qual o seu rendimento real e o poder de consumo mensal em cada regime de contratação?</p>
       </header>
 
       <div className="flex flex-col lg:flex-row gap-8 items-start">

@@ -19,10 +19,11 @@ const NavItem = ({ to, icon, label, currentPath }: { to: string, icon: React.Rea
     return (
         <Link
             to={to}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${isActive ? 'bg-blue-700 text-white shadow-lg shadow-blue-900/20' : 'text-blue-100 hover:bg-white/10'}`}
+            className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 font-bold group relative overflow-hidden ${isActive ? 'bg-white/15 text-white shadow-xl shadow-black/10' : 'text-blue-100 hover:bg-white/5 hover:text-white'}`}
         >
-            {icon}
-            <span>{label}</span>
+            {isActive && <div className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-white rounded-full"></div>}
+            <div className={`transition-transform duration-500 ${isActive ? 'scale-110' : 'group-hover:scale-110 group-hover:-rotate-6'}`}>{icon}</div>
+            <span className={`tracking-tight whitespace-nowrap ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform duration-300`}>{label}</span>
         </Link>
     );
 };
