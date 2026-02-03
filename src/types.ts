@@ -63,6 +63,7 @@ export interface TerminationInput {
   reason: 'dismissal_no_cause' | 'dismissal_cause' | 'resignation' | 'agreement';
   noticeStatus: NoticeStatus;
   hasExpiredVacation: boolean;
+  expiredVacationCount?: number;
   thirteenthAdvancePaid: boolean;
   includeDependents: boolean;
   dependents: number;

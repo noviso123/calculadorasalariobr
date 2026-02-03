@@ -177,10 +177,30 @@ const TerminationView: React.FC = () => {
               />
 
                <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg cursor-pointer">
-                    <input type="checkbox" checked={data.hasExpiredVacation} onChange={(e) => setData({...data, hasExpiredVacation: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />
+                <div className={`p-4 rounded-xl border transition-all ${data.hasExpiredVacation ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-transparent'}`}>
+                 <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={data.hasExpiredVacation}
+                      onChange={(e) => setData({...data, hasExpiredVacation: e.target.checked, expiredVacationCount: e.target.checked ? 1 : 0})}
+                      className="h-5 w-5 accent-amber-600 rounded"
+                    />
                     <span className="text-sm font-semibold text-slate-700">Possui Férias Vencidas?</span>
-                </label>
+                 </label>
+                 {data.hasExpiredVacation && (
+                   <div className="mt-3 animate-fade-in pl-8">
+                      <label className="block text-xs font-bold text-amber-800 mb-1">Quantas vencidas?</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        value={data.expiredVacationCount || 1}
+                        onChange={(e) => setData({...data, expiredVacationCount: Number(e.target.value)})}
+                        className="w-24 p-2 text-sm border border-amber-300 rounded-lg text-amber-900 bg-white outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                   </div>
+                 )}
+                </div>
 
                 <label className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${data.thirteenthAdvancePaid ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent'}`}>
                     <input type="checkbox" checked={data.thirteenthAdvancePaid} onChange={(e) => setData({...data, thirteenthAdvancePaid: e.target.checked})} className="h-5 w-5 accent-blue-600 rounded" />

@@ -409,7 +409,10 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const vacationMonths = calculateAvos(vestingStart, projectedEndDate);
   const vacationPeriodLabel = `${formatDate(vestingStart)} a ${formatDate(projectedEndDate)}`;
   const vacationProportional = (remunerationBase / 12) * vacationMonths;
-  const vacationExpired = data.hasExpiredVacation ? remunerationBase : 0;
+
+  const expiredCount = data.hasExpiredVacation ? (data.expiredVacationCount || 1) : 0;
+  const vacationExpired = remunerationBase * expiredCount;
+
   const vacationThird = (vacationProportional + vacationExpired) / 3;
   const vacationTotal = vacationProportional + vacationExpired + vacationThird;
 
