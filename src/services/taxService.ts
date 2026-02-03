@@ -692,13 +692,17 @@ export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
 
   // Cálculo exato usando Dedução (Mais seguro)
   let exactTax = 0;
+  let deductibleAmount = 0;
+
   for (const bracket of IRPF_BRACKETS) {
        if (appliedBase <= bracket.limit) {
            exactTax = (appliedBase * bracket.rate) - bracket.deduction;
+           deductibleAmount = bracket.deduction;
            break;
        }
        if (bracket.limit === Infinity) {
             exactTax = (appliedBase * bracket.rate) - bracket.deduction;
+            deductibleAmount = bracket.deduction;
             break; // ultimo
        }
   }
@@ -722,6 +726,7 @@ export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
     simplifiedBase: Math.max(0, grossIncome - simplifiedDiscount),
     appliedBase,
     isSimplifiedBest,
+    deductibleAmount,
     taxValue: Number(taxValue.toFixed(2)),
     effectiveRate: Number(effectiveRate.toFixed(2)),
     brackets: bracketsBreakdown

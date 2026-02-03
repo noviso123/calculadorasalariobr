@@ -119,23 +119,28 @@ const IrpfView: React.FC = () => {
                 {/* RESULTADO FINAL (CARD GOV STYLE) */}
                 <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                     <div className="bg-[#003673] text-white p-6">
-                        <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Resultado da Simulação</p>
+                        <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Imposto Devido Mensal</p>
                         <div className="flex items-baseline gap-2">
                              <h3 className="text-4xl font-bold">R$ {result.taxValue.toFixed(2)}</h3>
-                             <span className="text-sm font-light">de Imposto Mensal</span>
+                             <span className="text-sm font-light">a ser pago ou retido</span>
                         </div>
                     </div>
 
-                    <div className="p-6 grid grid-cols-2 gap-6">
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <p className="text-slate-500 text-xs uppercase font-bold mb-1">Alíquota Efetiva</p>
-                            <p className="text-2xl font-bold text-slate-800">{result.effectiveRate}%</p>
-                            <p className="text-[10px] text-slate-400 leading-tight mt-1">Percentual real descontado sobre o rendimento bruto.</p>
+                            <p className="text-slate-500 text-xs uppercase font-bold mb-1">Base de Cálculo</p>
+                            <p className="text-xl font-bold text-slate-800">{formatCurrency(result.appliedBase)}</p>
+                            <p className="text-[10px] text-slate-400 leading-tight mt-1">Valor tributável final.</p>
+                        </div>
+                        <div className="md:border-x md:border-slate-100 md:px-6">
+                            <p className="text-slate-500 text-xs uppercase font-bold mb-1">Parcela a Deduzir</p>
+                            <p className="text-xl font-bold text-emerald-600">-{formatCurrency(result.deductibleAmount)}</p>
+                            <p className="text-[10px] text-slate-400 leading-tight mt-1">Abatimento da faixa.</p>
                         </div>
                          <div>
-                            <p className="text-slate-500 text-xs uppercase font-bold mb-1">Base de Cálculo</p>
-                            <p className="text-2xl font-bold text-slate-800">{formatCurrency(result.appliedBase)}</p>
-                            <p className="text-[10px] text-slate-400 leading-tight mt-1">Valor sobre o qual incide a tabela progressiva.</p>
+                            <p className="text-slate-500 text-xs uppercase font-bold mb-1">Alíquota Efetiva</p>
+                            <p className="text-xl font-bold text-indigo-600">{result.effectiveRate}%</p>
+                            <p className="text-[10px] text-slate-400 leading-tight mt-1">Peso real sobre o bruto.</p>
                         </div>
                     </div>
                 </div>

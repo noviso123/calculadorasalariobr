@@ -260,7 +260,7 @@ export interface IrpfResult {
   // Best Option
   appliedBase: number;
   isSimplifiedBest: boolean;
-
+  deductibleAmount: number;
   taxValue: number;
   effectiveRate: number;
 
