@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layout & Views
 // Layout & Views
@@ -40,64 +39,60 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-        <HelmetProvider>
-          <BrowserRouter>
-            <React.Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                <Route path="/" element={<Layout />}>
-                <Route index element={
-                  <>
-                    <div className="flex-1"><SalaryView /></div>
-                    <SEOContent view="salary" />
-                  </>
-                } />
-                <Route path="ferias" element={
-                  <>
-                    <div className="flex-1"><VacationView /></div>
-                    <SEOContent view="vacation" />
-                  </>
-                } />
-                <Route path="decimo-terceiro" element={
-                  <>
-                    <div className="flex-1"><ThirteenthView /></div>
-                    <SEOContent view="thirteenth" />
-                  </>
-                } />
-                <Route path="rescisao" element={
-                  <>
-                    <div className="flex-1"><TerminationView /></div>
-                    <SEOContent view="termination" />
-                  </>
-                } />
-                <Route path="consignado" element={
-                  <>
-                    <div className="flex-1"><ConsignedView /></div>
-                    <SEOContent view="consigned" />
-                  </>
-                } />
-                <Route path="comparar" element={
-                  <>
-                    <div className="flex-1"><CompareView /></div>
-                    <SEOContent view="compare" />
-                  </>
-                } />
-                <Route path="irpf-simulador" element={
-                  <>
-                    <div className="flex-1"><IrpfView /></div>
-                    <SEOContent view="irpf" />
-                  </>
-                } />
-                {/* Legal Pages */}
-                <Route path="politica-privacidade" element={<PrivacyView />} />
-                <Route path="termos" element={<TermsView />} />
-                <Route path="sobre" element={<AboutView />} />
+        <React.Suspense fallback={<LoadingFallback />}>
+            <Routes>
+            <Route path="/" element={<Layout />}>
+            <Route index element={
+                <>
+                <div className="flex-1"><SalaryView /></div>
+                <SEOContent view="salary" />
+                </>
+            } />
+            <Route path="ferias" element={
+                <>
+                <div className="flex-1"><VacationView /></div>
+                <SEOContent view="vacation" />
+                </>
+            } />
+            <Route path="decimo-terceiro" element={
+                <>
+                <div className="flex-1"><ThirteenthView /></div>
+                <SEOContent view="thirteenth" />
+                </>
+            } />
+            <Route path="rescisao" element={
+                <>
+                <div className="flex-1"><TerminationView /></div>
+                <SEOContent view="termination" />
+                </>
+            } />
+            <Route path="consignado" element={
+                <>
+                <div className="flex-1"><ConsignedView /></div>
+                <SEOContent view="consigned" />
+                </>
+            } />
+            <Route path="comparar" element={
+                <>
+                <div className="flex-1"><CompareView /></div>
+                <SEOContent view="compare" />
+                </>
+            } />
+            <Route path="irpf-simulador" element={
+                <>
+                <div className="flex-1"><IrpfView /></div>
+                <SEOContent view="irpf" />
+                </>
+            } />
+            {/* Legal Pages */}
+            <Route path="politica-privacidade" element={<PrivacyView />} />
+            <Route path="termos" element={<TermsView />} />
+            <Route path="sobre" element={<AboutView />} />
 
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Route>
-            </Routes>
-            </React.Suspense>
-          </BrowserRouter>
-        </HelmetProvider>
+            <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+        </Routes>
+        </React.Suspense>
     </ErrorBoundary>
   );
 };

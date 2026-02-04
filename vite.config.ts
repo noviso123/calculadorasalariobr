@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   plugins: [react()],
   define: {
     'process.env.API_KEY': JSON.stringify(process.env.API_KEY),
@@ -11,7 +11,9 @@ export default defineConfig({
     port: 5173
   },
   build: {
-    rollupOptions: {
+    rollupOptions: isSsrBuild ? {
+      input: 'src/entry-server.tsx'
+    } : {
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
@@ -23,7 +25,9 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 800,
-    cssCodeSplit: true,
     minify: 'esbuild'
+  },
+  ssr: {
+    noExternal: ['react-router-dom', 'react-helmet-async', 'react-bootstrap']
   }
-});
+}));
