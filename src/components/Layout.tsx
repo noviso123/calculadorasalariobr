@@ -45,16 +45,17 @@ const Layout: React.FC = () => {
     React.useEffect(() => {
         if (window.innerWidth < 768) { // Only apply on mobile/tablet
             if (isMobileMenuOpen) {
+                // Lock both html and body to be safe on iOS
+                document.documentElement.style.overflow = 'hidden';
                 document.body.style.overflow = 'hidden';
-                document.body.style.touchAction = 'none'; // Prevents background touches
             } else {
+                document.documentElement.style.overflow = '';
                 document.body.style.overflow = '';
-                document.body.style.touchAction = '';
             }
         }
         return () => {
-            document.body.style.overflow = '';
-            document.body.style.touchAction = '';
+             document.documentElement.style.overflow = '';
+             document.body.style.overflow = '';
         };
     }, [isMobileMenuOpen]);
 
@@ -94,7 +95,7 @@ const Layout: React.FC = () => {
 
             {/* SIDEBAR */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[110] w-80 bg-gradient-to-b from-[#1e3a8a] to-[#172554] text-white transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl overflow-y-auto max-h-[100dvh] overscroll-contain pb-20 md:pb-0
+                className={`fixed inset-y-0 left-0 z-[9999] w-80 bg-gradient-to-b from-[#1e3a8a] to-[#172554] text-white transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl overflow-y-auto max-h-[100dvh] overscroll-contain pb-20 md:pb-0
                 ${isMobileMenuOpen ? 'translate-x-0 touch-pan-y' : '-translate-x-full'}
                 md:translate-x-0 md:relative md:sticky md:top-0 md:h-screen md:overflow-y-auto md:flex md:w-72 md:flex-col md:shadow-none lg:w-80 md:shrink-0`}
                 style={{ WebkitOverflowScrolling: 'touch' }}
