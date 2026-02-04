@@ -41,6 +41,23 @@ const Layout: React.FC = () => {
 
 
 
+    // Lock body scroll when mobile menu is open to ensure reliable scrolling within the menu
+    React.useEffect(() => {
+        if (window.innerWidth < 768) { // Only apply on mobile/tablet
+            if (isMobileMenuOpen) {
+                document.body.style.overflow = 'hidden';
+                document.body.style.touchAction = 'none'; // Prevents background touches
+            } else {
+                document.body.style.overflow = '';
+                document.body.style.touchAction = '';
+            }
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+        };
+    }, [isMobileMenuOpen]);
+
     return (
         <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans flex flex-col md:flex-row">
             <Helmet>
@@ -77,9 +94,10 @@ const Layout: React.FC = () => {
 
             {/* SIDEBAR */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[110] w-80 bg-gradient-to-b from-[#1e3a8a] to-[#172554] text-white transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl overflow-y-auto max-h-[100dvh] overscroll-contain
-                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+                className={`fixed inset-y-0 left-0 z-[110] w-80 bg-gradient-to-b from-[#1e3a8a] to-[#172554] text-white transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl overflow-y-auto max-h-[100dvh] overscroll-contain pb-20 md:pb-0
+                ${isMobileMenuOpen ? 'translate-x-0 touch-pan-y' : '-translate-x-full'}
                 md:translate-x-0 md:relative md:sticky md:top-0 md:h-screen md:overflow-y-auto md:flex md:w-72 md:flex-col md:shadow-none lg:w-80 md:shrink-0`}
+                style={{ WebkitOverflowScrolling: 'touch' }}
             >
                 <div className="p-8 border-b border-white/10 flex items-center justify-between md:justify-start gap-3">
                 <Link to="/" className="flex items-center gap-4 group">
