@@ -77,7 +77,7 @@ const Layout: React.FC = () => {
 
             {/* SIDEBAR */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[110] w-80 bg-gradient-to-b from-[#1e3a8a] to-[#172554] text-white transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl
+                className={`fixed inset-y-0 left-0 z-[110] w-80 bg-gradient-to-b from-[#1e3a8a] to-[#172554] text-white transform transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) shadow-2xl overflow-y-auto h-full
                 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
                 md:translate-x-0 md:relative md:sticky md:top-0 md:h-screen md:overflow-y-auto md:flex md:w-72 md:flex-col md:shadow-none lg:w-80 md:shrink-0`}
             >
