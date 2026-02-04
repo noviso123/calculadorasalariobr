@@ -14,7 +14,7 @@ const CookieConsent: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] animate-fade-in-up">
+    <div className="fixed bottom-0 left-0 right-0 z-[200] animate-fade-in-up transition-transform duration-300">
         {/* Backdrop visual para separar do conteúdo */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent -top-12 pointer-events-none" />
 
