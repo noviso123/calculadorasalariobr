@@ -1,100 +1,100 @@
 import { CalculationResult, SalaryInput, ThirteenthInput, ThirteenthResult, TerminationInput, TerminationResult, ExtrasInput, ExtrasBreakdown, VacationInput, VacationResult, ConsignedInput, PjInput, PjResult, PjRegime, IrpfInput, IrpfResult, EmployerCost } from '../types';
-import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE, IRPF_BRACKETS, SIMPLIFIED_DISCOUNT_VALUE } from '../config/taxConstants';
+import { INSS_BRACKETS, DEDUCTION_PER_DEPENDENT, FAMILY_SALARY_THRESHOLD, FAMILY_SALARY_VALUE, IRPF_BRACKETS, SIMPLIFIED_DISCOUNT_VALUE, IR_TRANSITION_FLOOR, IR_TRANSITION_CEILING, IR_TRANSITION_RATE } from '../config/taxConstants';
 
 
 const roundHelper = (value: number): number => {
-  // Adiciona um viés pequeno (1e-9) para corrigir erros de ponto flutuante (ex: 121.5749999999 -> 121.575)
-  // Isso garante o "Round Half Up" matemático correto para moedas.
   return Math.round((value + 1e-9) * 100) / 100;
 };
 
-// Função auxiliar para cálculo de IRPF isolado
-// Recebe flag hasDependents para aplicar regra de corte específica
-// NOTA: A base recebida JÁ DEVE TER O INSS DESCONTADO.
-// Implementa a lógica do Desconto Simplificado (R$ 564,80) automaticamente se for mais benéfico.
-const calculateIrpfOnly = (baseAfterInss: number, startBaseForSimplified: number): number => {
-  // 1. Regra "Novo IR 2026" (Isenção até 5.000 e Escalonamento até 7.350)
-  // Conforme solicitação do usuário e Simulação da Lei 15.270:
-  // - Até R$ 5.000,00 (Bruto): Isento.
-  // - Entre R$ 5.000,01 e R$ 7.350,00: Tributação Linear de Transição.
-  //   Baseado no ponto de dados: 5200 Bruto -> 71.62 Imposto.
-  //   Formula: (Bruto - 5000) * 0.3581.
-  // - Acima de R$ 7.350,00: Tabela Progressiva Padrão.
-
-  // Caso 1: Isenção Total
-  if (startBaseForSimplified <= 5000.00) {
-      return 0;
+// ============================================================================
+// IRPF UNIFICADO — Função central, usada por TODAS as telas.
+// ============================================================================
+// Recebe:
+//   taxableBase:  base de cálculo final (já com INSS e dependentes descontados)
+//   grossForTransition: rendimento BRUTO tributável (antes de INSS/dep) para
+//                       avaliar se cai na faixa de transição 2026 (5k-7.35k)
+//
+// Lógica:
+//   1. Se grossForTransition <= 5000 → isento
+//   2. Se grossForTransition entre 5000.01 e 7350 → alíquota linear de transição
+//   3. Acima de 7350 → melhor entre tabela progressiva LEGAL e SIMPLIFICADA
+// ============================================================================
+const calculateIrpfOnly = (taxableBase: number, grossForTransition: number): number => {
+  // Caso 1: Isenção Total (regra 2026)
+  if (grossForTransition <= IR_TRANSITION_FLOOR) {
+    return 0;
   }
 
   // Caso 2: Faixa de Transição (5k - 7.35k)
-  if (startBaseForSimplified <= 7350.00) {
-      const excess = startBaseForSimplified - 5000.00;
-      const taxTransition = excess * 0.3581;
-      return roundHelper(Math.max(0, taxTransition));
+  if (grossForTransition <= IR_TRANSITION_CEILING) {
+    const excess = grossForTransition - IR_TRANSITION_FLOOR;
+    const taxTransition = excess * IR_TRANSITION_RATE;
+    return roundHelper(Math.max(0, taxTransition));
   }
 
-  // Caso 3: Padrão (Acima de 7.35k) -> Cálculo "Melhor Entre Legal e Simplificado"
+  // Caso 3: Acima de 7.35k → Melhor entre Legal e Simplificado
 
-  // 3a. Cálculo Legal (Inss já deduzido da base)
+  // 3a. Cálculo LEGAL (sobre taxableBase = bruto - INSS - dependentes)
   let taxLegal = 0;
   for (const bracket of IRPF_BRACKETS) {
-      if (baseAfterInss <= bracket.limit) {
-          taxLegal = (baseAfterInss * bracket.rate) - bracket.deduction;
-          break;
-      }
-      if (bracket.limit === Infinity) {
-           taxLegal = (baseAfterInss * bracket.rate) - bracket.deduction;
-      }
+    if (taxableBase <= bracket.limit) {
+      taxLegal = (taxableBase * bracket.rate) - bracket.deduction;
+      break;
+    }
+    if (bracket.limit === Infinity) {
+      taxLegal = (taxableBase * bracket.rate) - bracket.deduction;
+    }
   }
   taxLegal = Math.max(0, taxLegal);
 
-  // 3b. Cálculo Simplificado (Desconto Padrão)
-  // Mas atenção: Para incomes > 7350, o "simplificado" atual ainda vale?
-  // Sim, a regra padrão se aplica acima do teto da transição.
-  const baseSimplified = Math.max(0, startBaseForSimplified - SIMPLIFIED_DISCOUNT_VALUE);
+  // 3b. Cálculo SIMPLIFICADO (Desconto Padrão R$ 564,80 sobre o bruto tributável)
+  const baseSimplified = Math.max(0, grossForTransition - SIMPLIFIED_DISCOUNT_VALUE);
   let taxSimplified = 0;
-   for (const bracket of IRPF_BRACKETS) {
-      if (baseSimplified <= bracket.limit) {
-          taxSimplified = (baseSimplified * bracket.rate) - bracket.deduction;
-          break;
-      }
-      if (bracket.limit === Infinity) {
-           taxSimplified = (baseSimplified * bracket.rate) - bracket.deduction;
-      }
+  for (const bracket of IRPF_BRACKETS) {
+    if (baseSimplified <= bracket.limit) {
+      taxSimplified = (baseSimplified * bracket.rate) - bracket.deduction;
+      break;
+    }
+    if (bracket.limit === Infinity) {
+      taxSimplified = (baseSimplified * bracket.rate) - bracket.deduction;
+    }
   }
   taxSimplified = Math.max(0, taxSimplified);
 
   return roundHelper(Math.min(taxLegal, taxSimplified));
 };
 
-// Função auxiliar para cálculo de INSS isolado
+// ============================================================================
+// INSS PROGRESSIVO
+// ============================================================================
 const calculateInssOnly = (value: number): number => {
   let inss = 0;
   let previousLimit = 0;
   const maxLimit = INSS_BRACKETS[INSS_BRACKETS.length - 1].limit;
 
   if (value > maxLimit) {
-      let accumulatedTax = 0;
-      let prev = 0;
-      for(const bracket of INSS_BRACKETS) {
-          // Usa roundHelper em cada passo para evitar carry-over de imprecisão
-          accumulatedTax += (bracket.limit - prev) * bracket.rate;
-          prev = bracket.limit;
-      }
-      inss = accumulatedTax;
+    let accumulatedTax = 0;
+    let prev = 0;
+    for (const bracket of INSS_BRACKETS) {
+      accumulatedTax += (bracket.limit - prev) * bracket.rate;
+      prev = bracket.limit;
+    }
+    inss = accumulatedTax;
   } else {
-      for (const bracket of INSS_BRACKETS) {
-        if (value <= previousLimit) break;
-        const currentLimit = bracket.limit;
-        const rangeBase = Math.min(value, currentLimit) - previousLimit;
-        if (rangeBase > 0) inss += rangeBase * bracket.rate;
-        previousLimit = currentLimit;
-      }
+    for (const bracket of INSS_BRACKETS) {
+      if (value <= previousLimit) break;
+      const currentLimit = bracket.limit;
+      const rangeBase = Math.min(value, currentLimit) - previousLimit;
+      if (rangeBase > 0) inss += rangeBase * bracket.rate;
+      previousLimit = currentLimit;
+    }
   }
   return roundHelper(inss);
 };
 
-// Função para converter Horas Extras em Valor Monetário Detalhado
+// ============================================================================
+// HORAS EXTRAS → VALOR MONETÁRIO
+// ============================================================================
 const calculateExtrasValue = (grossSalary: number, extras: ExtrasInput): ExtrasBreakdown => {
   if (!grossSalary) {
     return { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
@@ -106,7 +106,7 @@ const calculateExtrasValue = (grossSalary: number, extras: ExtrasInput): ExtrasB
   const val50 = hourlyRate * 1.5 * extras.hours50;
   const val100 = hourlyRate * 2.0 * extras.hours100;
   const valNight = hourlyRate * 0.2 * extras.hoursNight;
-  const valStandby = hourlyRate * (1/3) * extras.hoursStandby;
+  const valStandby = hourlyRate * (1 / 3) * extras.hoursStandby;
   const valInterjornada = hourlyRate * 1.5 * (extras.hoursInterjornada || 0);
 
   const subtotal = val50 + val100 + valNight + valStandby + valInterjornada;
@@ -129,9 +129,10 @@ const calculateExtrasValue = (grossSalary: number, extras: ExtrasInput): ExtrasB
   };
 };
 
-// Helper para Consignado: Retorna { totalMargin, availableMargin, cardMargin, discount }
+// ============================================================================
+// CONSIGNADO — Margem e desconto
+// ============================================================================
 const calculateConsignedValues = (netBase: number, consigned: ConsignedInput, isActive: boolean) => {
-  // Margem de 35% para empréstimos e 5% para cartão (Lei 14.431/2022 e vigentes)
   const totalLoanMargin = roundHelper(netBase * 0.35);
   const cardMargin = roundHelper(netBase * 0.05);
 
@@ -145,7 +146,6 @@ const calculateConsignedValues = (netBase: number, consigned: ConsignedInput, is
   }
 
   const currentInstallment = consigned.monthlyInstallment || 0;
-  // O desconto real não pode ultrapassar a margem total (35%)
   const discount = Math.min(currentInstallment, totalLoanMargin);
   const availableMargin = Math.max(0, roundHelper(totalLoanMargin - discount));
 
@@ -157,6 +157,9 @@ const calculateConsignedValues = (netBase: number, consigned: ConsignedInput, is
   };
 };
 
+// ============================================================================
+// SALÁRIO LÍQUIDO MENSAL
+// ============================================================================
 export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const {
     grossSalary,
@@ -189,6 +192,7 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const deductionVal = includeDependents ? (dependents * DEDUCTION_PER_DEPENDENT) : 0;
   const irBase = Math.max(0, totalGrossForTax - inss - deductionVal);
 
+  // grossForTransition = bruto tributável ANTES de deduções (para regra 5k-7.35k)
   const irpf = calculateIrpfOnly(irBase, totalGrossForTax);
 
   let transportVoucher = 0;
@@ -205,19 +209,15 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   const totalDiscounts = roundHelper(inss + irpf + otherDiscounts + transportVoucher + healthInsurance);
 
   // 2b. Salário Família (Benefício)
-  // Regra 2026: Até R$ 1.980,38 -> R$ 67,54 por dependente
   let familySalary = 0;
   if (includeDependents && dependents > 0 && totalGrossForTax <= FAMILY_SALARY_THRESHOLD) {
-      familySalary = roundHelper(dependents * FAMILY_SALARY_VALUE);
+    familySalary = roundHelper(dependents * FAMILY_SALARY_VALUE);
   }
 
-  // Proteção contra negativo
-  // Nota: Salário Família SOMA ao líquido
   const netSalaryBase = totalGrossForTax - totalDiscounts + familySalary;
   const netSalary = Math.max(0, Number(netSalaryBase.toFixed(2)));
 
   // 3. Consignado
-  // A margem consignável é calculada sobre a Remuneração Líquida (Bruto - INSS - IRPF)
   const netForConsigned = Math.max(0, totalGrossForTax - inss - irpf);
   const { totalMargin, availableMargin, cardMargin, discount: consignedDiscount } = calculateConsignedValues(netForConsigned, consigned, includeConsigned);
 
@@ -247,6 +247,9 @@ export const calculateSalary = (data: SalaryInput): CalculationResult => {
   };
 };
 
+// ============================================================================
+// 13º SALÁRIO
+// ============================================================================
 export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => {
   let extrasBreakdown: ExtrasBreakdown = { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
 
@@ -261,10 +264,11 @@ export const calculateThirteenth = (data: ThirteenthInput): ThirteenthResult => 
 
   const inss = calculateInssOnly(fullValue);
 
-  // Base IR 13º: Bruto - INSS - Dependentes
+  // Base IR 13º: valor proporcional - INSS - dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
   const irBase = Math.max(0, fullValue - inss - deductionVal);
 
+  // grossForTransition = valor bruto do 13º
   const irpf = calculateIrpfOnly(irBase, fullValue);
 
   const secondInstallmentNetBase = fullValue - inss - irpf - firstInstallmentValue;
@@ -306,7 +310,7 @@ const addDays = (date: Date, days: number): Date => {
 };
 
 const normalizeDate = (date: Date): Date => {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0);
 };
 
 const calculateAvos = (start: Date, end: Date): number => {
@@ -335,32 +339,49 @@ const calculateAvos = (start: Date, end: Date): number => {
 const formatDate = (date: Date): string => date.toLocaleDateString('pt-BR');
 
 
+// ============================================================================
+// RESCISÃO DE CONTRATO — CORRIGIDA
+// ============================================================================
+// Correções aplicadas:
+//   1. Aviso prévio indenizado = verba INDENIZATÓRIA (isento de IR e INSS)
+//   2. Férias proporcionais/vencidas + 1/3 na rescisão = isentos de IR (Súmula 386 STJ)
+//   3. INSS: somente sobre saldo de salário e 13º proporcional (separados)
+//   4. IRPF: somente sobre saldo de salário (- INSS - dep) e 13º (- INSS - dep), separados
+//   5. Acordo (art. 484-A CLT): aviso = 50%, multa FGTS = 20%
+//   6. Extras proporcionais aos dias no saldo de salário
+// ============================================================================
 export const calculateTermination = (data: TerminationInput): TerminationResult => {
   const start = new Date(data.startDate + 'T12:00:00');
   const end = new Date(data.endDate + 'T12:00:00');
 
-  if (start > end) {
-      return {
-          balanceSalary: 0, noticeWarning: 0, noticeDeduction: 0, vacationProportional: 0, vacationMonths: 0, vacationPeriodLabel: 'Datas Invertidas', vacationExpired: 0, vacationThird: 0, thirteenthProportional: 0, thirteenthMonths: 0, thirteenthPeriodLabel: 'Datas Invertidas', thirteenthAdvanceDeduction: 0, fgtsFine: 0, estimatedFgtsBalance: 0, totalFgts: 0, totalGross: 0, totalExtrasAverage: 0, extrasBreakdown: {value50:0, value100:0, valueInterjornada:0, valueNight:0, valueStandby:0, valueDsr:0, total:0}, discountInss: 0, discountIr: 0, irBreakdown: {salary:0, thirteenth:0, vacation:0, total:0}, totalDiscounts: 0, totalNet: 0, totalConsignableMargin: 0, availableConsignableMargin: 0, cardMargin: 0, consignedDiscount: 0, remainingLoanBalance: 0, warrantyUsed: 0, fineUsed: 0, totalFgtsDeduction: 0, finalFgtsToWithdraw: 0, finalNetTermination: 0
-      };
-  }
+  const emptyResult: TerminationResult = {
+    balanceSalary: 0, noticeWarning: 0, noticeDeduction: 0, vacationProportional: 0, vacationMonths: 0, vacationPeriodLabel: 'Datas Invertidas', vacationExpired: 0, vacationThird: 0, thirteenthProportional: 0, thirteenthMonths: 0, thirteenthPeriodLabel: 'Datas Invertidas', thirteenthAdvanceDeduction: 0, fgtsFine: 0, estimatedFgtsBalance: 0, totalFgts: 0, totalGross: 0, totalExtrasAverage: 0, extrasBreakdown: { value50: 0, value100: 0, valueInterjornada: 0, valueNight: 0, valueStandby: 0, valueDsr: 0, total: 0 }, discountInss: 0, discountIr: 0, irBreakdown: { salary: 0, thirteenth: 0, vacation: 0, total: 0 }, totalDiscounts: 0, totalNet: 0, totalConsignableMargin: 0, availableConsignableMargin: 0, cardMargin: 0, consignedDiscount: 0, remainingLoanBalance: 0, warrantyUsed: 0, fineUsed: 0, totalFgtsDeduction: 0, finalFgtsToWithdraw: 0, finalNetTermination: 0
+  };
+
+  if (start > end) return emptyResult;
 
   const diffTime = Math.abs(end.getTime() - start.getTime());
   const diffDaysTotal = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   const yearsWorked = Math.floor(diffDaysTotal / 365);
 
+  // Dias trabalhados no último mês (saldo de salário)
   const lastMonthStart = new Date(end.getFullYear(), end.getMonth(), 1, 12, 0, 0);
   const daysInLastMonth = Math.floor((end.getTime() - lastMonthStart.getTime()) / (1000 * 3600 * 24)) + 1;
   const saldoSalaryDays = Math.min(daysInLastMonth, 30);
 
+  // Extras (média mensal habitual)
   let extrasBreakdown: ExtrasBreakdown = { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
   if (data.includeExtras && data.extras) {
     extrasBreakdown = calculateExtrasValue(data.grossSalary, data.extras);
   }
 
+  // Remuneração base (salário + extras habituais — para cálculo de aviso, férias, 13º)
   const remunerationBase = data.grossSalary + extrasBreakdown.total;
-  const balanceSalary = (data.grossSalary / 30) * saldoSalaryDays;
 
+  // Saldo de Salário (proporcional aos dias trabalhados no mês)
+  const balanceSalary = (remunerationBase / 30) * saldoSalaryDays;
+
+  // ========== AVISO PRÉVIO ==========
   let noticeWarning = 0;
   let noticeDeduction = 0;
   let projectedEndDate = new Date(end);
@@ -371,53 +392,60 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
       noticeWarning = (remunerationBase / 30) * noticeDays;
       projectedEndDate = addDays(end, noticeDays);
     }
+    // Se 'worked', já está incluído no período trabalhado
   } else if (data.reason === 'resignation') {
     if (data.noticeStatus === 'not_fulfilled') {
-      noticeDeduction = data.grossSalary;
+      noticeDeduction = data.grossSalary; // Desconto de 30 dias (salário base)
+    }
+  } else if (data.reason === 'agreement') {
+    // Art. 484-A CLT: aviso prévio indenizado = 50%
+    if (data.noticeStatus === 'indemnified') {
+      noticeWarning = ((remunerationBase / 30) * noticeDays) * 0.50;
+      projectedEndDate = addDays(end, noticeDays);
     }
   }
 
-  // 13º Proporcional
+  // ========== 13º PROPORCIONAL ==========
   let thirteenthProportional = 0;
   let thirteenthMonths = 0;
   let thirteenthPeriodLabel = '';
   let thirteenthAdvanceDeduction = 0;
 
   if (data.reason !== 'dismissal_cause') {
-      const exitYear = end.getFullYear();
-      const projectedYear = projectedEndDate.getFullYear();
-      const startOfYearCurrent = new Date(exitYear, 0, 1, 12, 0, 0);
-      const start13Current = start > startOfYearCurrent ? start : startOfYearCurrent;
+    const exitYear = end.getFullYear();
+    const projectedYear = projectedEndDate.getFullYear();
+    const startOfYearCurrent = new Date(exitYear, 0, 1, 12, 0, 0);
+    const start13Current = start > startOfYearCurrent ? start : startOfYearCurrent;
 
-      if (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified' && projectedYear > exitYear) {
-             const endOfYear = new Date(exitYear, 11, 31, 12, 0, 0);
-             const avosCurrentTotal = calculateAvos(start13Current, endOfYear);
-             const valueCurrentTotal = (remunerationBase / 12) * avosCurrentTotal;
+    if (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified' && projectedYear > exitYear) {
+      const endOfYear = new Date(exitYear, 11, 31, 12, 0, 0);
+      const avosCurrentTotal = calculateAvos(start13Current, endOfYear);
+      const valueCurrentTotal = (remunerationBase / 12) * avosCurrentTotal;
 
-             const startNextYear = new Date(projectedYear, 0, 1, 12, 0, 0);
-             const avosNextYear = calculateAvos(startNextYear, projectedEndDate);
-             const valueNextYear = (remunerationBase / 12) * avosNextYear;
+      const startNextYear = new Date(projectedYear, 0, 1, 12, 0, 0);
+      const avosNextYear = calculateAvos(startNextYear, projectedEndDate);
+      const valueNextYear = (remunerationBase / 12) * avosNextYear;
 
-             thirteenthMonths = avosCurrentTotal + avosNextYear;
-             thirteenthProportional = valueCurrentTotal + valueNextYear;
-             thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(endOfYear)} + ${formatDate(startNextYear)} a ${formatDate(projectedEndDate)}`;
+      thirteenthMonths = avosCurrentTotal + avosNextYear;
+      thirteenthProportional = valueCurrentTotal + valueNextYear;
+      thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(endOfYear)} + ${formatDate(startNextYear)} a ${formatDate(projectedEndDate)}`;
 
-             if (data.thirteenthAdvancePaid) {
-                 thirteenthAdvanceDeduction = valueCurrentTotal / 2;
-             }
-      } else {
-         const effectiveEnd13 = (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified') ? projectedEndDate : end;
-         thirteenthMonths = calculateAvos(start13Current, effectiveEnd13);
-         thirteenthProportional = (remunerationBase / 12) * thirteenthMonths;
-         thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(effectiveEnd13)}`;
-
-         if (data.thirteenthAdvancePaid) {
-             thirteenthAdvanceDeduction = thirteenthProportional / 2;
-         }
+      if (data.thirteenthAdvancePaid) {
+        thirteenthAdvanceDeduction = valueCurrentTotal / 2;
       }
+    } else {
+      const effectiveEnd13 = (data.reason === 'dismissal_no_cause' && data.noticeStatus === 'indemnified') ? projectedEndDate : end;
+      thirteenthMonths = calculateAvos(start13Current, effectiveEnd13);
+      thirteenthProportional = (remunerationBase / 12) * thirteenthMonths;
+      thirteenthPeriodLabel = `${formatDate(start13Current)} a ${formatDate(effectiveEnd13)}`;
+
+      if (data.thirteenthAdvancePaid) {
+        thirteenthAdvanceDeduction = thirteenthProportional / 2;
+      }
+    }
   }
 
-  // Férias
+  // ========== FÉRIAS ==========
   let vestingStart = new Date(start);
   vestingStart.setHours(12, 0, 0, 0);
   vestingStart.setFullYear(projectedEndDate.getFullYear());
@@ -425,7 +453,7 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
     vestingStart.setFullYear(projectedEndDate.getFullYear() - 1);
   }
   if (vestingStart < start) {
-      vestingStart = new Date(start);
+    vestingStart = new Date(start);
   }
 
   const vacationMonths = calculateAvos(vestingStart, projectedEndDate);
@@ -438,45 +466,62 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   const vacationThird = (vacationProportional + vacationExpired) / 3;
   const vacationTotal = vacationProportional + vacationExpired + vacationThird;
 
-  // FGTS
+  // ========== FGTS ==========
   const totalMonthsWorked = Math.floor(diffDaysTotal / 30);
   const estimatedFgtsBalance = Number(((remunerationBase * 0.08) * totalMonthsWorked).toFixed(2));
 
-  let fgtsFine = 0;
+  let fgtsFineRate = 0;
   if (data.reason === 'dismissal_no_cause') {
-     fgtsFine = estimatedFgtsBalance * 0.40;
+    fgtsFineRate = 0.40; // 40%
+  } else if (data.reason === 'agreement') {
+    fgtsFineRate = 0.20; // Art. 484-A CLT: 20%
   }
+  // Justa causa e pedido de demissão: 0%
+
+  const fgtsFine = estimatedFgtsBalance * fgtsFineRate;
   const totalFgtsFromJob = Number((estimatedFgtsBalance + fgtsFine).toFixed(2));
 
-  // --- CÁLCULO TRIBUTÁRIO UNIFICADO ---
+  // ========== CÁLCULO TRIBUTÁRIO — CORRETO ==========
+  // Regra: IR e INSS somente sobre VERBAS SALARIAIS
+  //   - Saldo de salário: INSS e IRPF normais
+  //   - 13º proporcional: INSS e IRPF em separado (tabela própria)
+  //   - Aviso prévio INDENIZADO: ISENTO de IR e INSS
+  //   - Férias proporcionais/vencidas + 1/3: ISENTOS de IR (Súmula 386 STJ)
+  //     Férias indenizadas também ISENTAS de INSS
 
-  // 1. INSS (Calculado separadamente mas somado para exibição)
-  const salaryBaseForInss = balanceSalary + extrasBreakdown.total;
-  const inssSalary = calculateInssOnly(salaryBaseForInss);
+  // 1. INSS sobre Saldo de Salário
+  const inssSalary = calculateInssOnly(balanceSalary);
+
+  // 2. INSS sobre 13º Proporcional (tabela própria, separado)
   const inss13 = calculateInssOnly(thirteenthProportional);
+
   const totalInss = inssSalary + inss13;
 
-  // 2. IRPF UNIFICADO
-  // SOMA DE TODOS OS POSITIVOS:
-  const totalGross = balanceSalary + extrasBreakdown.total + noticeWarning + vacationTotal + thirteenthProportional;
-
-  // Base de Cálculo = Total Bruto - INSS - Dependentes
+  // 3. IRPF sobre Saldo de Salário
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
 
-  // IRPF Base Unificada
-  const irUnifiedBase = Math.max(0, totalGross - totalInss - deductionVal);
+  const irBaseSalary = Math.max(0, balanceSalary - inssSalary - deductionVal);
+  const irSalary = calculateIrpfOnly(irBaseSalary, balanceSalary);
 
-  // Aplica a tabela progressiva sobre o montante total
-  const unifiedIrpf = calculateIrpfOnly(irUnifiedBase, totalGross);
-  const discountIr = unifiedIrpf;
+  // 4. IRPF sobre 13º Proporcional (tabela própria, separado)
+  const irBase13 = Math.max(0, thirteenthProportional - inss13 - deductionVal);
+  const ir13 = calculateIrpfOnly(irBase13, thirteenthProportional);
 
-  // Outras deduções
+  // 5. Férias na rescisão = ISENTAS de IR
+  const irVacation = 0;
+
+  const discountIr = irSalary + ir13 + irVacation;
+
+  // ========== TOTAL BRUTO (todos os proventos) ==========
+  const totalGross = balanceSalary + noticeWarning + vacationTotal + thirteenthProportional;
+
+  // ========== TOTAL DESCONTOS ==========
   const totalDiscounts = totalInss + discountIr + noticeDeduction + thirteenthAdvanceDeduction;
 
   const totalNetBase = totalGross - totalDiscounts;
-  const totalNet = Math.max(0, Number(totalNetBase.toFixed(2))); // Previne negativo na base
+  const totalNet = Math.max(0, Number(totalNetBase.toFixed(2)));
 
-  // --- CONSIGNADO NA RESCISÃO ---
+  // ========== CONSIGNADO NA RESCISÃO ==========
   let maxConsignableMargin = 0;
   let consignedDiscount = 0;
   let remainingLoanBalance = 0;
@@ -490,71 +535,71 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
 
   if (data.includeConsigned && data.consigned && data.consigned.outstandingBalance > 0) {
 
-      // 1. Desconto no TRCT (Verbas Rescisórias)
-      maxConsignableMargin = Number((totalNet * 0.35).toFixed(2));
+    // 1. Desconto no TRCT (Verbas Rescisórias)
+    maxConsignableMargin = Number((totalNet * 0.35).toFixed(2));
 
-      const amountToDeductTRCT = Math.min(
-          data.consigned.outstandingBalance,
-          maxConsignableMargin,
-          totalNet
-      );
+    const amountToDeductTRCT = Math.min(
+      data.consigned.outstandingBalance,
+      maxConsignableMargin,
+      totalNet
+    );
 
-      consignedDiscount = Number(amountToDeductTRCT.toFixed(2));
-      availableConsignableMargin = Math.max(0, roundHelper(maxConsignableMargin - consignedDiscount));
-      cardMargin = roundHelper(totalNet * 0.05);
+    consignedDiscount = Number(amountToDeductTRCT.toFixed(2));
+    availableConsignableMargin = Math.max(0, roundHelper(maxConsignableMargin - consignedDiscount));
+    cardMargin = roundHelper(totalNet * 0.05);
 
-      remainingLoanBalance = Number((data.consigned.outstandingBalance - consignedDiscount).toFixed(2));
+    remainingLoanBalance = Number((data.consigned.outstandingBalance - consignedDiscount).toFixed(2));
 
-      const finalNetCalc = totalNet - consignedDiscount;
-      finalNetTermination = Math.max(0, Number(finalNetCalc.toFixed(2)));
+    const finalNetCalc = totalNet - consignedDiscount;
+    finalNetTermination = Math.max(0, Number(finalNetCalc.toFixed(2)));
 
-      // 2. Garantia de FGTS
-      if (remainingLoanBalance > 0 && data.consigned.hasFgtsWarranty) {
+    // 2. Garantia de FGTS
+    if (remainingLoanBalance > 0 && data.consigned.hasFgtsWarranty) {
 
-          const totalFgtsBalanceForWarranty = (data.consigned.fgtsBalance && data.consigned.fgtsBalance > 0)
-                                              ? data.consigned.fgtsBalance
-                                              : estimatedFgtsBalance;
+      const totalFgtsBalanceForWarranty = (data.consigned.fgtsBalance && data.consigned.fgtsBalance > 0)
+        ? data.consigned.fgtsBalance
+        : estimatedFgtsBalance;
 
-          const warrantyValue = Number((totalFgtsBalanceForWarranty * 0.10).toFixed(2));
+      const warrantyValue = Number((totalFgtsBalanceForWarranty * 0.10).toFixed(2));
 
-          let availableWarranty = 0;
-          let availableFine = 0;
+      let availableWarranty = 0;
+      let availableFine = 0;
 
-          switch (data.reason) {
-            case 'dismissal_no_cause':
-              availableWarranty = warrantyValue;
-              availableFine = fgtsFine;
-              break;
+      switch (data.reason) {
+        case 'dismissal_no_cause':
+          availableWarranty = warrantyValue;
+          availableFine = fgtsFine;
+          break;
 
-            case 'resignation':
-            case 'agreement':
-              availableWarranty = warrantyValue;
-              availableFine = 0;
-              break;
+        case 'resignation':
+        case 'agreement':
+          availableWarranty = warrantyValue;
+          availableFine = 0;
+          break;
 
-            case 'dismissal_cause':
-              availableWarranty = 0;
-              availableFine = 0;
-              break;
-          }
-
-          if (remainingLoanBalance > 0 && availableWarranty > 0) {
-            const usage = Math.min(remainingLoanBalance, availableWarranty);
-            warrantyUsed = Number(usage.toFixed(2));
-            remainingLoanBalance = Number((remainingLoanBalance - warrantyUsed).toFixed(2));
-          }
-
-          if (remainingLoanBalance > 0 && availableFine > 0) {
-            const usage = Math.min(remainingLoanBalance, availableFine);
-            fineUsed = Number(usage.toFixed(2));
-            remainingLoanBalance = Number((remainingLoanBalance - fineUsed).toFixed(2));
-          }
-
-          totalFgtsDeduction = Number((warrantyUsed + fineUsed).toFixed(2));
-
-          const visualDeduction = Math.min(totalFgtsDeduction, finalFgtsToWithdraw);
-          finalFgtsToWithdraw = Number((finalFgtsToWithdraw - visualDeduction).toFixed(2));
+        case 'dismissal_cause':
+          availableWarranty = 0;
+          availableFine = 0;
+          break;
       }
+
+      if (remainingLoanBalance > 0 && availableWarranty > 0) {
+        const usage = Math.min(remainingLoanBalance, availableWarranty);
+        warrantyUsed = Number(usage.toFixed(2));
+        remainingLoanBalance = Number((remainingLoanBalance - warrantyUsed).toFixed(2));
+      }
+
+      if (remainingLoanBalance > 0 && availableFine > 0) {
+        const usage = Math.min(remainingLoanBalance, availableFine);
+        fineUsed = Number(usage.toFixed(2));
+        remainingLoanBalance = Number((remainingLoanBalance - fineUsed).toFixed(2));
+      }
+
+      totalFgtsDeduction = Number((warrantyUsed + fineUsed).toFixed(2));
+
+      const visualDeduction = Math.min(totalFgtsDeduction, finalFgtsToWithdraw);
+      finalFgtsToWithdraw = Number((finalFgtsToWithdraw - visualDeduction).toFixed(2));
+    }
   }
 
   return {
@@ -576,13 +621,13 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
     totalGross: Number(totalGross.toFixed(2)),
     totalExtrasAverage: Number(extrasBreakdown.total.toFixed(2)),
     extrasBreakdown,
-    discountInss: Number(totalInss.toFixed(2)), // INSS Totalizado
-    discountIr: Number(discountIr.toFixed(2)),    // IR Unificado
+    discountInss: Number(totalInss.toFixed(2)),
+    discountIr: Number(discountIr.toFixed(2)),
     irBreakdown: {
-        salary: 0,
-        thirteenth: 0,
-        vacation: 0,
-        total: Number(discountIr.toFixed(2))
+      salary: Number(irSalary.toFixed(2)),
+      thirteenth: Number(ir13.toFixed(2)),
+      vacation: 0, // Férias na rescisão são ISENTAS de IR
+      total: Number(discountIr.toFixed(2))
     },
     totalDiscounts: Number(totalDiscounts.toFixed(2)),
     totalNet: Number(totalNet.toFixed(2)),
@@ -599,6 +644,9 @@ export const calculateTermination = (data: TerminationInput): TerminationResult 
   };
 };
 
+// ============================================================================
+// FÉRIAS — CORRIGIDO
+// ============================================================================
 export const calculateVacation = (data: VacationInput): VacationResult => {
   let extrasBreakdown: ExtrasBreakdown = { value50: 0, value100: 0, valueNight: 0, valueStandby: 0, valueInterjornada: 0, valueDsr: 0, total: 0 };
 
@@ -624,19 +672,23 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   }
 
   const totalGross = vacationGross + vacationThird + allowanceGross + allowanceThird + advanceThirteenth;
+
+  // Base tributável para INSS e IRPF = SOMENTE férias gozadas + 1/3
+  // Abono pecuniário e 1/3 do abono são ISENTOS de INSS e IR
+  // Adiantamento de 13º também é calculado separadamente (sem desconto aqui)
   const taxableBase = vacationGross + vacationThird;
 
   const discountInss = calculateInssOnly(taxableBase);
 
-  // Base IR Férias: Bruto - INSS - Dependentes
+  // Base IR Férias: base tributável - INSS - Dependentes
   const deductionVal = data.includeDependents ? (data.dependents * DEDUCTION_PER_DEPENDENT) : 0;
   const irBase = Math.max(0, taxableBase - discountInss - deductionVal);
 
-  const discountIr = calculateIrpfOnly(irBase, totalGross);
+  // grossForTransition = base tributável das férias (não o totalGross)
+  const discountIr = calculateIrpfOnly(irBase, taxableBase);
 
   const totalDiscounts = discountInss + discountIr;
 
-  // Prevenir negativo
   const totalNetBase = totalGross - totalDiscounts;
   const totalNet = Math.max(0, Number(totalNetBase.toFixed(2)));
 
@@ -666,93 +718,72 @@ export const calculateVacation = (data: VacationInput): VacationResult => {
   };
 };
 
-// --- IRPF SIMULATOR (DETAILED) ---
+// ============================================================================
+// SIMULADOR IRPF DETALHADO
+// ============================================================================
 export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
   const { grossIncome, dependents, alimony, otherDeductions, officialPension } = data;
 
   // 1. INSS
   let inssValue = officialPension;
   if (inssValue <= 0) {
-      inssValue = calculateInssOnly(grossIncome);
+    inssValue = calculateInssOnly(grossIncome);
   }
 
   // 2. Base Legal (Deduções Legais)
   const dependentsValue = dependents * DEDUCTION_PER_DEPENDENT;
   const legalBase = Math.max(0, grossIncome - inssValue - dependentsValue - alimony - otherDeductions);
 
-  // 3. Base Simplificada (R$ 564,80)
-  // Regra: Base = Gross - (INSS?) - 564,80 ?
-  // NÃO. A regra é: Base = Gross - INSS - 564,80 (substitui DEDUÇÕES, não o INSS).
-  // Conferindo Gov.br:
-  // "Opção pelo desconto simplificado: Substitui todas as deduções legais (dependentes, despesas médicas, etc), correspondente a 25% da faixa de isenção."
-  // O INSS é uma dedução legal? Sim. Mas geralmente o simplificado é "em substituição às deduções legais".
-  // A Receita diz: "Desconto Simplificado Mensal: R$ 564,80. (25% de R$ 2.259,20)".
-  // Se o desconto simplificado for maior que (INSS + Dep + Outras), usa-se ele.
-  // Logo: BaseSimplificada = Gross - 564,80. (O INSS entra na comparação como dedução).
-
+  // 3. Base Simplificada
   const simplifiedDiscount = SIMPLIFIED_DISCOUNT_VALUE;
-  // Comparação de Deduções:
   const totalLegalDeductions = inssValue + dependentsValue + alimony + otherDeductions;
 
   const isSimplifiedBest = simplifiedDiscount > totalLegalDeductions;
 
-  // Se Simplificado for melhor, a Base é Gross - 564,80.
-  // Se Legal for melhor, a Base é Gross - INSS - Dep - Outras.
-
   const appliedBase = isSimplifiedBest
-      ? Math.max(0, grossIncome - simplifiedDiscount)
-      : legalBase;
+    ? Math.max(0, grossIncome - simplifiedDiscount)
+    : legalBase;
 
   // 4. Calcular Imposto sobre a Base Escolhida
-  let taxValue = 0;
   const bracketsBreakdown = [];
 
-  let tempBase = appliedBase;
-
   // Bracket 1 (Isento)
-  const b1 = IRPF_BRACKETS[0]; // limit: 2259.20, rate: 0
+  const b1 = IRPF_BRACKETS[0];
   const range1 = b1.limit || 0;
   bracketsBreakdown.push({ limit: range1, rate: 0, tax: 0 });
 
-  // Demais brackets
-  // Vamos re-calcular "na mão" para ter o breakdown exato de cada faixa
-  // em vez de usar a formula "dedução".
-  // Mas para o valor final, usaremos a formula de dedução para garantir precisão.
-
-  // Cálculo exato usando Dedução (Mais seguro)
+  // Cálculo usando Dedução
   let exactTax = 0;
   let deductibleAmount = 0;
 
   for (const bracket of IRPF_BRACKETS) {
-       if (appliedBase <= bracket.limit) {
-           exactTax = (appliedBase * bracket.rate) - bracket.deduction;
-           deductibleAmount = bracket.deduction;
-           break;
-       }
-       if (bracket.limit === Infinity) {
-            exactTax = (appliedBase * bracket.rate) - bracket.deduction;
-            deductibleAmount = bracket.deduction;
-            break; // ultimo
-       }
+    if (appliedBase <= bracket.limit) {
+      exactTax = (appliedBase * bracket.rate) - bracket.deduction;
+      deductibleAmount = bracket.deduction;
+      break;
+    }
+    if (bracket.limit === Infinity) {
+      exactTax = (appliedBase * bracket.rate) - bracket.deduction;
+      deductibleAmount = bracket.deduction;
+      break;
+    }
   }
 
-  // Regra de transição 2026 (Linear 5k - 7.35k)
-  // Se estiver nessa faixa e for mais vantajoso, a lei aplica.
-  // Porem o simulador oficial geralmente mostra a tabela progressiva padrão.
-  // Vamos manter a lógica padrão.
+  let taxValue = exactTax;
 
-  taxValue = exactTax;
+  // Regra de transição 2026 (Lei 15.270 / MP 1.206)
+  if (grossIncome > IR_TRANSITION_FLOOR && grossIncome <= IR_TRANSITION_CEILING) {
+    const excess = grossIncome - IR_TRANSITION_FLOOR;
+    const transitionTax = excess * IR_TRANSITION_RATE;
 
-  // 4b. Regra de transição 2026 (Lei 15.270 / MP 1.206)
-  // Para rendimentos brutos entre R$ 5.000,01 e R$ 7.350,00 vigora uma alíquota linear simplificada.
-  if (grossIncome > 5000.00 && grossIncome <= 7350.00) {
-      const excess = grossIncome - 5000.00;
-      const transitionTax = excess * 0.3581;
+    if (transitionTax < taxValue) {
+      taxValue = transitionTax;
+    }
+  }
 
-      // Se a transição for mais benéfica que a tabela progressiva (o que é a regra), aplicamos.
-      if (transitionTax < taxValue) {
-          taxValue = transitionTax;
-      }
+  // Isenção total para quem ganha até 5k
+  if (grossIncome <= IR_TRANSITION_FLOOR) {
+    taxValue = 0;
   }
 
   taxValue = Math.max(0, taxValue);
@@ -776,24 +807,24 @@ export const calculateIrpfSimulated = (data: IrpfInput): IrpfResult => {
   };
 };
 
-// --- PJ CALCULATOR (AUTOMATIC TAX 2026) ---
+// ============================================================================
+// PJ CALCULATOR (2026)
+// ============================================================================
 export const calculatePjTax = (data: PjInput): PjResult => {
   const { grossMonthly, regime, accountantCost, otherMonthlyExpenses, vacationDaysTarget } = data;
 
   let taxRate = 0;
   let regimeLabel = '';
 
-  // Projeção baseada em faturamento ANUAL para Simples Nacional
   const annualGrossProjected = grossMonthly * 12;
 
   switch (regime) {
     case 'mei':
-      taxRate = 0; // Fixado por valor
+      taxRate = 0;
       regimeLabel = 'MEI (Microempreendedor Individual)';
       break;
 
     case 'simples_nacional_3':
-      // Faixas básicas Anexo III 2026
       if (annualGrossProjected <= 180000) taxRate = 6.0;
       else if (annualGrossProjected <= 360000) taxRate = 8.2;
       else if (annualGrossProjected <= 720000) taxRate = 10.5;
@@ -802,7 +833,6 @@ export const calculatePjTax = (data: PjInput): PjResult => {
       break;
 
     case 'simples_nacional_5':
-      // Faixas básicas Anexo V 2026
       if (annualGrossProjected <= 180000) taxRate = 15.5;
       else if (annualGrossProjected <= 360000) taxRate = 18.0;
       else taxRate = 19.5;
@@ -810,30 +840,27 @@ export const calculatePjTax = (data: PjInput): PjResult => {
       break;
 
     case 'lucro_presumido':
-      taxRate = 14.33; // Média padrão (ISS + PIS/COFINS + IRPJ/CSLL)
+      taxRate = 14.33;
       regimeLabel = 'Lucro Presumido';
       break;
   }
 
   let taxValueMonthly = 0;
   if (regime === 'mei') {
-      // MEI 2026 Estimado (5% min wage + ISS/ICMS) -> Salário min ~R$ 1570
-      taxValueMonthly = 85.00;
-      taxRate = (taxValueMonthly / (grossMonthly || 1)) * 100;
+    taxValueMonthly = 85.00;
+    taxRate = (taxValueMonthly / (grossMonthly || 1)) * 100;
   } else {
-      taxValueMonthly = grossMonthly * (taxRate / 100);
+    taxValueMonthly = grossMonthly * (taxRate / 100);
   }
 
   const totalMonthlyExpenses = accountantCost + otherMonthlyExpenses;
   const netMonthly = Math.max(0, grossMonthly - taxValueMonthly - totalMonthlyExpenses);
 
-  // CÁLCULO ANUAL: Considera que o PJ geralmente não fatura nos dias de férias
-  // Meses trabalhados efetivamente: (360 - vacationDays) / 30
   const monthsOfIncome = Math.max(0, (360 - (vacationDaysTarget || 0)) / 30);
 
   const annualGross = grossMonthly * monthsOfIncome;
   const annualTax = taxValueMonthly * monthsOfIncome;
-  const annualExpenses = totalMonthlyExpenses * 12; // Despesas fixas costumam correr o ano todo
+  const annualExpenses = totalMonthlyExpenses * 12;
 
   const annualNet = Math.max(0, annualGross - annualTax - annualExpenses);
   const monthlyAverageReal = annualNet / 12;
@@ -851,27 +878,22 @@ export const calculatePjTax = (data: PjInput): PjResult => {
   };
 };
 
-// --- EMPLOYER COST CALCULATOR (NEGOTIATION POWER) ---
+// ============================================================================
+// EMPLOYER COST CALCULATOR
+// ============================================================================
 export const calculateEmployerCost = (grossSalary: number, regime: 'simples' | 'lucro_real_presumido' = 'lucro_real_presumido'): EmployerCost => {
-  // 1. INSS Patronal (20% se não for Simples Nacional ou se for Anexo IV)
   const inssRate = regime === 'simples' ? 0 : 0.20;
   const inssPatronal = grossSalary * inssRate;
 
-  // 2. FGTS (8%)
   const fgts = grossSalary * 0.08;
 
-  // 3. RAT (Risco Ambiental do Trabalho - Médio 2%)
   const ratRate = regime === 'simples' ? 0 : 0.02;
   const rat = grossSalary * ratRate;
 
-  // 4. Terceiros (Sistema S - Médio 5.8%)
   const terceirosRate = regime === 'simples' ? 0 : 0.058;
   const terceiros = grossSalary * terceirosRate;
 
-  // 5. Provisões (13º e Férias + 1/3)
-  // 13º: 1/12 ≈ 8.33%
-  // Férias + 1/3: (1 + 1/3) / 12 = 1.33 / 12 ≈ 11.11%
-  const provision13th = grossSalary * (1/12);
+  const provision13th = grossSalary * (1 / 12);
   const provisionVacation = grossSalary * (1.333333 / 12);
 
   const totalCostMonthly = grossSalary + inssPatronal + fgts + rat + terceiros + provision13th + provisionVacation;

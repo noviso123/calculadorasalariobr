@@ -42,7 +42,7 @@ const AIAdvisor: React.FC<Props> = ({ context }) => {
                 <h3 className="text-xl font-black text-slate-800 tracking-tight">Estratégia do Especialista</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Atualizado: Fev 2026</span>
+                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Atualizado: {new Date().toLocaleString('pt-BR', { month: 'short', year: 'numeric' })}</span>
                 </div>
             </div>
         </div>

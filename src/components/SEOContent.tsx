@@ -77,7 +77,7 @@ const SEOContent: React.FC<Props> = ({ view }) => {
   const getFaqSchema = () => {
     const questions = {
       salary: [
-        { q: "Como funciona o salário líquido em 2026?", a: "O salário líquido é o valor que o trabalhador recebe após descontos de INSS e IRPF, seguindo a nova tabela de isenção de 5k de 2026." },
+        { q: "Quais as verbas no Acordo Comum (Art. 484-A)?", a: "No acordo consensual, o trabalhador recebe 50% do aviso prévio (se indenizado) e 20% da multa do FGTS, além de poder sacar 80% do saldo." },
         { q: "Qual a isenção do IRPF 2026?", a: "Para 2026, rendimentos até o limite estipulado pela nova tabela (aprox. 5 mil reais considerando o desconto simplificado) são isentos de imposto de renda." }
       ],
       vacation: [

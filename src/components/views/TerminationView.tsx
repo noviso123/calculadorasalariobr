@@ -140,7 +140,7 @@ const TerminationView: React.FC = () => {
                      <option value="dismissal_no_cause">Demissão sem Justa Causa</option>
                      <option value="dismissal_cause">Demissão por Justa Causa</option>
                      <option value="resignation">Pedido de Demissão</option>
-                     <option value="agreement">Acordo (Culpa Recíproca)</option>
+                     <option value="agreement">Acordo Comum (Art. 484-A)</option>
                   </select>
                </div>
 

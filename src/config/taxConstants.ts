@@ -20,3 +20,8 @@ export const IRPF_BRACKETS = [
 export const SIMPLIFIED_DISCOUNT_VALUE = 564.80;
 
 export const INSS_CEILING = 8475.55;
+
+// Regra de Transição IR 2026 (Lei 15.270 / MP 1.206)
+export const IR_TRANSITION_FLOOR = 5000.00;
+export const IR_TRANSITION_CEILING = 7350.00;
+export const IR_TRANSITION_RATE = 0.3581;
